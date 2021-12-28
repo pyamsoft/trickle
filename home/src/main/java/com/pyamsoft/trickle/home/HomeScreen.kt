@@ -378,7 +378,7 @@ private fun GoToSettings(
     }
 
     AnimatedVisibility(
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
         visible = isVisible,
     ) {
       Column(
