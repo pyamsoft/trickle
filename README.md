@@ -1,6 +1,6 @@
 # trickle
 
-Make your device sip only small amounts of battery when not in use.
+Automatic power-saving mode
 
 [![Get it on Google Play](https://raw.githubusercontent.com/pyamsoft/trickle/main/art/google-play-badge.png)][1]
 
