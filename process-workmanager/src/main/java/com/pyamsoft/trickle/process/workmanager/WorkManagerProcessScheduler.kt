@@ -10,7 +10,9 @@ import androidx.work.WorkRequest
 import androidx.work.Worker
 import com.google.common.util.concurrent.ListenableFuture
 import com.pyamsoft.pydroid.core.Enforcer
+import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.ProcessScheduler
+import com.pyamsoft.trickle.process.permission.PermissionChecker
 import com.pyamsoft.trickle.process.workmanager.worker.PowerSavingWorker
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
@@ -30,6 +32,8 @@ internal class WorkManagerProcessScheduler
 @Inject
 internal constructor(
     private val context: Context,
+    private val powerPreferences: PowerPreferences,
+    private val permissionChecker: PermissionChecker,
 ) : ProcessScheduler {
 
   @CheckResult
@@ -40,6 +44,17 @@ internal constructor(
 
   private suspend fun queuePowerSaving(enable: Boolean) {
     Enforcer.assertOffMainThread()
+
+    if (!powerPreferences.isPowerSavingEnabled()) {
+      Timber.w("Power saving is disabled, do not queue work")
+      return
+    }
+
+    if (!permissionChecker.hasSecureSettingsPermission()) {
+      Timber.w("Do not attempt any power related work without WRITE_SECURE_SETTINGS permission")
+      // Can't do anything
+      return
+    }
 
     val tag = POWER_SAVING_TAG
     cancelPowerSaving()

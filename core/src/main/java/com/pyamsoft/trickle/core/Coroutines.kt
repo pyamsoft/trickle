@@ -1,4 +1,4 @@
-package com.pyamsoft.trickle.process.workmanager
+package com.pyamsoft.trickle.core
 
 import kotlinx.coroutines.CancellationException
 

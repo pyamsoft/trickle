@@ -10,6 +10,7 @@ import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.ui.ModuleProvider
 import com.pyamsoft.pydroid.ui.PYDroid
 import com.pyamsoft.pydroid.util.isDebugMode
+import com.pyamsoft.trickle.process.ProcessComponent
 import com.pyamsoft.trickle.process.ProcessScheduler
 import com.pyamsoft.trickle.service.MonitorService
 import javax.inject.Inject
@@ -82,7 +83,19 @@ internal class Trickle : Application() {
   @CheckResult
   private fun fallbackGetSystemService(name: String): Any? {
     return if (name == TrickleComponent::class.java.name) component
-    else super.getSystemService(name)
+    else {
+      provideModuleDependencies(name) ?: super.getSystemService(name)
+    }
+  }
+
+  @CheckResult
+  private fun provideModuleDependencies(name: String): Any? {
+    return component.run {
+      when (name) {
+        ProcessComponent::class.java.name -> plusProcess()
+        else -> null
+      }
+    }
   }
 
   companion object {

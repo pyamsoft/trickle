@@ -1,6 +1,7 @@
 package com.pyamsoft.trickle.home
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -39,7 +41,9 @@ import com.google.accompanist.insets.statusBarsHeight
 @JvmOverloads
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    state: HomeViewState,
     @StringRes appNameRes: Int,
+    onTogglePowerSaving: (Boolean) -> Unit,
     onCopy: (String) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenApplicationSettings: () -> Unit,
@@ -68,8 +72,10 @@ fun HomeScreen(
       }
 
       item {
-        AdbInstructions(
+        ServiceSettings(
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            state = state,
+            onTogglePowerSaving = onTogglePowerSaving,
             onCopy = onCopy,
         )
       }
@@ -116,6 +122,55 @@ private fun Header(
           contentDescription = "Open Settings",
       )
     }
+  }
+}
+
+@Composable
+private fun ServiceSettings(
+    modifier: Modifier = Modifier,
+    state: HomeViewState,
+    onCopy: (String) -> Unit,
+    onTogglePowerSaving: (Boolean) -> Unit,
+) {
+  val hasPermission = state.hasPermission
+  val isPowerSaving = state.isPowerSaving
+  Crossfade(modifier = modifier, targetState = hasPermission) { hasPerm ->
+    if (hasPerm) {
+      PowerSavingSettings(
+          modifier = Modifier.fillMaxWidth(),
+          isPowerSaving = isPowerSaving,
+          onTogglePowerSaving = onTogglePowerSaving,
+      )
+    } else {
+      AdbInstructions(
+          modifier = Modifier.fillMaxWidth(),
+          onCopy = onCopy,
+      )
+    }
+  }
+}
+
+@Composable
+private fun PowerSavingSettings(
+    modifier: Modifier = Modifier,
+    isPowerSaving: Boolean,
+    onTogglePowerSaving: (Boolean) -> Unit,
+) {
+  Row(
+      modifier = modifier,
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text(
+        modifier = Modifier.weight(1F),
+        text = "Automatically enter power-saving mode when screen is off",
+        style = MaterialTheme.typography.body2,
+    )
+
+    Switch(
+        modifier = Modifier.padding(start = 16.dp),
+        checked = isPowerSaving,
+        onCheckedChange = onTogglePowerSaving,
+    )
   }
 }
 
@@ -198,7 +253,9 @@ private fun GoToSettings(
 @Composable
 private fun PreviewHomeScreen() {
   HomeScreen(
+      state = MutableHomeViewState(),
       appNameRes = 0,
+      onTogglePowerSaving = {},
       onOpenBatterySettings = {},
       onOpenApplicationSettings = {},
       onCopy = {},

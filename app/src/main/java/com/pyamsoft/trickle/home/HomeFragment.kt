@@ -30,6 +30,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.ViewWindowInsetObserver
 import com.pyamsoft.pydroid.core.requireNotNull
@@ -49,6 +50,7 @@ import timber.log.Timber
 class HomeFragment : Fragment() {
 
   @JvmField @Inject internal var theming: Theming? = null
+  @JvmField @Inject internal var viewModel: HomeViewModeler? = null
 
   private var windowInsetObserver: ViewWindowInsetObserver? = null
 
@@ -77,12 +79,25 @@ class HomeFragment : Fragment() {
     }
   }
 
+  private fun handleSyncPermissionState() {
+    viewModel.requireNotNull().handleSync(scope = viewLifecycleOwner.lifecycleScope) {
+      MonitorService.start(requireActivity())
+    }
+  }
+
   private fun handleCopyCommand(command: String) {
     HomeCopyCommand.copyCommandToClipboard(
         requireActivity(),
         "ADB Command",
         command,
     )
+  }
+
+  private fun handleTogglePowerSaving(enabled: Boolean) {
+    viewModel.requireNotNull().handleSetPowerSavingEnabled(
+            scope = viewLifecycleOwner.lifecycleScope,
+            enabled = enabled,
+        ) { MonitorService.start(requireActivity()) }
   }
 
   override fun onCreateView(
@@ -94,6 +109,7 @@ class HomeFragment : Fragment() {
     Injector.obtainFromActivity<MainComponent>(act).plusHome().create().inject(this)
 
     val themeProvider = ThemeProvider { theming.requireNotNull().isDarkTheme(act) }
+    val vm = viewModel.requireNotNull()
     return ComposeView(act).apply {
       id = R.id.screen_home
 
@@ -102,15 +118,19 @@ class HomeFragment : Fragment() {
       windowInsetObserver = observer
 
       setContent {
-        TrickleTheme(themeProvider) {
-          CompositionLocalProvider(LocalWindowInsets provides windowInsets) {
-            HomeScreen(
-                modifier = Modifier.fillMaxSize(),
-                appNameRes = R.string.app_name,
-                onCopy = { handleCopyCommand(it) },
-                onOpenBatterySettings = { handleOpenSystemSettings() },
-                onOpenApplicationSettings = { handleOpenApplicationSettings() },
-            )
+        vm.Render { state ->
+          TrickleTheme(themeProvider) {
+            CompositionLocalProvider(LocalWindowInsets provides windowInsets) {
+              HomeScreen(
+                  modifier = Modifier.fillMaxSize(),
+                  state = state,
+                  appNameRes = R.string.app_name,
+                  onCopy = { handleCopyCommand(it) },
+                  onOpenBatterySettings = { handleOpenSystemSettings() },
+                  onOpenApplicationSettings = { handleOpenApplicationSettings() },
+                  onTogglePowerSaving = { handleTogglePowerSaving(it) },
+              )
+            }
           }
         }
       }
@@ -119,7 +139,18 @@ class HomeFragment : Fragment() {
 
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
-    MonitorService.start(view.context)
+
+    viewModel.requireNotNull().restoreState(savedInstanceState)
+  }
+
+  override fun onResume() {
+    super.onResume()
+    handleSyncPermissionState()
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
+    viewModel?.saveState(outState)
   }
 
   override fun onConfigurationChanged(newConfig: Configuration) {
@@ -135,6 +166,7 @@ class HomeFragment : Fragment() {
     windowInsetObserver = null
 
     theming = null
+    viewModel = null
   }
 
   companion object {

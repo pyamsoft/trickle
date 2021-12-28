@@ -6,6 +6,7 @@ import android.app.NotificationChannel
 import android.app.NotificationChannelGroup
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -32,6 +33,7 @@ internal constructor(
     @StringRes @Named("app_name") private val appNameRes: Int,
     @DrawableRes @Named("app_icon") private val smallNotificationIcon: Int,
     private val activityClass: Class<out Activity>,
+    private val serviceClass: Class<out Service>,
 ) : NotifyDispatcher<ServiceDispatcher.Data> {
 
   private val channelCreator by lazy {
@@ -81,6 +83,45 @@ internal constructor(
   }
 
   @CheckResult
+  private fun getServicePendingIntent(
+      requestCode: Int,
+      options: PendingIntentOptions
+  ): PendingIntent {
+    val appContext = context.applicationContext
+    val serviceIntent =
+        Intent(appContext, serviceClass).apply {
+          putExtra(ServiceLauncher.KEY_TOGGLE_POWER_SAVING, options.togglePowerSaving)
+        }
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      PendingIntent.getForegroundService(
+          appContext,
+          requestCode,
+          serviceIntent,
+          PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+      )
+    } else {
+      PendingIntent.getService(
+          appContext,
+          requestCode,
+          serviceIntent,
+          PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+      )
+    }
+  }
+
+  @CheckResult
+  private fun generateNotificationAction(
+      name: String,
+      intent: PendingIntent
+  ): NotificationCompat.Action {
+    return NotificationCompat.Action.Builder(0, name, intent)
+        .setAllowGeneratedReplies(false)
+        .setShowsUserInterface(false)
+        .setContextual(false)
+        .build()
+  }
+
+  @CheckResult
   private fun createNotificationBuilder(
       channelInfo: NotifyChannelInfo
   ): NotificationCompat.Builder {
@@ -94,12 +135,33 @@ internal constructor(
   }
 
   @CheckResult
-  private fun hydrateNotification(channelInfo: NotifyChannelInfo): Notification {
+  private fun hydrateNotification(
+      channelInfo: NotifyChannelInfo,
+      isPowerSavingEnabled: Boolean?,
+  ): Notification {
     guaranteeNotificationChannelExists(channelInfo)
 
-    return createNotificationBuilder(channelInfo)
-        .setContentTitle(context.getString(appNameRes))
-        .setContentText("Monitoring")
+    val builder =
+        createNotificationBuilder(channelInfo).setContentTitle(context.getString(appNameRes))
+
+    if (isPowerSavingEnabled == null) {
+      return builder.setContentText("Monitoring Power-Saving mode").build()
+    }
+
+    val currentState = if (isPowerSavingEnabled) "ENABLED" else "DISABLED"
+    val nextState = if (isPowerSavingEnabled) "Disable" else "Enable"
+    return builder
+        .setContentText("Auto Power-Saving Mode is: $currentState")
+        .addAction(
+            generateNotificationAction(
+                nextState,
+                getServicePendingIntent(
+                    REQUEST_CODE_POWER_SAVING,
+                    // Flip the setting to ensure it toggles
+                    PendingIntentOptions(togglePowerSaving = !isPowerSavingEnabled),
+                ),
+            ),
+        )
         .build()
   }
 
@@ -108,17 +170,23 @@ internal constructor(
       channelInfo: NotifyChannelInfo,
       notification: Data
   ): Notification {
-    return hydrateNotification(channelInfo)
+    return hydrateNotification(
+        channelInfo,
+        notification.isPowerSavingEnabled,
+    )
   }
 
   override fun canShow(notification: NotifyData): Boolean {
     return notification is Data
   }
 
+  private data class PendingIntentOptions(val togglePowerSaving: Boolean)
+
   companion object {
 
     private const val REQUEST_CODE_ACTIVITY = 1337420
+    private const val REQUEST_CODE_POWER_SAVING = REQUEST_CODE_ACTIVITY + 1
   }
 
-  object Data : NotifyData
+  data class Data internal constructor(val isPowerSavingEnabled: Boolean?) : NotifyData
 }

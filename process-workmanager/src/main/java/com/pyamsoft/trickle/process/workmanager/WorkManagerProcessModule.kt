@@ -6,7 +6,7 @@ import dagger.Binds
 import dagger.Module
 
 @Module
-abstract class ProcessModule {
+abstract class WorkManagerProcessModule {
 
   @Binds
   @CheckResult

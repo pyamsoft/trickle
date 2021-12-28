@@ -71,5 +71,6 @@ dependencies {
   // Dagger
   kapt "com.google.dagger:dagger-compiler:$dagger"
 
+  api project(":process")
   api project(":ui")
 }

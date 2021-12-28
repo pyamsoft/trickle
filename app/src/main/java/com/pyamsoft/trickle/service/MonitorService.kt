@@ -10,9 +10,16 @@ import com.pyamsoft.pydroid.inject.Injector
 import com.pyamsoft.trickle.TrickleComponent
 import com.pyamsoft.trickle.receiver.ScreenReceiver
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class MonitorService : Service() {
+
+  /** CoroutineScope for the Service level */
+  private val serviceScope = MainScope()
 
   private var receiver: ScreenReceiver.Unregister? = null
 
@@ -20,6 +27,30 @@ class MonitorService : Service() {
 
   private fun watchScreen() {
     receiver = receiver ?: ScreenReceiver.register(this)
+  }
+
+  private fun updatePowerSaving(intent: Intent?) {
+    serviceScope.launch(context = Dispatchers.Main) {
+      launcher.requireNotNull().also { l ->
+        updatePowerPreference(l, intent)
+        l.updateNotification()
+      }
+    }
+  }
+
+  private suspend fun updatePowerPreference(l: ServiceLauncher, intent: Intent?) {
+    // If the intent extra is passed, we can update the preference
+    if (intent == null) {
+      return
+    }
+
+    if (!intent.hasExtra(ServiceLauncher.KEY_TOGGLE_POWER_SAVING)) {
+      return
+    }
+
+    // If we fail to find it, turn off management
+    val enable = intent.getBooleanExtra(ServiceLauncher.KEY_TOGGLE_POWER_SAVING, false)
+    l.togglePowerSavingEnabled(enable)
   }
 
   override fun onBind(intent: Intent?): IBinder? {
@@ -32,11 +63,14 @@ class MonitorService : Service() {
         .plusServiceComponent()
         .create()
         .inject(this)
+
+    launcher.requireNotNull().createNotification(this)
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     watchScreen()
-    launcher.requireNotNull().createNotification(this)
+    updatePowerSaving(intent)
+
     return START_STICKY
   }
 
@@ -49,6 +83,8 @@ class MonitorService : Service() {
 
     launcher = null
     receiver = null
+
+    serviceScope.cancel()
 
     stopSelf()
   }
