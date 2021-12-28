@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.pyamsoft.pydroid.core.Enforcer
+import com.pyamsoft.pydroid.util.PreferenceListener
+import com.pyamsoft.pydroid.util.onChange
 import com.pyamsoft.trickle.process.PowerPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,6 +35,10 @@ internal constructor(
         Enforcer.assertOffMainThread()
         preferences.edit { putBoolean(KEY_POWER_SAVING_ENABLED, enable) }
       }
+
+  override fun observerPowerSavingEnabled(onChange: (Boolean) -> Unit): PreferenceListener {
+    return preferences.onChange(KEY_POWER_SAVING_ENABLED) { onChange(isPowerSavingEnabled()) }
+  }
 
   companion object {
 

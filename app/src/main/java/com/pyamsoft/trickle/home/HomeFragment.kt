@@ -39,6 +39,7 @@ import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
 import com.pyamsoft.pydroid.ui.util.dispose
 import com.pyamsoft.pydroid.ui.util.recompose
+import com.pyamsoft.pydroid.util.doOnDestroy
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.main.MainComponent
@@ -140,7 +141,13 @@ class HomeFragment : Fragment() {
   override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
     super.onViewCreated(view, savedInstanceState)
 
-    viewModel.requireNotNull().restoreState(savedInstanceState)
+    viewModel.requireNotNull().also { vm ->
+      vm.restoreState(savedInstanceState)
+
+      // Listen for changes in preferences
+      val listener = vm.handleListenForChanged()
+      viewLifecycleOwner.doOnDestroy { listener.cancel() }
+    }
   }
 
   override fun onResume() {

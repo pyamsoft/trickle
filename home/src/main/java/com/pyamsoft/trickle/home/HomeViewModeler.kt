@@ -1,8 +1,10 @@
 package com.pyamsoft.trickle.home
 
+import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.arch.AbstractViewModeler
 import com.pyamsoft.pydroid.arch.UiSavedStateReader
 import com.pyamsoft.pydroid.arch.UiSavedStateWriter
+import com.pyamsoft.pydroid.util.PreferenceListener
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.permission.PermissionChecker
 import javax.inject.Inject
@@ -24,6 +26,11 @@ internal constructor(
 
   override fun restoreState(savedInstanceState: UiSavedStateReader) {
     savedInstanceState.get<Boolean>(KEY_PERMISSION)?.also { state.hasPermission = it }
+  }
+
+  @CheckResult
+  fun handleListenForChanged(): PreferenceListener {
+    return preferences.observerPowerSavingEnabled { enabled -> state.isPowerSaving = enabled }
   }
 
   fun handleSync(
