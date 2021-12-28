@@ -22,10 +22,12 @@ internal constructor(
 
   override fun saveState(outState: UiSavedStateWriter) {
     state.hasPermission.also { outState.put(KEY_PERMISSION, it) }
+    state.isPowerSaving.also { outState.put(KEY_PREFERENCE, it) }
   }
 
   override fun restoreState(savedInstanceState: UiSavedStateReader) {
     savedInstanceState.get<Boolean>(KEY_PERMISSION)?.also { state.hasPermission = it }
+    savedInstanceState.get<Boolean>(KEY_PREFERENCE)?.also { state.isPowerSaving = it }
   }
 
   @CheckResult
@@ -61,5 +63,6 @@ internal constructor(
   companion object {
 
     private const val KEY_PERMISSION = "has_permission"
+    private const val KEY_PREFERENCE = "preference_enabled"
   }
 }
