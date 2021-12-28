@@ -87,12 +87,10 @@ internal constructor(
     return NotificationCompat.Builder(context.applicationContext, channelInfo.id)
         .setSmallIcon(smallNotificationIcon)
         .setShowWhen(false)
-        .setAutoCancel(false)
-        .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_MIN)
-        .setSilent(true)
         .setContentIntent(getActivityPendingIntent())
         .setCategory(NotificationCompat.CATEGORY_SERVICE)
+        .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_DEFERRED)
   }
 
   @CheckResult
