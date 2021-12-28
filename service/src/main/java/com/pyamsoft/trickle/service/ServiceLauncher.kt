@@ -35,7 +35,7 @@ internal constructor(
 
     private val CHANNEL_INFO =
         NotifyChannelInfo(
-            id = "channel_monitor_service",
+            id = "channel_monitor_service_v1",
             title = "Monitor Service",
             description = "Monitor device screen state",
         )

@@ -40,7 +40,8 @@ internal constructor(
 
   private fun guaranteeNotificationChannelExists(channelInfo: NotifyChannelInfo) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      val notificationGroup = NotificationChannelGroup("${channelInfo.id} Group", "${channelInfo.title} Group")
+      val notificationGroup =
+          NotificationChannelGroup("${channelInfo.id} Group", "${channelInfo.title} Group")
       val notificationChannel =
           NotificationChannel(
                   channelInfo.id,
@@ -57,6 +58,7 @@ internal constructor(
 
       Timber.d("Create notification channel and group: ${channelInfo.id} ${channelInfo.title}")
       channelCreator.apply {
+        deleteNotificationChannelGroup(channelInfo.id)
         createNotificationChannelGroup(notificationGroup)
         createNotificationChannel(notificationChannel)
       }
