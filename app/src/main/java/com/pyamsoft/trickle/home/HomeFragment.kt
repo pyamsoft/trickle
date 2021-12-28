@@ -43,15 +43,20 @@ import com.pyamsoft.pydroid.util.doOnDestroy
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.main.MainComponent
+import com.pyamsoft.trickle.process.ProcessScheduler
 import com.pyamsoft.trickle.service.MonitorService
 import com.pyamsoft.trickle.settings.SettingsDialog
 import javax.inject.Inject
+import kotlin.system.exitProcess
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class HomeFragment : Fragment() {
 
   @JvmField @Inject internal var theming: Theming? = null
   @JvmField @Inject internal var viewModel: HomeViewModeler? = null
+  @JvmField @Inject internal var scheduler: ProcessScheduler? = null
 
   private var windowInsetObserver: ViewWindowInsetObserver? = null
 
@@ -80,9 +85,20 @@ class HomeFragment : Fragment() {
     }
   }
 
+  private fun handleRestartApp() {
+    Timber.d("APP BEING KILLED FOR ADB RESTART")
+    exitProcess(0)
+  }
+
   private fun handleSyncPermissionState() {
     viewModel.requireNotNull().handleSync(scope = viewLifecycleOwner.lifecycleScope) {
       MonitorService.start(requireActivity())
+    }
+  }
+
+  private fun handleRestartPowerService() {
+    viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.Main) {
+      scheduler.requireNotNull().schedulePowerSaving(enable = false)
     }
   }
 
@@ -130,6 +146,8 @@ class HomeFragment : Fragment() {
                   onOpenBatterySettings = { handleOpenSystemSettings() },
                   onOpenApplicationSettings = { handleOpenApplicationSettings() },
                   onTogglePowerSaving = { handleTogglePowerSaving(it) },
+                  onRestartPowerService = { handleRestartPowerService() },
+                  onRestartApp = { handleRestartApp() },
               )
             }
           }
@@ -174,6 +192,7 @@ class HomeFragment : Fragment() {
 
     theming = null
     viewModel = null
+    scheduler = null
   }
 
   companion object {

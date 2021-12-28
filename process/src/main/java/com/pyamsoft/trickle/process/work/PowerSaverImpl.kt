@@ -7,7 +7,7 @@ import androidx.annotation.CheckResult
 import androidx.core.content.getSystemService
 import com.pyamsoft.pydroid.core.Enforcer
 import com.pyamsoft.pydroid.core.requireNotNull
-import com.pyamsoft.trickle.core.ifNotCancellation
+import com.pyamsoft.pydroid.util.ifNotCancellation
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.permission.PermissionChecker
 import javax.inject.Inject
@@ -70,8 +70,8 @@ internal constructor(
           try {
             togglePowerSaving(enable = enable)
           } catch (e: Throwable) {
-            return@coroutineScope e.ifNotCancellation { err ->
-              Timber.e(err, "Power saving error")
+            return@coroutineScope e.ifNotCancellation {
+              Timber.e(e, "Power saving error")
               false
             }
           }
