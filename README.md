@@ -26,7 +26,7 @@ compliant with the leading marketplace.
 Trickle is developed in the open on GitHub at:  
 
 ```
-https://github.com/pyamsoft/home-button
+https://github.com/pyamsoft/trickle
 ```
 
 If you know a few things about Android programming and are wanting to help
