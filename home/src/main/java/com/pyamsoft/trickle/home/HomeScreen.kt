@@ -182,7 +182,7 @@ private fun Header(
 
       Text(
           modifier = Modifier.padding(top = 8.dp),
-          text = "Automatically enter power-saving mode",
+          text = "Automatic power-saving",
           style = MaterialTheme.typography.body2,
       )
     }
