@@ -19,3 +19,16 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-dontwarn com.pyamsoft.trickle.**
+
+# We are open source, we don't need obfuscation.
+# We will still use optimizations though
+-dontobfuscate
+
+# Don't obfuscate causes the gradle build to fail after the optimization step
+# The addition of !code/allocation/variable is needed to prevent this
+-optimizations !code/allocation/variable
+
+# Avoids this line from Retrofit network requests
+# java.lang.ClassCastException: java.lang.Class cannot be cast to java.lang.reflect.ParameterizedTyp
+-keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation

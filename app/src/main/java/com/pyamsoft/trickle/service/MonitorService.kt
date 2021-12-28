@@ -1,9 +1,7 @@
 package com.pyamsoft.trickle.service
 
 import android.app.Service
-import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.IBinder
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.inject.Injector
@@ -23,7 +21,7 @@ class MonitorService : Service() {
 
   private var receiver: ScreenReceiver.Unregister? = null
 
-  @Inject @JvmField internal var launcher: ServiceLauncher? = null
+  @Inject @JvmField internal var notification: ServiceNotification? = null
 
   private fun watchScreen() {
     receiver = receiver ?: ScreenReceiver.register(this)
@@ -31,25 +29,25 @@ class MonitorService : Service() {
 
   private fun updatePowerSaving(intent: Intent?) {
     serviceScope.launch(context = Dispatchers.Main) {
-      launcher.requireNotNull().also { l ->
+      notification.requireNotNull().also { l ->
         updatePowerPreference(l, intent)
         l.updateNotification()
       }
     }
   }
 
-  private suspend fun updatePowerPreference(l: ServiceLauncher, intent: Intent?) {
+  private suspend fun updatePowerPreference(l: ServiceNotification, intent: Intent?) {
     // If the intent extra is passed, we can update the preference
     if (intent == null) {
       return
     }
 
-    if (!intent.hasExtra(ServiceLauncher.KEY_TOGGLE_POWER_SAVING)) {
+    if (!intent.hasExtra(ServiceNotification.KEY_TOGGLE_POWER_SAVING)) {
       return
     }
 
     // If we fail to find it, turn off management
-    val enable = intent.getBooleanExtra(ServiceLauncher.KEY_TOGGLE_POWER_SAVING, false)
+    val enable = intent.getBooleanExtra(ServiceNotification.KEY_TOGGLE_POWER_SAVING, false)
     l.togglePowerSavingEnabled(enable)
   }
 
@@ -64,7 +62,7 @@ class MonitorService : Service() {
         .create()
         .inject(this)
 
-    launcher.requireNotNull().createNotification(this)
+    notification.requireNotNull().createNotification(this)
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -79,28 +77,13 @@ class MonitorService : Service() {
     Timber.d("Stop notification in foreground and kill service")
 
     receiver?.unregister()
-    launcher?.stopNotification(this)
+    notification?.stopNotification(this)
 
-    launcher = null
+    notification = null
     receiver = null
 
     serviceScope.cancel()
 
     stopSelf()
-  }
-
-  companion object {
-
-    @JvmStatic
-    fun start(context: Context) {
-      val appContext = context.applicationContext
-      val service = Intent(appContext, MonitorService::class.java)
-
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        appContext.startForegroundService(service)
-      } else {
-        appContext.startService(service)
-      }
-    }
   }
 }

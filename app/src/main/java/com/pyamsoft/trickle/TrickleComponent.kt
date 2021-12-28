@@ -29,6 +29,7 @@ import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.ProcessComponent
 import com.pyamsoft.trickle.process.ProcessModule
 import com.pyamsoft.trickle.process.workmanager.WorkManagerProcessModule
+import com.pyamsoft.trickle.receiver.BootReceiver
 import com.pyamsoft.trickle.receiver.ScreenReceiver
 import com.pyamsoft.trickle.service.MonitorService
 import com.pyamsoft.trickle.service.ServiceComponent
@@ -62,6 +63,8 @@ internal interface TrickleComponent {
   // =========================
 
   fun inject(receiver: ScreenReceiver)
+
+  fun inject(receiver: BootReceiver)
 
   fun inject(application: Trickle)
 
@@ -101,13 +104,6 @@ internal interface TrickleComponent {
       @Named("app_name")
       internal fun provideAppNameRes(): Int {
         return R.string.app_name
-      }
-
-      @Provides
-      @JvmStatic
-      @Named("app_icon")
-      internal fun provideAppIconRes(): Int {
-        return R.mipmap.ic_launcher_round
       }
 
       @Provides

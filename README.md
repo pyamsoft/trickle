@@ -8,6 +8,11 @@ Make your device sip only small amounts of battery when not in use.
 
 Automatically place your device into battery-saver mode when the screen turns off
 
+With Trickle your device will automatically enter the system's standard low-power
+operating mode when the device screen is turned off. This will help save your
+device battery when it is not in use. Notifications and other applications
+can still operate normally by whitelisting them via the standard system interface.
+
 
 ## Privacy
 

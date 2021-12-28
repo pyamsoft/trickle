@@ -44,7 +44,7 @@ import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.main.MainComponent
 import com.pyamsoft.trickle.process.ProcessScheduler
-import com.pyamsoft.trickle.service.MonitorService
+import com.pyamsoft.trickle.service.ServiceLauncher
 import com.pyamsoft.trickle.settings.SettingsDialog
 import javax.inject.Inject
 import kotlin.system.exitProcess
@@ -57,6 +57,7 @@ class HomeFragment : Fragment() {
   @JvmField @Inject internal var theming: Theming? = null
   @JvmField @Inject internal var viewModel: HomeViewModeler? = null
   @JvmField @Inject internal var scheduler: ProcessScheduler? = null
+  @JvmField @Inject internal var launcher: ServiceLauncher? = null
 
   private var windowInsetObserver: ViewWindowInsetObserver? = null
 
@@ -90,9 +91,15 @@ class HomeFragment : Fragment() {
     exitProcess(0)
   }
 
+  private fun handleLaunchService() {
+    viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.Main) {
+      launcher.requireNotNull().launch()
+    }
+  }
+
   private fun handleSyncPermissionState() {
     viewModel.requireNotNull().handleSync(scope = viewLifecycleOwner.lifecycleScope) {
-      MonitorService.start(requireActivity())
+      handleLaunchService()
     }
   }
 
@@ -114,7 +121,7 @@ class HomeFragment : Fragment() {
     viewModel.requireNotNull().handleSetPowerSavingEnabled(
             scope = viewLifecycleOwner.lifecycleScope,
             enabled = enabled,
-        ) { MonitorService.start(requireActivity()) }
+        ) { handleLaunchService() }
   }
 
   override fun onCreateView(

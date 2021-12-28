@@ -27,6 +27,7 @@ import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
@@ -34,7 +35,31 @@ import com.pyamsoft.pydroid.ui.theme.Theming
 @Composable
 @CheckResult
 private fun themeColors(isDarkMode: Boolean): Colors {
-  return if (isDarkMode) darkColors() else lightColors()
+  val primary = colorResource(R.color.purple_500)
+  val primaryVariant = colorResource(R.color.purple_700)
+  val onPrimary = colorResource(R.color.white)
+  val secondary = colorResource(R.color.teal_200)
+  val secondaryVariant = colorResource(R.color.teal_700)
+  val onSecondary = colorResource(R.color.white)
+
+  return if (isDarkMode)
+      darkColors(
+          primary = primary,
+          primaryVariant = primaryVariant,
+          onPrimary = onPrimary,
+          secondary = secondary,
+          secondaryVariant = secondaryVariant,
+          onSecondary = onSecondary,
+      )
+  else
+      lightColors(
+          primary = primary,
+          primaryVariant = primaryVariant,
+          onPrimary = onPrimary,
+          secondary = secondary,
+          secondaryVariant = secondaryVariant,
+          onSecondary = onSecondary,
+      )
 }
 
 @Composable

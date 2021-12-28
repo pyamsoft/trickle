@@ -12,6 +12,7 @@ import com.pyamsoft.trickle.process.ProcessScheduler
 import com.pyamsoft.trickle.receiver.ScreenReceiver.Unregister
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -19,6 +20,9 @@ import timber.log.Timber
 class ScreenReceiver : BroadcastReceiver() {
 
   @Inject @JvmField internal var processScheduler: ProcessScheduler? = null
+
+  private val scope by lazy(LazyThreadSafetyMode.NONE) { MainScope() }
+  private var currentJob: Job? = null
 
   private fun inject(context: Context) {
     if (processScheduler != null) {
@@ -30,9 +34,12 @@ class ScreenReceiver : BroadcastReceiver() {
 
   private fun doWork(context: Context, enable: Boolean) {
     inject(context)
-    MainScope().launch(context = Dispatchers.Default) {
-      processScheduler.requireNotNull().schedulePowerSaving(enable)
-    }
+
+    currentJob?.cancel()
+    currentJob =
+        scope.launch(context = Dispatchers.Default) {
+          processScheduler.requireNotNull().schedulePowerSaving(enable)
+        }
   }
 
   override fun onReceive(context: Context, intent: Intent) {

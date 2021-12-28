@@ -150,7 +150,7 @@ internal constructor(
           .addTag(tag)
           .setInputData(inputData)
           // Slight delay to make sure system is ready
-          .setInitialDelay(1, TimeUnit.SECONDS)
+          .setInitialDelay(500, TimeUnit.MILLISECONDS)
           .build()
     }
 

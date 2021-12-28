@@ -19,15 +19,43 @@ package com.pyamsoft.trickle.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.pyamsoft.trickle.service.MonitorService
+import com.pyamsoft.pydroid.core.requireNotNull
+import com.pyamsoft.pydroid.inject.Injector
+import com.pyamsoft.trickle.TrickleComponent
+import com.pyamsoft.trickle.service.ServiceLauncher
+import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 internal class BootReceiver internal constructor() : BroadcastReceiver() {
 
+  @Inject @JvmField internal var launcher: ServiceLauncher? = null
+
+  private val scope by lazy(LazyThreadSafetyMode.NONE) { MainScope() }
+  private var currentJob: Job? = null
+
+  private fun inject(context: Context) {
+    if (launcher != null) {
+      Timber.d("Already injected")
+      return
+    }
+
+    Injector.obtainFromApplication<TrickleComponent>(context).inject(this)
+  }
+
   override fun onReceive(context: Context, intent: Intent) {
     if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-      Timber.d("Start service on boot")
-      MonitorService.start(context)
+      inject(context)
+
+      currentJob?.cancel()
+      currentJob =
+          scope.launch(context = Dispatchers.Main) {
+            Timber.d("Start service on boot")
+            launcher.requireNotNull().launch()
+          }
     }
   }
 }

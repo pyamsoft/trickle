@@ -19,7 +19,13 @@ abstract class ServiceModule {
   @Binds
   @IntoSet
   @ServiceInternalApi
-  internal abstract fun bindDispatcher(impl: ServiceDispatcher): NotifyDispatcher<*>
+  internal abstract fun bindNotifyDispatcher(impl: ServiceDispatcher): NotifyDispatcher<*>
+
+  @Binds internal abstract fun bindDispatcher(impl: ServiceDispatcherImpl): ServiceDispatcher
+
+  @Binds internal abstract fun bindNotification(impl: ServiceNotificationImpl): ServiceNotification
+
+  @Binds internal abstract fun bindLauncher(impl: ServiceLauncherImpl): ServiceLauncher
 
   @Module
   companion object {
