@@ -1,0 +1,25 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml:18:1-52
+INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml:18:1-52
+INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml:18:1-52
+	package
+		ADDED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml:18:11-49
+		INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+		INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml:18:1-52
+uses-sdk
+INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+		ADDED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+		INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+		ADDED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
+		INJECTED from /storage/pyamsoft/devel/android/app/Slurp/process/src/main/AndroidManifest.xml
