@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,7 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.insets.systemBarsPadding
+import com.google.accompanist.insets.navigationBarsHeight
+import com.google.accompanist.insets.statusBarsHeight
 
 @Composable
 @JvmOverloads
@@ -49,8 +51,14 @@ fun HomeScreen(
       scaffoldState = scaffoldState,
   ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(16.dp).systemBarsPadding(),
+        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
     ) {
+      item {
+        Spacer(
+            modifier = Modifier.statusBarsHeight(additional = 16.dp),
+        )
+      }
+
       item {
         Header(
             modifier = Modifier.fillMaxWidth(),
@@ -70,6 +78,12 @@ fun HomeScreen(
         GoToSettings(
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             onOpenSettings = onOpenBatterySettings,
+        )
+      }
+
+      item {
+        Spacer(
+            modifier = Modifier.navigationBarsHeight(additional = 16.dp),
         )
       }
     }
