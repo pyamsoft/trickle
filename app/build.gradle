@@ -135,6 +135,7 @@ dependencies {
   implementation project(':process')
   implementation project(':process-workmanager')
   implementation project(':service')
+  implementation project(':settings')
   implementation project(':ui')
 }
 
