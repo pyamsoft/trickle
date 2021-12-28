@@ -1,0 +1,9 @@
+rootProject.name = "Trickle"
+include ':app'
+include ':process'
+include ':process-workmanager'
+include ':service'
+include ':main'
+include ':home'
+include ':ui'
+include ':core'
