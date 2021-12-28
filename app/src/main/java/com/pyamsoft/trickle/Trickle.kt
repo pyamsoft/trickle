@@ -12,7 +12,6 @@ import com.pyamsoft.pydroid.ui.PYDroid
 import com.pyamsoft.pydroid.util.isDebugMode
 import com.pyamsoft.trickle.process.ProcessComponent
 import com.pyamsoft.trickle.process.ProcessScheduler
-import com.pyamsoft.trickle.service.ServiceLauncher
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -21,7 +20,6 @@ import kotlinx.coroutines.launch
 internal class Trickle : Application() {
 
   @Inject @JvmField internal var processScheduler: ProcessScheduler? = null
-  @Inject @JvmField internal var launcher: ServiceLauncher? = null
 
   private val applicationScope by lazy(LazyThreadSafetyMode.NONE) { MainScope() }
 
@@ -70,7 +68,6 @@ internal class Trickle : Application() {
     Handler(Looper.getMainLooper()).post {
       applicationScope.launch(context = Dispatchers.Default) {
         processScheduler.requireNotNull().cancel()
-        launcher.requireNotNull().launch()
       }
     }
   }
