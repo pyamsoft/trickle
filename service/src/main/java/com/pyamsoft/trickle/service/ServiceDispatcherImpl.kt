@@ -1,12 +1,6 @@
 package com.pyamsoft.trickle.service
 
-import android.app.Activity
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationChannelGroup
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -57,7 +51,11 @@ internal constructor(
 
       Timber.d("Create notification channel and group: ${channelInfo.id} ${channelInfo.title}")
       channelCreator.apply {
-        deleteNotificationChannelGroup(channelInfo.id)
+        // Delete the group if it already exists with a bad group ID
+        // Group ID and channel ID cannot match
+        if (notificationChannelGroups.first { it.id == channelInfo.id } != null) {
+          deleteNotificationChannelGroup(channelInfo.id)
+        }
         createNotificationChannelGroup(notificationGroup)
         createNotificationChannel(notificationChannel)
       }
