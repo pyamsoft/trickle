@@ -67,10 +67,10 @@ internal constructor(
           }
 
           Timber.d("Attempt power saving")
-          try {
+          return@coroutineScope try {
             togglePowerSaving(enable = enable)
           } catch (e: Throwable) {
-            return@coroutineScope e.ifNotCancellation {
+            e.ifNotCancellation {
               Timber.e(e, "Power saving error")
               false
             }

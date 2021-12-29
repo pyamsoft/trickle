@@ -14,19 +14,5 @@
   ~ limitations under the License.
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.pyamsoft.trickle.process.workmanager">
-
-    <!--
-    Needed to call Settings.Global.putInt in PowerSavingWorker.kt
-    Must be granted by the user at runtime via
-
-    $ adb shell pm grant com.pyamsoft.trickle android.permission.WRITE_SECURE_SETTINGS
-    -->
-    <uses-permission
-        android:name="android.permission.WRITE_SECURE_SETTINGS"
-        tools:ignore="ProtectedPermissions" />
-
-</manifest>
+<manifest package="com.pyamsoft.trickle.process.workmanager" />
 

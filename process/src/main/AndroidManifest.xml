@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2021 Peter Kenji Yamanaka
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,5 +14,19 @@
   ~ limitations under the License.
   -->
 
-<manifest package="com.pyamsoft.trickle.process" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.pyamsoft.trickle.process">
+
+    <!--
+    Needed to call Settings.Global.putInt in PowerSaverImpl.kt
+    Must be granted by the user at runtime via
+
+    $ adb shell pm grant com.pyamsoft.trickle android.permission.WRITE_SECURE_SETTINGS
+    -->
+    <uses-permission
+        android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+    
+</manifest>
 
