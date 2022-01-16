@@ -7,11 +7,8 @@ import com.pyamsoft.pydroid.bootstrap.libraries.OssLibraries
 import com.pyamsoft.pydroid.ui.ModuleProvider
 import com.pyamsoft.pydroid.ui.PYDroid
 import com.pyamsoft.pydroid.util.isDebugMode
-import kotlinx.coroutines.MainScope
 
 internal class Trickle : Application() {
-
-  private val applicationScope by lazy(LazyThreadSafetyMode.NONE) { MainScope() }
 
   private val component by lazy {
     val url = "https://github.com/pyamsoft/trickle"
