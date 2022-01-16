@@ -26,19 +26,13 @@ import com.pyamsoft.trickle.main.MainActivity
 import com.pyamsoft.trickle.main.MainComponent
 import com.pyamsoft.trickle.preference.PreferencesImpl
 import com.pyamsoft.trickle.process.PowerPreferences
-import com.pyamsoft.trickle.process.ProcessComponent
 import com.pyamsoft.trickle.process.ProcessModule
-import com.pyamsoft.trickle.process.workmanager.WorkManagerProcessModule
 import com.pyamsoft.trickle.receiver.BootReceiver
 import com.pyamsoft.trickle.receiver.ScreenReceiver
 import com.pyamsoft.trickle.service.MonitorService
 import com.pyamsoft.trickle.service.ServiceComponent
 import com.pyamsoft.trickle.service.ServiceModule
-import dagger.Binds
-import dagger.BindsInstance
-import dagger.Component
-import dagger.Module
-import dagger.Provides
+import dagger.*
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -47,20 +41,11 @@ import javax.inject.Singleton
     modules =
         [
             TrickleComponent.TrickleProvider::class,
-            WorkManagerProcessModule::class,
             ProcessModule::class,
             ServiceModule::class,
         ],
 )
 internal interface TrickleComponent {
-
-  // =========================
-  // HACKY Injectors for WorkManager
-
-  /* FROM inside PowerSaverInjector */
-  @CheckResult fun plusProcess(): ProcessComponent
-
-  // =========================
 
   fun inject(receiver: ScreenReceiver)
 

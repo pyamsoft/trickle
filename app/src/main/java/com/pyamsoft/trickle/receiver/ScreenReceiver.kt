@@ -8,24 +8,21 @@ import android.content.IntentFilter
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.inject.Injector
 import com.pyamsoft.trickle.TrickleComponent
-import com.pyamsoft.trickle.process.ProcessScheduler
+import com.pyamsoft.trickle.process.work.PowerSaver
 import com.pyamsoft.trickle.receiver.ScreenReceiver.Unregister
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import timber.log.Timber
 
 class ScreenReceiver : BroadcastReceiver() {
 
-  @Inject @JvmField internal var processScheduler: ProcessScheduler? = null
+  @Inject @JvmField internal var powerSaver: PowerSaver? = null
 
   private val scope by lazy(LazyThreadSafetyMode.NONE) { MainScope() }
   private var currentJob: Job? = null
 
   private fun inject(context: Context) {
-    if (processScheduler != null) {
+    if (powerSaver != null) {
       return
     }
 
@@ -38,7 +35,8 @@ class ScreenReceiver : BroadcastReceiver() {
     currentJob?.cancel()
     currentJob =
         scope.launch(context = Dispatchers.Default) {
-          processScheduler.requireNotNull().schedulePowerSaving(enable)
+          delay(500L)
+          powerSaver.requireNotNull().attemptPowerSaving(enable)
         }
   }
 

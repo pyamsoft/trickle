@@ -43,7 +43,7 @@ import com.pyamsoft.pydroid.util.doOnDestroy
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.main.MainComponent
-import com.pyamsoft.trickle.process.ProcessScheduler
+import com.pyamsoft.trickle.process.work.PowerSaver
 import com.pyamsoft.trickle.service.ServiceLauncher
 import com.pyamsoft.trickle.settings.SettingsDialog
 import javax.inject.Inject
@@ -56,7 +56,7 @@ class HomeFragment : Fragment() {
 
   @JvmField @Inject internal var theming: Theming? = null
   @JvmField @Inject internal var viewModel: HomeViewModeler? = null
-  @JvmField @Inject internal var scheduler: ProcessScheduler? = null
+  @JvmField @Inject internal var powerSaver: PowerSaver? = null
   @JvmField @Inject internal var launcher: ServiceLauncher? = null
 
   private var windowInsetObserver: ViewWindowInsetObserver? = null
@@ -105,7 +105,7 @@ class HomeFragment : Fragment() {
 
   private fun handleRestartPowerService() {
     viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.Main) {
-      scheduler.requireNotNull().schedulePowerSaving(enable = false)
+      powerSaver.requireNotNull().attemptPowerSaving(enable = false)
     }
   }
 
@@ -199,7 +199,7 @@ class HomeFragment : Fragment() {
 
     theming = null
     viewModel = null
-    scheduler = null
+    powerSaver = null
   }
 
   companion object {
@@ -211,7 +211,7 @@ class HomeFragment : Fragment() {
     @JvmStatic
     @CheckResult
     fun newInstance(): Fragment {
-      return HomeFragment().apply { arguments = Bundle().apply {} }
+      return HomeFragment().apply { arguments = Bundle.EMPTY }
     }
   }
 }

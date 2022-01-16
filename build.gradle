@@ -49,9 +49,6 @@ buildscript {
     cachify = "0.0.26"
     highlander = "0.0.22"
 
-    // Jobs
-    workmanager = "2.7.1"
-
     // Leak Canary
     leakCanary = "2.8.1"
 

@@ -133,7 +133,6 @@ dependencies {
   implementation project(':home')
   implementation project(':main')
   implementation project(':process')
-  implementation project(':process-workmanager')
   implementation project(':service')
   implementation project(':settings')
   implementation project(':ui')

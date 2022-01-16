@@ -1,25 +1,15 @@
 package com.pyamsoft.trickle
 
 import android.app.Application
-import android.os.Handler
-import android.os.Looper
 import androidx.annotation.CheckResult
 import coil.Coil
 import com.pyamsoft.pydroid.bootstrap.libraries.OssLibraries
-import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.ui.ModuleProvider
 import com.pyamsoft.pydroid.ui.PYDroid
 import com.pyamsoft.pydroid.util.isDebugMode
-import com.pyamsoft.trickle.process.ProcessComponent
-import com.pyamsoft.trickle.process.ProcessScheduler
-import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 
 internal class Trickle : Application() {
-
-  @Inject @JvmField internal var processScheduler: ProcessScheduler? = null
 
   private val applicationScope by lazy(LazyThreadSafetyMode.NONE) { MainScope() }
 
@@ -59,17 +49,6 @@ internal class Trickle : Application() {
   override fun onCreate() {
     super.onCreate()
     component.inject(this)
-    beginWork()
-  }
-
-  private fun beginWork() {
-    // Coroutine start up is slow. What we can do instead is create a handler, which is cheap, and
-    // post to the main thread to defer this work until after start up is done
-    Handler(Looper.getMainLooper()).post {
-      applicationScope.launch(context = Dispatchers.Default) {
-        processScheduler.requireNotNull().cancel()
-      }
-    }
   }
 
   override fun getSystemService(name: String): Any? {
@@ -80,19 +59,7 @@ internal class Trickle : Application() {
   @CheckResult
   private fun fallbackGetSystemService(name: String): Any? {
     return if (name == TrickleComponent::class.java.name) component
-    else {
-      provideModuleDependencies(name) ?: super.getSystemService(name)
-    }
-  }
-
-  @CheckResult
-  private fun provideModuleDependencies(name: String): Any? {
-    return component.run {
-      when (name) {
-        ProcessComponent::class.java.name -> plusProcess()
-        else -> null
-      }
-    }
+    else super.getSystemService(name)
   }
 
   companion object {
@@ -106,13 +73,10 @@ internal class Trickle : Application() {
       OssLibraries.usingAutopsy = true
 
       OssLibraries.add(
-          "WorkManager",
-          "https://android.googlesource.com/platform/frameworks/support/+/androidx-master-dev/work/",
-          "The AndroidX Jetpack WorkManager library. Schedule periodic work in a device friendly way.")
-      OssLibraries.add(
           "Dagger",
           "https://github.com/google/dagger",
-          "A fast dependency injector for Android and Java.")
+          "A fast dependency injector for Android and Java.",
+      )
     }
 
     const val PRIVACY_POLICY_URL = "https://pyamsoft.blogspot.com/p/trickle-privacy-policy.html"
