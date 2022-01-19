@@ -45,20 +45,22 @@ private fun themeColors(isDarkMode: Boolean): Colors {
   return if (isDarkMode)
       darkColors(
           primary = primary,
-          primaryVariant = primaryVariant,
           onPrimary = onPrimary,
           secondary = secondary,
-          secondaryVariant = secondaryVariant,
           onSecondary = onSecondary,
+          // Must be specified for things like Switch color
+          primaryVariant = primaryVariant,
+          secondaryVariant = secondaryVariant,
       )
   else
       lightColors(
           primary = primary,
-          primaryVariant = primaryVariant,
           onPrimary = onPrimary,
           secondary = secondary,
-          secondaryVariant = secondaryVariant,
           onSecondary = onSecondary,
+          // Must be specified for things like Switch color
+          primaryVariant = primaryVariant,
+          secondaryVariant = secondaryVariant,
       )
 }
 
@@ -66,7 +68,7 @@ private fun themeColors(isDarkMode: Boolean): Colors {
 @CheckResult
 private fun themeShapes(): Shapes {
   return Shapes(
-      medium = RoundedCornerShape(4.dp),
+      medium = RoundedCornerShape(16.dp),
   )
 }
 
