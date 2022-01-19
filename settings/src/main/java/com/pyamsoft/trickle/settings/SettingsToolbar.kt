@@ -2,14 +2,8 @@ package com.pyamsoft.trickle.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.AppBarDefaults
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.foundation.shape.ZeroCornerSize
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
@@ -28,7 +22,11 @@ fun SettingsToolbar(
       elevation = AppBarDefaults.TopAppBarElevation,
       contentColor = Color.White,
       color = MaterialTheme.colors.primary,
-      shape = MaterialTheme.shapes.medium,
+      shape =
+          MaterialTheme.shapes.medium.copy(
+              bottomStart = ZeroCornerSize,
+              bottomEnd = ZeroCornerSize,
+          ),
   ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
