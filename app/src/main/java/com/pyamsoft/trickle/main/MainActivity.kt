@@ -3,11 +3,6 @@ package com.pyamsoft.trickle.main
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import androidx.compose.foundation.layout.Box
-import androidx.compose.material.SnackbarHostState
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import com.google.accompanist.insets.ProvideWindowInsets
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.inject.Injector
 import com.pyamsoft.pydroid.ui.app.PYDroidActivity
@@ -18,7 +13,6 @@ import com.pyamsoft.pydroid.ui.util.recompose
 import com.pyamsoft.pydroid.util.stableLayoutHideNavigation
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleComponent
-import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.databinding.ActivityMainBinding
 import javax.inject.Inject
 import timber.log.Timber
@@ -73,25 +67,7 @@ class MainActivity : PYDroidActivity() {
     binding.mainComposeBottom.setContent {
       vm.Render { state ->
         val theme = state.theme
-        val snackbarHostState = remember { SnackbarHostState() }
-
         SystemBars(theme)
-        TrickleTheme(theme) {
-          ProvideWindowInsets {
-
-            // Need to have box or snackbars push up bottom bar
-            Box(
-                contentAlignment = Alignment.BottomCenter,
-            ) {
-              RatingScreen(
-                  snackbarHostState = snackbarHostState,
-              )
-              VersionCheckScreen(
-                  snackbarHostState = snackbarHostState,
-              )
-            }
-          }
-        }
       }
     }
 
