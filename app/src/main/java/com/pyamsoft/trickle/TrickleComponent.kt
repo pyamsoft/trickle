@@ -27,7 +27,7 @@ import com.pyamsoft.trickle.main.MainComponent
 import com.pyamsoft.trickle.preference.PreferencesImpl
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.ProcessModule
-import com.pyamsoft.trickle.receiver.BootReceiver
+import com.pyamsoft.trickle.receiver.OnBootReceiver
 import com.pyamsoft.trickle.receiver.ScreenReceiver
 import com.pyamsoft.trickle.service.MonitorService
 import com.pyamsoft.trickle.service.ServiceComponent
@@ -49,7 +49,7 @@ internal interface TrickleComponent {
 
   fun inject(receiver: ScreenReceiver)
 
-  fun inject(receiver: BootReceiver)
+  fun inject(receiver: OnBootReceiver)
 
   fun inject(application: Trickle)
 

@@ -31,7 +31,7 @@
             android:foregroundServiceType="" />
 
         <receiver
-            android:name="com.pyamsoft.trickle.receiver.BootReceiver"
+            android:name="com.pyamsoft.trickle.receiver.OnBootReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>

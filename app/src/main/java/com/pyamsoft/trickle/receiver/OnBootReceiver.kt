@@ -30,7 +30,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-internal class BootReceiver internal constructor() : BroadcastReceiver() {
+internal class OnBootReceiver internal constructor() : BroadcastReceiver() {
 
   @Inject @JvmField internal var launcher: ServiceLauncher? = null
 
