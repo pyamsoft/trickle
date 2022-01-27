@@ -1,12 +1,15 @@
 package com.pyamsoft.trickle
 
 import android.app.Application
+import android.content.ComponentName
+import android.content.pm.PackageManager
 import androidx.annotation.CheckResult
 import coil.Coil
 import com.pyamsoft.pydroid.bootstrap.libraries.OssLibraries
 import com.pyamsoft.pydroid.ui.ModuleProvider
 import com.pyamsoft.pydroid.ui.PYDroid
 import com.pyamsoft.pydroid.util.isDebugMode
+import com.pyamsoft.trickle.receiver.OnBootReceiver
 
 internal class Trickle : Application() {
 
@@ -46,6 +49,7 @@ internal class Trickle : Application() {
   override fun onCreate() {
     super.onCreate()
     component.inject(this)
+    ensureBootReceiverEnabled()
   }
 
   override fun getSystemService(name: String): Any? {
@@ -57,6 +61,16 @@ internal class Trickle : Application() {
   private fun fallbackGetSystemService(name: String): Any? {
     return if (name == TrickleComponent::class.java.name) component
     else super.getSystemService(name)
+  }
+
+  /** Ensure the BootReceiver is set to state enabled */
+  private fun ensureBootReceiverEnabled() {
+    val component = ComponentName(this, OnBootReceiver::class.java)
+    packageManager.setComponentEnabledSetting(
+        component,
+        PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+        PackageManager.DONT_KILL_APP,
+    )
   }
 
   companion object {
