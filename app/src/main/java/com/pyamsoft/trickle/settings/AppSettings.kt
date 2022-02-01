@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.inject.Injector
+import com.pyamsoft.pydroid.ui.defaults.DialogDefaults
 import com.pyamsoft.pydroid.ui.preference.Preferences
 import com.pyamsoft.pydroid.ui.settings.SettingsFragment
 import com.pyamsoft.trickle.main.MainComponent
@@ -29,6 +30,11 @@ internal class AppSettings : SettingsFragment() {
         .plusAppSettings()
         .create()
         .inject(this)
+  }
+
+  @Composable
+  override fun customElevation(): Dp {
+    return DialogDefaults.DialogElevation
   }
 
   @Composable
