@@ -38,9 +38,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.google.accompanist.insets.navigationBarsHeight
 import com.google.accompanist.insets.statusBarsHeight
+import com.pyamsoft.pydroid.theme.keylines
 
 private val WHITESPACE_REGEX = Regex("\\s+")
 private val DOWNLOAD_ADB_BLURB =
@@ -113,17 +113,17 @@ fun HomeScreen(
       scaffoldState = scaffoldState,
   ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxSize().padding(horizontal = MaterialTheme.keylines.content),
     ) {
       item {
         Spacer(
-            modifier = Modifier.statusBarsHeight(additional = 16.dp),
+            modifier = Modifier.statusBarsHeight(additional = MaterialTheme.keylines.content),
         )
       }
 
       item {
         Header(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content),
             appNameRes = appNameRes,
             onOpenApplicationSettings = onOpenApplicationSettings,
         )
@@ -154,7 +154,7 @@ fun HomeScreen(
 
       item {
         Spacer(
-            modifier = Modifier.navigationBarsHeight(additional = 16.dp),
+            modifier = Modifier.navigationBarsHeight(additional = MaterialTheme.keylines.content),
         )
       }
     }
@@ -181,14 +181,14 @@ private fun Header(
       )
 
       Text(
-          modifier = Modifier.padding(top = 8.dp),
+          modifier = Modifier.padding(top = MaterialTheme.keylines.baseline),
           text = "Automatic power-saving",
           style = MaterialTheme.typography.body2,
       )
     }
 
     IconButton(
-        modifier = Modifier.padding(start = 16.dp),
+        modifier = Modifier.padding(start = MaterialTheme.keylines.content),
         onClick = onOpenApplicationSettings,
     ) {
       Icon(
@@ -218,7 +218,7 @@ private fun PowerSavingSettings(
     )
 
     GoToSettings(
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
         onOpenSettings = onOpenBatterySettings,
         onRestartPowerService = onRestartPowerService,
     )
@@ -242,7 +242,7 @@ private fun ServiceSwitch(
     )
 
     Switch(
-        modifier = Modifier.padding(start = 16.dp),
+        modifier = Modifier.padding(start = MaterialTheme.keylines.content),
         checked = isPowerSaving,
         onCheckedChange = onTogglePowerSaving,
     )
@@ -260,19 +260,19 @@ private fun SetupInstructions(
       horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     Text(
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
         text = DOWNLOAD_ADB_BLURB,
         style = MaterialTheme.typography.body2,
     )
 
     Text(
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
         text = ENABLE_USB_DEBUGGING_BLURB,
         style = MaterialTheme.typography.body2,
     )
 
     AdbInstructions(
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
         onCopy = onCopy,
         onRestartApp = onRestartApp,
     )
@@ -304,9 +304,9 @@ private fun AdbInstructions(
       Text(
           modifier =
               Modifier.clickable { onCopy(command) }
-                  .padding(top = 16.dp)
+                  .padding(top = MaterialTheme.keylines.content)
                   .background(color = Color.DarkGray)
-                  .padding(16.dp),
+                  .padding(MaterialTheme.keylines.content),
           text = command,
           style =
               MaterialTheme.typography.body2.copy(
@@ -318,7 +318,7 @@ private fun AdbInstructions(
     }
 
     Button(
-        modifier = Modifier.padding(top = 16.dp),
+        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
         onClick = { onCopy(command) },
     ) {
       Text(
@@ -327,13 +327,13 @@ private fun AdbInstructions(
     }
 
     Text(
-        modifier = Modifier.padding(top = 24.dp),
+        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
         text = RESTART_APP_BLURB,
         style = MaterialTheme.typography.body2,
     )
 
     Button(
-        modifier = Modifier.padding(top = 16.dp),
+        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
         onClick = onRestartApp,
     ) {
       Text(
@@ -360,13 +360,13 @@ private fun GoToSettings(
       horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     Text(
-        modifier = Modifier.padding(top = 16.dp),
+        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
         text = RESOLUTION_APP,
         style = MaterialTheme.typography.body1,
     )
 
     Button(
-        modifier = Modifier.padding(top = 16.dp),
+        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
         onClick = {
           clicks += 1
           onRestartPowerService()
@@ -378,7 +378,7 @@ private fun GoToSettings(
     }
 
     AnimatedVisibility(
-        modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
         visible = isVisible,
     ) {
       Column(
@@ -391,7 +391,7 @@ private fun GoToSettings(
         )
 
         Button(
-            modifier = Modifier.padding(top = 16.dp),
+            modifier = Modifier.padding(top = MaterialTheme.keylines.content),
             onClick = onOpenSettings,
         ) {
           Text(
