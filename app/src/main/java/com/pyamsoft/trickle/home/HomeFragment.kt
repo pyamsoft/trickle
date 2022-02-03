@@ -143,7 +143,7 @@ class HomeFragment : Fragment() {
 
       setContent {
         vm.Render { state ->
-          TrickleTheme(themeProvider) {
+          act.TrickleTheme(themeProvider) {
             CompositionLocalProvider(LocalWindowInsets provides windowInsets) {
               HomeScreen(
                   modifier = Modifier.fillMaxSize(),

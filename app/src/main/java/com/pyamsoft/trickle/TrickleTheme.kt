@@ -16,32 +16,42 @@
 
 package com.pyamsoft.trickle
 
+import android.app.Activity
 import androidx.annotation.CheckResult
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Colors
-import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Shapes
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import com.google.android.material.R
 import com.pyamsoft.pydroid.theme.PYDroidTheme
 import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
+import com.pyamsoft.pydroid.util.valuesFromCurrentTheme
 
 @Composable
 @CheckResult
-private fun themeColors(isDarkMode: Boolean): Colors {
-  val primary = colorResource(R.color.purple_500)
-  val primaryVariant = colorResource(R.color.purple_700)
-  val onPrimary = colorResource(R.color.white)
-  val secondary = colorResource(R.color.teal_200)
-  val secondaryVariant = colorResource(R.color.teal_700)
-  val onSecondary = colorResource(R.color.white)
+private fun themeColors(activity: Activity, isDarkMode: Boolean): Colors {
+  val colors =
+      remember(isDarkMode) {
+        activity.valuesFromCurrentTheme(
+            R.attr.colorPrimary,
+            R.attr.colorOnPrimary,
+            R.attr.colorPrimaryVariant,
+            R.attr.colorSecondary,
+            R.attr.colorOnSecondary,
+            R.attr.colorSecondaryVariant,
+        )
+      }
+  val primary = colorResource(colors[0])
+  val onPrimary = colorResource(colors[1])
+  val primaryVariant = colorResource(colors[2])
+  val secondary = colorResource(colors[3])
+  val onSecondary = colorResource(colors[4])
+  val secondaryVariant = colorResource(colors[5])
 
   return if (isDarkMode)
       darkColors(
@@ -75,18 +85,18 @@ private fun themeShapes(): Shapes {
 }
 
 @Composable
-fun TrickleTheme(
+fun Activity.TrickleTheme(
     themeProvider: ThemeProvider,
     content: @Composable () -> Unit,
 ) {
-  TrickleTheme(
+  this.TrickleTheme(
       theme = if (themeProvider.isDarkTheme()) Theming.Mode.DARK else Theming.Mode.LIGHT,
       content = content,
   )
 }
 
 @Composable
-fun TrickleTheme(
+fun Activity.TrickleTheme(
     theme: Theming.Mode,
     content: @Composable () -> Unit,
 ) {
@@ -98,7 +108,7 @@ fun TrickleTheme(
       }
 
   PYDroidTheme(
-      colors = themeColors(isDarkMode),
+      colors = themeColors(this, isDarkMode),
       shapes = themeShapes(),
   ) {
     // We update the LocalContentColor to match our onBackground. This allows the default

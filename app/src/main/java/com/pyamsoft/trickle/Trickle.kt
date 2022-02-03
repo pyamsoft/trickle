@@ -24,8 +24,8 @@ internal class Trickle : Application() {
             version = BuildConfig.VERSION_CODE,
             imageLoader = { Coil.imageLoader(this) },
             logger = createLogger(),
-            theme = { themeProvider, content ->
-              TrickleTheme(
+            theme = { activity, themeProvider, content ->
+              activity.TrickleTheme(
                   themeProvider = themeProvider,
                   content = content,
               )

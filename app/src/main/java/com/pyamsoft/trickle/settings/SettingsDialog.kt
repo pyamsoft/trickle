@@ -50,7 +50,7 @@ class SettingsDialog : AppCompatDialogFragment() {
     val themeProvider = ThemeProvider { theming.requireNotNull().isDarkTheme(act) }
 
     binding.dialogComposeTop.setContent {
-      TrickleTheme(themeProvider) {
+      act.TrickleTheme(themeProvider) {
         SettingsToolbar(
             modifier = Modifier.fillMaxWidth().onSizeChanged { vm.handleTopBarHeight(it.height) },
             onClose = { dismiss() },
