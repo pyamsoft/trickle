@@ -1,6 +1,7 @@
 package com.pyamsoft.trickle.settings
 
 import android.os.Bundle
+import android.view.View
 import androidx.annotation.CheckResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,7 +21,7 @@ internal class AppSettings : SettingsFragment() {
 
   override val hideClearAll: Boolean = false
 
-  override val hideUpgradeInformation: Boolean = true
+  override val hideUpgradeInformation: Boolean = false
 
   @Inject @JvmField internal var viewModel: SettingsViewModeler? = null
 
@@ -30,6 +31,21 @@ internal class AppSettings : SettingsFragment() {
         .plusAppSettings()
         .create()
         .inject(this)
+  }
+
+  override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    super.onViewCreated(view, savedInstanceState)
+    viewModel.requireNotNull().restoreState(savedInstanceState)
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
+    viewModel?.saveState(outState)
+  }
+
+  override fun onDestroyView() {
+    super.onDestroyView()
+    viewModel = null
   }
 
   @Composable
@@ -59,16 +75,6 @@ internal class AppSettings : SettingsFragment() {
     val density = LocalDensity.current
     val height = state.topBarOffset
     return remember(density, height) { density.run { height.toDp() } }
-  }
-
-  override fun onSaveInstanceState(outState: Bundle) {
-    super.onSaveInstanceState(outState)
-    viewModel?.saveState(outState)
-  }
-
-  override fun onDestroyView() {
-    super.onDestroyView()
-    viewModel = null
   }
 
   companion object {
