@@ -30,14 +30,14 @@ import com.google.android.material.R
 import com.pyamsoft.pydroid.theme.PYDroidTheme
 import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
-import com.pyamsoft.pydroid.util.valuesFromCurrentTheme
+import com.pyamsoft.pydroid.util.attributesFromCurrentTheme
 
 @Composable
 @CheckResult
 private fun themeColors(activity: Activity, isDarkMode: Boolean): Colors {
   val colors =
       remember(isDarkMode) {
-        activity.valuesFromCurrentTheme(
+        activity.attributesFromCurrentTheme(
             R.attr.colorPrimary,
             R.attr.colorOnPrimary,
             R.attr.colorPrimaryVariant,
