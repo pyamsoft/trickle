@@ -30,7 +30,7 @@ import com.google.android.material.R
 import com.pyamsoft.pydroid.theme.PYDroidTheme
 import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
-import com.pyamsoft.pydroid.util.attributesFromCurrentTheme
+import com.pyamsoft.pydroid.theme.attributesFromCurrentTheme
 
 @Composable
 @CheckResult

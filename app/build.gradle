@@ -26,8 +26,8 @@ android {
     applicationId "com.pyamsoft.trickle"
     minSdkVersion rootProject.ext.minSdk
     targetSdkVersion rootProject.ext.maxSdk
-    versionCode 3
-    versionName "20220131-1"
+    versionCode 4
+    versionName "20220214-1"
 
     // For vector drawables
     vectorDrawables.useSupportLibrary = true
