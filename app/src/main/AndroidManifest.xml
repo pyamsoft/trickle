@@ -3,6 +3,7 @@
     package="com.pyamsoft.trickle">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name="com.pyamsoft.trickle.Trickle"
