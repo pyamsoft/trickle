@@ -36,7 +36,11 @@ class ScreenReceiver : BroadcastReceiver() {
     currentJob =
         scope.launch(context = Dispatchers.Default) {
           delay(500L)
-          powerSaver.requireNotNull().attemptPowerSaving(enable)
+          if (powerSaver.requireNotNull().attemptPowerSaving(enable)) {
+            Timber.d("Power saving mode: ${if (enable) "ON" else "OFF"}")
+          } else {
+            Timber.w("Did not modify power saving mode")
+          }
         }
   }
 

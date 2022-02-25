@@ -105,7 +105,11 @@ class HomeFragment : Fragment() {
 
   private fun handleRestartPowerService() {
     viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.Main) {
-      powerSaver.requireNotNull().attemptPowerSaving(enable = false)
+      if (powerSaver.requireNotNull().attemptPowerSaving(enable = false)) {
+        Timber.d("Power saving mode: OFF")
+      } else {
+        Timber.w("Did not modify power saving mode")
+      }
     }
   }
 
@@ -179,7 +183,9 @@ class HomeFragment : Fragment() {
 
       // Listen for changes in preferences
       vm.listenForPowerSavingChanges().also { viewLifecycleOwner.doOnDestroy { it.cancel() } }
-      vm.listenForIgnorePowerSavingModeChanges().also { viewLifecycleOwner.doOnDestroy { it.cancel() } }
+      vm.listenForIgnorePowerSavingModeChanges().also {
+        viewLifecycleOwner.doOnDestroy { it.cancel() }
+      }
     }
   }
 

@@ -2,6 +2,7 @@ package com.pyamsoft.trickle.process.work
 
 import android.content.Context
 import android.os.BatteryManager
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.annotation.CheckResult
 import androidx.core.content.getSystemService
@@ -31,7 +32,16 @@ internal constructor(
         context.getSystemService<BatteryManager>().requireNotNull()
       }
 
+  private val powerManager by
+      lazy(LazyThreadSafetyMode.NONE) { context.getSystemService<PowerManager>().requireNotNull() }
+
   private val resolver by lazy(LazyThreadSafetyMode.NONE) { context.contentResolver }
+
+  /**
+   * When going down for power saving, we set this variable When coming back up from power saving we
+   * read and unset this variable
+   */
+  private var ignorePowerWhenAlreadyInPowerSavingMode = false
 
   /** This should work if we have WRITE_SECURE_SETTINGS */
   @CheckResult
@@ -42,37 +52,68 @@ internal constructor(
   }
 
   @CheckResult
+  private suspend fun ignoreIfDeviceIsAlreadyPowerSaving(enable: Boolean): Boolean {
+    if (enable) {
+      if (preferences.isIgnoreInPowerSavingMode()) {
+        if (powerManager.isPowerSaveMode) {
+          ignorePowerWhenAlreadyInPowerSavingMode = true
+          Timber.d("Do not act while device is already in power saving mode ")
+          return true
+        } else {
+          ignorePowerWhenAlreadyInPowerSavingMode = false
+        }
+      } else {
+        ignorePowerWhenAlreadyInPowerSavingMode = false
+      }
+    } else {
+      val check = ignorePowerWhenAlreadyInPowerSavingMode
+
+      // Set back to false
+      ignorePowerWhenAlreadyInPowerSavingMode = false
+
+      if (check) {
+        Timber.d("Service is ignoring command while device is in power-saving mode")
+        return true
+      }
+    }
+
+    return false
+  }
+
+  @CheckResult
   override suspend fun attemptPowerSaving(enable: Boolean): Boolean =
       withContext(context = Dispatchers.Default) {
         Enforcer.assertOffMainThread()
 
         return@withContext coroutineScope {
           if (!permissions.hasSecureSettingsPermission()) {
-            Timber.w(
-                "Do not attempt any power related work without WRITE_SECURE_SETTINGS permission")
+            Timber.w("No power related work without WRITE_SECURE_SETTINGS permission")
             // Can't do anything
             return@coroutineScope false
           }
 
           if (batteryManager.isCharging) {
-            Timber.w("Do not attempt any power related work while device is charging")
-            // Restore back to default state
-            return@coroutineScope togglePowerSaving(enable = false)
+            Timber.w("No power related work while device is charging")
+            return@coroutineScope false
           }
 
           if (!preferences.isPowerSavingEnabled()) {
-            Timber.w("Do not attempt any power related work while job is disabled")
-            // Restore back to default state
-            return@coroutineScope togglePowerSaving(enable = false)
+            Timber.w("No power related work while job is disabled")
+            return@coroutineScope false
           }
 
-          Timber.d("Attempt power saving")
-          return@coroutineScope try {
-            togglePowerSaving(enable = enable)
+          if (ignoreIfDeviceIsAlreadyPowerSaving(enable)) {
+            Timber.w("Command was ignored because of power-saving mode")
+            return@coroutineScope false
+          }
+
+          Timber.d("Attempt power saving: ${if (enable) "ON" else "OFF"}")
+          try {
+            return@coroutineScope togglePowerSaving(enable = enable)
           } catch (e: Throwable) {
             e.ifNotCancellation {
-              Timber.e(e, "Power saving error")
-              false
+              Timber.e(e, "Power saving error. Attempted: ${if (enable) "ON" else "OFF"}")
+              return@coroutineScope false
             }
           }
         }
