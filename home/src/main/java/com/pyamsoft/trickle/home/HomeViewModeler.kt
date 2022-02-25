@@ -23,16 +23,25 @@ internal constructor(
   override fun saveState(outState: UiSavedStateWriter) {
     state.hasPermission.also { outState.put(KEY_PERMISSION, it) }
     state.isPowerSaving.also { outState.put(KEY_PREFERENCE, it) }
+    state.isIgnoreInPowerSavingMode.also { outState.put(KEY_IGNORE, it) }
   }
 
   override fun restoreState(savedInstanceState: UiSavedStateReader) {
     savedInstanceState.get<Boolean>(KEY_PERMISSION)?.also { state.hasPermission = it }
     savedInstanceState.get<Boolean>(KEY_PREFERENCE)?.also { state.isPowerSaving = it }
+    savedInstanceState.get<Boolean>(KEY_IGNORE)?.also { state.isIgnoreInPowerSavingMode = it }
   }
 
   @CheckResult
-  fun handleListenForChanged(): PreferenceListener {
+  fun listenForPowerSavingChanges(): PreferenceListener {
     return preferences.observerPowerSavingEnabled { enabled -> state.isPowerSaving = enabled }
+  }
+
+  @CheckResult
+  fun listenForIgnorePowerSavingModeChanges(): PreferenceListener {
+    return preferences.observerIgnoreInPowerSavingMode { enabled ->
+      state.isIgnoreInPowerSavingMode = enabled
+    }
   }
 
   fun handleSync(
@@ -43,6 +52,7 @@ internal constructor(
       state.apply {
         hasPermission = permissionChecker.hasSecureSettingsPermission()
         isPowerSaving = preferences.isPowerSavingEnabled()
+        isIgnoreInPowerSavingMode = preferences.isIgnoreInPowerSavingMode()
       }
       andThen()
     }
@@ -60,9 +70,22 @@ internal constructor(
     }
   }
 
+  fun handleSetIgnoreInPowerSavingMode(
+      scope: CoroutineScope,
+      ignore: Boolean,
+      andThen: () -> Unit,
+  ) {
+    state.isIgnoreInPowerSavingMode = ignore
+    scope.launch(context = Dispatchers.Main) {
+      preferences.setIgnoreInPowerSavingMode(ignore)
+      andThen()
+    }
+  }
+
   companion object {
 
     private const val KEY_PERMISSION = "has_permission"
     private const val KEY_PREFERENCE = "preference_enabled"
+    private const val KEY_IGNORE = "ignore_power_saving_mode"
   }
 }

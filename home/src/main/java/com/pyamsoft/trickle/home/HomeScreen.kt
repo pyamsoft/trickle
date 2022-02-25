@@ -6,29 +6,13 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Switch
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.rememberScaffoldState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -99,6 +83,7 @@ fun HomeScreen(
     state: HomeViewState,
     @StringRes appNameRes: Int,
     onTogglePowerSaving: (Boolean) -> Unit,
+    onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
     onCopy: (String) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenApplicationSettings: () -> Unit,
@@ -138,9 +123,10 @@ fun HomeScreen(
             PowerSavingSettings(
                 modifier = Modifier.fillMaxWidth(),
                 state = state,
-                onTogglePowerSaving = onTogglePowerSaving,
                 onOpenBatterySettings = onOpenBatterySettings,
                 onRestartPowerService = onRestartPowerService,
+                onTogglePowerSaving = onTogglePowerSaving,
+                onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
             )
           } else {
             SetupInstructions(
@@ -205,16 +191,26 @@ private fun PowerSavingSettings(
     state: HomeViewState,
     onOpenBatterySettings: () -> Unit,
     onTogglePowerSaving: (Boolean) -> Unit,
+    onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
     onRestartPowerService: () -> Unit,
 ) {
   val isPowerSaving = state.isPowerSaving
+  val isIgnoreInPowerSavingMode = state.isIgnoreInPowerSavingMode
   Column(
       modifier = modifier,
   ) {
     ServiceSwitch(
         modifier = Modifier.fillMaxWidth(),
-        isPowerSaving = isPowerSaving,
-        onTogglePowerSaving = onTogglePowerSaving,
+        text = "Automatically enter power-saving mode when screen is off",
+        enabled = isPowerSaving,
+        onChange = onTogglePowerSaving,
+    )
+
+    ServiceSwitch(
+        modifier = Modifier.fillMaxWidth(),
+        text = "Do not act if device is already in power-saving mode",
+        enabled = isIgnoreInPowerSavingMode,
+        onChange = onToggleIgnoreInPowerSavingMode,
     )
 
     GoToSettings(
@@ -228,8 +224,9 @@ private fun PowerSavingSettings(
 @Composable
 private fun ServiceSwitch(
     modifier: Modifier = Modifier,
-    isPowerSaving: Boolean,
-    onTogglePowerSaving: (Boolean) -> Unit,
+    text: String,
+    enabled: Boolean,
+    onChange: (Boolean) -> Unit,
 ) {
   Row(
       modifier = modifier,
@@ -237,14 +234,14 @@ private fun ServiceSwitch(
   ) {
     Text(
         modifier = Modifier.weight(1F),
-        text = "Automatically enter power-saving mode when screen is off",
+        text = text,
         style = MaterialTheme.typography.body2,
     )
 
     Switch(
         modifier = Modifier.padding(start = MaterialTheme.keylines.content),
-        checked = isPowerSaving,
-        onCheckedChange = onTogglePowerSaving,
+        checked = enabled,
+        onCheckedChange = onChange,
     )
   }
 }
@@ -408,6 +405,7 @@ private fun PreviewHomeScreen(state: HomeViewState) {
   HomeScreen(
       state = state,
       appNameRes = 0,
+      onToggleIgnoreInPowerSavingMode = {},
       onTogglePowerSaving = {},
       onOpenBatterySettings = {},
       onOpenApplicationSettings = {},

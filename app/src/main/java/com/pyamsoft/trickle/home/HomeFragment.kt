@@ -124,6 +124,13 @@ class HomeFragment : Fragment() {
         ) { handleLaunchService() }
   }
 
+  private fun handleToggleIgnoreInPowerSavingMode(ignore: Boolean) {
+    viewModel.requireNotNull().handleSetIgnoreInPowerSavingMode(
+            scope = viewLifecycleOwner.lifecycleScope,
+            ignore = ignore,
+        ) { handleLaunchService() }
+  }
+
   override fun onCreateView(
       inflater: LayoutInflater,
       container: ViewGroup?,
@@ -152,9 +159,10 @@ class HomeFragment : Fragment() {
                   onCopy = { handleCopyCommand(it) },
                   onOpenBatterySettings = { handleOpenSystemSettings() },
                   onOpenApplicationSettings = { handleOpenApplicationSettings() },
-                  onTogglePowerSaving = { handleTogglePowerSaving(it) },
                   onRestartPowerService = { handleRestartPowerService() },
                   onRestartApp = { handleRestartApp() },
+                  onTogglePowerSaving = { handleTogglePowerSaving(it) },
+                  onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
               )
             }
           }
@@ -170,8 +178,8 @@ class HomeFragment : Fragment() {
       vm.restoreState(savedInstanceState)
 
       // Listen for changes in preferences
-      val listener = vm.handleListenForChanged()
-      viewLifecycleOwner.doOnDestroy { listener.cancel() }
+      vm.listenForPowerSavingChanges().also { viewLifecycleOwner.doOnDestroy { it.cancel() } }
+      vm.listenForIgnorePowerSavingModeChanges().also { viewLifecycleOwner.doOnDestroy { it.cancel() } }
     }
   }
 
