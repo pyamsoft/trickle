@@ -1,6 +1,8 @@
 package com.pyamsoft.trickle.process.work
 
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.PowerManager
 import android.provider.Settings
@@ -26,11 +28,6 @@ internal constructor(
     private val preferences: PowerPreferences,
     private val permissions: PermissionChecker,
 ) : PowerSaver {
-
-  private val batteryManager by
-      lazy(LazyThreadSafetyMode.NONE) {
-        context.getSystemService<BatteryManager>().requireNotNull()
-      }
 
   private val powerManager by
       lazy(LazyThreadSafetyMode.NONE) { context.getSystemService<PowerManager>().requireNotNull() }
@@ -83,6 +80,17 @@ internal constructor(
   }
 
   @CheckResult
+  private fun isBatteryCharging(): Boolean {
+    val statusIntent: Intent? = context.registerReceiver(null, BATTERY_STATUS_INTENT_FILTER)
+    val batteryStatus =
+        statusIntent?.getIntExtra(
+            BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
+            ?: BatteryManager.BATTERY_STATUS_UNKNOWN
+    return batteryStatus == BatteryManager.BATTERY_STATUS_CHARGING ||
+        batteryStatus == BatteryManager.BATTERY_STATUS_FULL
+  }
+
+  @CheckResult
   override suspend fun attemptPowerSaving(enable: Boolean): Boolean =
       withContext(context = Dispatchers.Default) {
         Enforcer.assertOffMainThread()
@@ -90,24 +98,24 @@ internal constructor(
         val attemptType = attemptTypeString(enable)
         return@withContext coroutineScope {
           if (!permissions.hasSecureSettingsPermission()) {
-            Timber.w("No power related work without WRITE_SECURE_SETTINGS permission")
+            Timber.w("No power related work without WRITE_SECURE_SETTINGS permission: $attemptType")
             resetRunContext()
             return@coroutineScope false
           }
 
           if (!preferences.isPowerSavingEnabled()) {
-            Timber.w("No power related work while job is disabled")
+            Timber.w("No power related work while job is disabled: $attemptType")
             resetRunContext()
             return@coroutineScope false
           }
 
           if (ignoreIfDeviceIsAlreadyPowerSaving(enable)) {
-            Timber.w("Command was ignored because of power-saving mode")
+            Timber.w("Command was ignored because of power-saving mode: $attemptType")
             return@coroutineScope false
           }
 
-          if (batteryManager.isCharging) {
-            Timber.w("No power related work while device is charging")
+          if (isBatteryCharging()) {
+            Timber.w("No power related work while device is charging: $attemptType")
             resetRunContext()
             return@coroutineScope false
           }
@@ -130,10 +138,12 @@ internal constructor(
 
   companion object {
 
+    private val BATTERY_STATUS_INTENT_FILTER = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+
     @JvmStatic
     @CheckResult
     private fun attemptTypeString(enable: Boolean): String {
-      return if (enable) "ENABLE" else "DISABLE"
+      return if (enable) "POWER-SAVE" else "POWER-NORMAL"
     }
   }
 }
