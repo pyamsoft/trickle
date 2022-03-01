@@ -45,33 +45,35 @@ internal constructor(
 
   /** This should work if we have WRITE_SECURE_SETTINGS */
   @CheckResult
-  private fun togglePowerSaving(enable: Boolean): Boolean {
+  private fun togglePowerSaving(enable: Boolean, type: String): Boolean {
     val value = if (enable) 1 else 0
-    Timber.d("Attempt ${if (enable) "ENABLE" else "DISABLE"} via settings")
+    Timber.d("Attempt power-saving via settings: $type")
     return Settings.Global.putInt(resolver, "low_power", value)
+  }
+
+  private fun resetRunContext() {
+    ignorePowerWhenAlreadyInPowerSavingMode = false
   }
 
   @CheckResult
   private suspend fun ignoreIfDeviceIsAlreadyPowerSaving(enable: Boolean): Boolean {
     if (enable) {
+      resetRunContext()
+
       if (preferences.isIgnoreInPowerSavingMode()) {
         if (powerManager.isPowerSaveMode) {
           ignorePowerWhenAlreadyInPowerSavingMode = true
           Timber.d("Do not act while device is already in power saving mode ")
           return true
-        } else {
-          ignorePowerWhenAlreadyInPowerSavingMode = false
         }
-      } else {
-        ignorePowerWhenAlreadyInPowerSavingMode = false
       }
     } else {
-      val check = ignorePowerWhenAlreadyInPowerSavingMode
+      val shouldIgnore = ignorePowerWhenAlreadyInPowerSavingMode
 
       // Set back to false
-      ignorePowerWhenAlreadyInPowerSavingMode = false
+      resetRunContext()
 
-      if (check) {
+      if (shouldIgnore) {
         Timber.d("Service is ignoring command while device is in power-saving mode")
         return true
       }
@@ -85,20 +87,17 @@ internal constructor(
       withContext(context = Dispatchers.Default) {
         Enforcer.assertOffMainThread()
 
+        val attemptType = attemptTypeString(enable)
         return@withContext coroutineScope {
           if (!permissions.hasSecureSettingsPermission()) {
             Timber.w("No power related work without WRITE_SECURE_SETTINGS permission")
-            // Can't do anything
-            return@coroutineScope false
-          }
-
-          if (batteryManager.isCharging) {
-            Timber.w("No power related work while device is charging")
+            resetRunContext()
             return@coroutineScope false
           }
 
           if (!preferences.isPowerSavingEnabled()) {
             Timber.w("No power related work while job is disabled")
+            resetRunContext()
             return@coroutineScope false
           }
 
@@ -107,15 +106,34 @@ internal constructor(
             return@coroutineScope false
           }
 
-          Timber.d("Attempt power saving: ${if (enable) "ON" else "OFF"}")
+          if (batteryManager.isCharging) {
+            Timber.w("No power related work while device is charging")
+            resetRunContext()
+            return@coroutineScope false
+          }
+
           try {
-            return@coroutineScope togglePowerSaving(enable = enable)
+            Timber.d("Attempt power saving: $attemptType")
+            return@coroutineScope togglePowerSaving(
+                enable = enable,
+                type = attemptType,
+            )
           } catch (e: Throwable) {
             e.ifNotCancellation {
-              Timber.e(e, "Power saving error. Attempted: ${if (enable) "ON" else "OFF"}")
+              Timber.e(e, "Power saving error. Attempted: $attemptType")
+              resetRunContext()
               return@coroutineScope false
             }
           }
         }
       }
+
+  companion object {
+
+    @JvmStatic
+    @CheckResult
+    private fun attemptTypeString(enable: Boolean): String {
+      return if (enable) "ENABLE" else "DISABLE"
+    }
+  }
 }
