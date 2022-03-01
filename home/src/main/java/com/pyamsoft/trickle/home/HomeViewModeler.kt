@@ -34,26 +34,29 @@ internal constructor(
 
   @CheckResult
   fun listenForPowerSavingChanges(): PreferenceListener {
-    return preferences.observerPowerSavingEnabled { enabled -> state.isPowerSaving = enabled }
+    return preferences.observerPowerSavingEnabled { state.isPowerSaving = it }
   }
 
   @CheckResult
   fun listenForIgnorePowerSavingModeChanges(): PreferenceListener {
-    return preferences.observerIgnoreInPowerSavingMode { enabled ->
-      state.isIgnoreInPowerSavingMode = enabled
-    }
+    return preferences.observerIgnoreInPowerSavingMode { state.isIgnoreInPowerSavingMode = it }
   }
 
   fun handleSync(
       scope: CoroutineScope,
       andThen: () -> Unit,
   ) {
+    val s = state
+    s.loading = true
     scope.launch(context = Dispatchers.Main) {
-      state.apply {
+      s.apply {
         hasPermission = permissionChecker.hasSecureSettingsPermission()
         isPowerSaving = preferences.isPowerSavingEnabled()
         isIgnoreInPowerSavingMode = preferences.isIgnoreInPowerSavingMode()
+
+        loading = false
       }
+
       andThen()
     }
   }

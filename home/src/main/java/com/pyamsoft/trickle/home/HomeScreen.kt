@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.google.accompanist.insets.navigationBarsHeight
 import com.google.accompanist.insets.statusBarsHeight
 import com.pyamsoft.pydroid.theme.keylines
@@ -92,6 +93,7 @@ fun HomeScreen(
 ) {
   val scaffoldState = rememberScaffoldState()
   val hasPermission = state.hasPermission
+  val isLoading = state.loading
 
   Scaffold(
       modifier = modifier,
@@ -117,23 +119,34 @@ fun HomeScreen(
       item {
         Crossfade(
             modifier = Modifier.fillMaxWidth(),
-            targetState = hasPermission,
-        ) { hasPerm ->
-          if (hasPerm) {
-            PowerSavingSettings(
+            targetState = isLoading,
+        ) { loading ->
+          if (loading) {
+            Loading(
                 modifier = Modifier.fillMaxWidth(),
-                state = state,
-                onOpenBatterySettings = onOpenBatterySettings,
-                onRestartPowerService = onRestartPowerService,
-                onTogglePowerSaving = onTogglePowerSaving,
-                onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
             )
           } else {
-            SetupInstructions(
+            Crossfade(
                 modifier = Modifier.fillMaxWidth(),
-                onCopy = onCopy,
-                onRestartApp = onRestartApp,
-            )
+                targetState = hasPermission,
+            ) { hasPerm ->
+              if (hasPerm) {
+                PowerSavingSettings(
+                    modifier = Modifier.fillMaxWidth(),
+                    state = state,
+                    onOpenBatterySettings = onOpenBatterySettings,
+                    onRestartPowerService = onRestartPowerService,
+                    onTogglePowerSaving = onTogglePowerSaving,
+                    onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
+                )
+              } else {
+                SetupInstructions(
+                    modifier = Modifier.fillMaxWidth(),
+                    onCopy = onCopy,
+                    onRestartApp = onRestartApp,
+                )
+              }
+            }
           }
         }
       }
@@ -144,6 +157,20 @@ fun HomeScreen(
         )
       }
     }
+  }
+}
+
+@Composable
+private fun Loading(
+    modifier: Modifier = Modifier,
+) {
+  Box(
+      modifier = modifier.padding(MaterialTheme.keylines.content),
+      contentAlignment = Alignment.Center,
+  ) {
+    CircularProgressIndicator(
+        modifier = Modifier.widthIn(min = 64.dp).heightIn(min = 64.dp),
+    )
   }
 }
 
