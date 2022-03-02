@@ -91,7 +91,7 @@ internal constructor(
   }
 
   @CheckResult
-  override suspend fun attemptPowerSaving(enable: Boolean): Boolean =
+  private suspend fun performPowerSaving(enable: Boolean, force: Boolean): Boolean =
       withContext(context = Dispatchers.Default) {
         Enforcer.assertOffMainThread()
 
@@ -109,15 +109,17 @@ internal constructor(
             return@coroutineScope false
           }
 
-          if (ignoreIfDeviceIsAlreadyPowerSaving(enable)) {
-            Timber.w("Command was ignored because of power-saving mode: $attemptType")
-            return@coroutineScope false
-          }
+          if (!force) {
+            if (ignoreIfDeviceIsAlreadyPowerSaving(enable)) {
+              Timber.w("Command was ignored because of power-saving mode: $attemptType")
+              return@coroutineScope false
+            }
 
-          if (isBatteryCharging()) {
-            Timber.w("No power related work while device is charging: $attemptType")
-            resetRunContext()
-            return@coroutineScope false
+            if (isBatteryCharging()) {
+              Timber.w("No power related work while device is charging: $attemptType")
+              resetRunContext()
+              return@coroutineScope false
+            }
           }
 
           try {
@@ -135,6 +137,14 @@ internal constructor(
           }
         }
       }
+
+  override suspend fun attemptPowerSaving(enable: Boolean): Boolean {
+    return performPowerSaving(enable = enable, force = false)
+  }
+
+  override suspend fun forcePowerSaving(enable: Boolean): Boolean {
+    return performPowerSaving(enable = enable, force = true)
+  }
 
   companion object {
 

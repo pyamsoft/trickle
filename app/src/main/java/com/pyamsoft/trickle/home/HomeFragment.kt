@@ -105,7 +105,7 @@ class HomeFragment : Fragment() {
 
   private fun handleRestartPowerService() {
     viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.Main) {
-      if (powerSaver.requireNotNull().attemptPowerSaving(enable = false)) {
+      if (powerSaver.requireNotNull().forcePowerSaving(enable = false)) {
         Timber.d("Power saving mode: OFF")
       } else {
         Timber.w("Did not modify power saving mode")

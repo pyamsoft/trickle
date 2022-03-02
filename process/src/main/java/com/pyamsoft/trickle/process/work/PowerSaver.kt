@@ -4,5 +4,7 @@ import androidx.annotation.CheckResult
 
 interface PowerSaver {
 
+  @CheckResult suspend fun forcePowerSaving(enable: Boolean): Boolean
+
   @CheckResult suspend fun attemptPowerSaving(enable: Boolean): Boolean
 }
