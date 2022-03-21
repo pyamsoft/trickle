@@ -29,6 +29,11 @@ internal constructor(
     private val permissions: PermissionChecker,
 ) : PowerSaver {
 
+  private val batteryManager by
+      lazy(LazyThreadSafetyMode.NONE) {
+        context.getSystemService<BatteryManager>().requireNotNull()
+      }
+
   private val powerManager by
       lazy(LazyThreadSafetyMode.NONE) { context.getSystemService<PowerManager>().requireNotNull() }
 
@@ -80,7 +85,7 @@ internal constructor(
   }
 
   @CheckResult
-  private fun isBatteryCharging(): Boolean {
+  private fun isBatteryChargingIntent(): Boolean {
     val statusIntent: Intent? = context.registerReceiver(null, BATTERY_STATUS_INTENT_FILTER)
     val batteryStatus =
         statusIntent?.getIntExtra(
@@ -88,6 +93,16 @@ internal constructor(
             ?: BatteryManager.BATTERY_STATUS_UNKNOWN
     return batteryStatus == BatteryManager.BATTERY_STATUS_CHARGING ||
         batteryStatus == BatteryManager.BATTERY_STATUS_FULL
+  }
+
+  @CheckResult
+  private fun isBatteryChargingBattery(): Boolean {
+    return batteryManager.isCharging
+  }
+
+  @CheckResult
+  private fun isBatteryCharging(): Boolean {
+    return isBatteryChargingBattery() || isBatteryChargingIntent()
   }
 
   @CheckResult
@@ -110,14 +125,27 @@ internal constructor(
           }
 
           if (!force) {
-            if (ignoreIfDeviceIsAlreadyPowerSaving(enable)) {
-              Timber.w("Command was ignored because of power-saving mode: $attemptType")
-              return@coroutineScope false
+            // Check charging status first, because we may force-exit
+            if (isBatteryCharging()) {
+              resetRunContext()
+
+              // If we are told to exit, do so here
+              if (preferences.isExitPowerSavingModeWhileCharging()) {
+                Timber.d("Attempt exit power-saving: $attemptType")
+                return@coroutineScope togglePowerSaving(
+                    enable = false,
+                    type = attemptTypeString(false),
+                )
+              } else {
+                Timber.w("No power related work while device is charging: $attemptType")
+                return@coroutineScope false
+              }
             }
 
-            if (isBatteryCharging()) {
-              Timber.w("No power related work while device is charging: $attemptType")
-              resetRunContext()
+            // But if we are not charging, check if we are already in power-saving mode from outside
+            // control, since if so, we do not want to override the device state
+            if (ignoreIfDeviceIsAlreadyPowerSaving(enable)) {
+              Timber.w("Command was ignored because of power-saving mode: $attemptType")
               return@coroutineScope false
             }
           }

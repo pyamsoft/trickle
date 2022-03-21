@@ -27,7 +27,9 @@ internal constructor(
       withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
         return@withContext preferences.getBoolean(
-            KEY_POWER_SAVING_ENABLED, DEFAULT_POWER_SAVING_ENABLED)
+            KEY_POWER_SAVING_ENABLED,
+            DEFAULT_POWER_SAVING_ENABLED,
+        )
       }
 
   override suspend fun setPowerSavingEnabled(enable: Boolean) =
@@ -36,7 +38,7 @@ internal constructor(
         preferences.edit { putBoolean(KEY_POWER_SAVING_ENABLED, enable) }
       }
 
-  override fun observerPowerSavingEnabled(onChange: (Boolean) -> Unit): PreferenceListener {
+  override fun observePowerSavingEnabled(onChange: (Boolean) -> Unit): PreferenceListener {
     return preferences.onChange(KEY_POWER_SAVING_ENABLED) { onChange(isPowerSavingEnabled()) }
   }
 
@@ -44,7 +46,9 @@ internal constructor(
       withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
         return@withContext preferences.getBoolean(
-            KEY_IGNORE_IN_POWER_SAVING_MODE, DEFAULT_IGNORE_IN_POWER_SAVING_MODE)
+            KEY_IGNORE_IN_POWER_SAVING_MODE,
+            DEFAULT_IGNORE_IN_POWER_SAVING_MODE,
+        )
       }
 
   override suspend fun setIgnoreInPowerSavingMode(ignore: Boolean) =
@@ -53,10 +57,31 @@ internal constructor(
         preferences.edit { putBoolean(KEY_IGNORE_IN_POWER_SAVING_MODE, ignore) }
       }
 
-  override fun observerIgnoreInPowerSavingMode(onChange: (Boolean) -> Unit): PreferenceListener {
+  override fun observeIgnoreInPowerSavingMode(onChange: (Boolean) -> Unit): PreferenceListener {
     return preferences.onChange(KEY_IGNORE_IN_POWER_SAVING_MODE) {
       onChange(isIgnoreInPowerSavingMode())
     }
+  }
+
+  override suspend fun setExitPowerSavingModeWhileCharging(exit: Boolean) =
+      withContext(context = Dispatchers.IO) {
+        Enforcer.assertOffMainThread()
+        preferences.edit { putBoolean(KEY_EXIT_WHILE_CHARGING, exit) }
+      }
+
+  override suspend fun isExitPowerSavingModeWhileCharging(): Boolean =
+      withContext(context = Dispatchers.IO) {
+        Enforcer.assertOffMainThread()
+        return@withContext preferences.getBoolean(
+            KEY_EXIT_WHILE_CHARGING,
+            DEFAULT_EXIT_WHILE_CHARGING,
+        )
+      }
+
+  override fun observeExitPowerSavingModeWhileCharging(
+      onChange: (Boolean) -> Unit
+  ): PreferenceListener {
+    return preferences.onChange(KEY_EXIT_WHILE_CHARGING) { onChange(isIgnoreInPowerSavingMode()) }
   }
 
   companion object {
@@ -66,5 +91,8 @@ internal constructor(
 
     private const val KEY_IGNORE_IN_POWER_SAVING_MODE = "key_ignore_in_power_saving_mode_v1"
     private const val DEFAULT_IGNORE_IN_POWER_SAVING_MODE = true
+
+    private const val KEY_EXIT_WHILE_CHARGING = "key_exit_while_charging_v1"
+    private const val DEFAULT_EXIT_WHILE_CHARGING = true
   }
 }

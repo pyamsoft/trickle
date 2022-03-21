@@ -105,6 +105,7 @@ class HomeFragment : Fragment() {
 
   private fun handleRestartPowerService() {
     viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.Main) {
+      viewModel.requireNotNull().handleRestartClicked()
       if (powerSaver.requireNotNull().forcePowerSaving(enable = false)) {
         Timber.d("Power saving mode: OFF")
       } else {
@@ -132,6 +133,13 @@ class HomeFragment : Fragment() {
     viewModel.requireNotNull().handleSetIgnoreInPowerSavingMode(
             scope = viewLifecycleOwner.lifecycleScope,
             ignore = ignore,
+        ) { handleLaunchService() }
+  }
+
+  private fun handleToggleExitWhileCharging(exit: Boolean) {
+    viewModel.requireNotNull().handleSetExitwhileCharging(
+            scope = viewLifecycleOwner.lifecycleScope,
+            exit = exit,
         ) { handleLaunchService() }
   }
 
@@ -167,6 +175,7 @@ class HomeFragment : Fragment() {
                   onRestartApp = { handleRestartApp() },
                   onTogglePowerSaving = { handleTogglePowerSaving(it) },
                   onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
+                  onToggleExitWhileCharging = { handleToggleExitWhileCharging(it) },
               )
             }
           }
@@ -182,6 +191,7 @@ class HomeFragment : Fragment() {
       vm.restoreState(savedInstanceState)
 
       // Listen for changes in preferences
+      vm.listenForExitWhileChargingChanges().also { viewLifecycleOwner.doOnDestroy { it.cancel() } }
       vm.listenForPowerSavingChanges().also { viewLifecycleOwner.doOnDestroy { it.cancel() } }
       vm.listenForIgnorePowerSavingModeChanges().also {
         viewLifecycleOwner.doOnDestroy { it.cancel() }

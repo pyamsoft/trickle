@@ -8,14 +8,25 @@ import javax.inject.Inject
 
 interface HomeViewState : UiViewState {
   val loading: Boolean
-  val isPowerSaving: Boolean
-  val isIgnoreInPowerSavingMode: Boolean
   val hasPermission: Boolean
+
+  val isPowerSaving: Boolean
+
+  val isPowerSettingsShortcutVisible: Boolean
+  val isIgnoreInPowerSavingMode: Boolean
+  val isExitWhileCharging: Boolean
 }
 
 internal class MutableHomeViewState @Inject internal constructor() : HomeViewState {
-  override var isPowerSaving by mutableStateOf(false)
-  override var isIgnoreInPowerSavingMode by mutableStateOf(false)
-  override var hasPermission by mutableStateOf(false)
+  // Internal
+  internal var restartClicks: Int = 0
+
   override var loading by mutableStateOf(false)
+  override var hasPermission by mutableStateOf(false)
+
+  override var isPowerSaving by mutableStateOf(false)
+
+  override var isPowerSettingsShortcutVisible by mutableStateOf(false)
+  override var isIgnoreInPowerSavingMode by mutableStateOf(false)
+  override var isExitWhileCharging by mutableStateOf(false)
 }

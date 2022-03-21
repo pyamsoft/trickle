@@ -9,11 +9,18 @@ interface PowerPreferences {
 
   suspend fun setPowerSavingEnabled(enable: Boolean)
 
-  @CheckResult fun observerPowerSavingEnabled(onChange: (Boolean) -> Unit): PreferenceListener
+  @CheckResult fun observePowerSavingEnabled(onChange: (Boolean) -> Unit): PreferenceListener
 
   @CheckResult suspend fun isIgnoreInPowerSavingMode(): Boolean
 
   suspend fun setIgnoreInPowerSavingMode(ignore: Boolean)
 
-  @CheckResult fun observerIgnoreInPowerSavingMode(onChange: (Boolean) -> Unit): PreferenceListener
+  @CheckResult fun observeIgnoreInPowerSavingMode(onChange: (Boolean) -> Unit): PreferenceListener
+
+  @CheckResult suspend fun isExitPowerSavingModeWhileCharging(): Boolean
+
+  suspend fun setExitPowerSavingModeWhileCharging(exit: Boolean)
+
+  @CheckResult
+  fun observeExitPowerSavingModeWhileCharging(onChange: (Boolean) -> Unit): PreferenceListener
 }

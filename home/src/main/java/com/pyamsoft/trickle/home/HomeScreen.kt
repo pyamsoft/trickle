@@ -12,7 +12,8 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -85,6 +86,7 @@ fun HomeScreen(
     @StringRes appNameRes: Int,
     onTogglePowerSaving: (Boolean) -> Unit,
     onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
+    onToggleExitWhileCharging: (Boolean) -> Unit,
     onCopy: (String) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenApplicationSettings: () -> Unit,
@@ -138,6 +140,7 @@ fun HomeScreen(
                     onRestartPowerService = onRestartPowerService,
                     onTogglePowerSaving = onTogglePowerSaving,
                     onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
+                    onToggleExitWhileCharging = onToggleExitWhileCharging,
                 )
               } else {
                 SetupInstructions(
@@ -184,21 +187,12 @@ private fun Header(
       modifier = modifier,
       verticalAlignment = Alignment.Top,
   ) {
-    Column(
+    Text(
         modifier = Modifier.weight(1F),
-    ) {
-      Text(
-          textAlign = TextAlign.Center,
-          text = stringResource(appNameRes),
-          style = MaterialTheme.typography.h4,
-      )
-
-      Text(
-          modifier = Modifier.padding(top = MaterialTheme.keylines.baseline),
-          text = "Automatic power-saving",
-          style = MaterialTheme.typography.body2,
-      )
-    }
+        textAlign = TextAlign.Center,
+        text = stringResource(appNameRes),
+        style = MaterialTheme.typography.h4,
+    )
 
     IconButton(
         modifier = Modifier.padding(start = MaterialTheme.keylines.content),
@@ -219,29 +213,39 @@ private fun PowerSavingSettings(
     onOpenBatterySettings: () -> Unit,
     onTogglePowerSaving: (Boolean) -> Unit,
     onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
+    onToggleExitWhileCharging: (Boolean) -> Unit,
     onRestartPowerService: () -> Unit,
 ) {
   val isPowerSaving = state.isPowerSaving
   val isIgnoreInPowerSavingMode = state.isIgnoreInPowerSavingMode
+  val isExitWhileCharging = state.isExitWhileCharging
+
   Column(
-      modifier = modifier,
+      modifier = modifier.fillMaxWidth(),
   ) {
-    ServiceSwitch(
+    Setting(
         modifier = Modifier.fillMaxWidth(),
-        text = "Automatically enter power-saving mode when screen is off",
+        name = "Automatic power-saving",
+        description = "Power-saving mode when screen is off",
         enabled = isPowerSaving,
         onChange = onTogglePowerSaving,
     )
 
-    ServiceSwitch(
-        modifier = Modifier.fillMaxWidth(),
-        text = "Do not act if device is already in power-saving mode",
+    Option(
+        name = "Do nothing if already in power-saving mode",
         enabled = isIgnoreInPowerSavingMode,
         onChange = onToggleIgnoreInPowerSavingMode,
     )
 
+    Option(
+        name = "Exit power-saving mode while charging",
+        enabled = isExitWhileCharging,
+        onChange = onToggleExitWhileCharging,
+    )
+
     GoToSettings(
         modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
+        state = state,
         onOpenSettings = onOpenBatterySettings,
         onRestartPowerService = onRestartPowerService,
     )
@@ -249,24 +253,56 @@ private fun PowerSavingSettings(
 }
 
 @Composable
-private fun ServiceSwitch(
+private fun Setting(
     modifier: Modifier = Modifier,
-    text: String,
+    name: String,
+    description: String,
     enabled: Boolean,
     onChange: (Boolean) -> Unit,
 ) {
   Row(
       modifier = modifier,
+  ) {
+    Column(
+        modifier = Modifier.weight(1F),
+    ) {
+      Text(
+          text = name,
+          style = MaterialTheme.typography.body1,
+      )
+      Text(
+          text = description,
+          style = MaterialTheme.typography.caption,
+      )
+    }
+
+    Switch(
+        modifier = Modifier.padding(start = MaterialTheme.keylines.baseline),
+        checked = enabled,
+        onCheckedChange = onChange,
+    )
+  }
+}
+
+@Composable
+private fun Option(
+    modifier: Modifier = Modifier,
+    name: String,
+    enabled: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+  Row(
+      modifier = modifier.padding(start = MaterialTheme.keylines.content),
       verticalAlignment = Alignment.CenterVertically,
   ) {
     Text(
         modifier = Modifier.weight(1F),
-        text = text,
+        text = name,
         style = MaterialTheme.typography.body2,
     )
 
-    Switch(
-        modifier = Modifier.padding(start = MaterialTheme.keylines.content),
+    Checkbox(
+        modifier = Modifier.padding(start = MaterialTheme.keylines.baseline),
         checked = enabled,
         onCheckedChange = onChange,
     )
@@ -367,17 +403,15 @@ private fun AdbInstructions(
   }
 }
 
-private const val MAX_CLICKS_SHOW_EXTRA_HELP = 5
-
 @Composable
 @OptIn(ExperimentalAnimationApi::class)
 private fun GoToSettings(
     modifier: Modifier = Modifier,
+    state: HomeViewState,
     onRestartPowerService: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-  var clicks by remember { mutableStateOf(0) }
-  val isVisible = remember(clicks) { clicks > MAX_CLICKS_SHOW_EXTRA_HELP }
+  val isVisible = state.isPowerSettingsShortcutVisible
 
   Column(
       modifier = modifier,
@@ -391,10 +425,7 @@ private fun GoToSettings(
 
     Button(
         modifier = Modifier.padding(top = MaterialTheme.keylines.content),
-        onClick = {
-          clicks += 1
-          onRestartPowerService()
-        },
+        onClick = onRestartPowerService,
     ) {
       Text(
           text = "Restart Power Service",
@@ -439,6 +470,7 @@ private fun PreviewHomeScreen(state: HomeViewState) {
       onCopy = {},
       onRestartPowerService = {},
       onRestartApp = {},
+      onToggleExitWhileCharging = {},
   )
 }
 
@@ -454,6 +486,10 @@ private fun PreviewHomeScreenNoPermission() {
 @Composable
 private fun PreviewHomeScreenHasPermission() {
   PreviewHomeScreen(
-      state = MutableHomeViewState().apply { hasPermission = true },
+      state =
+          MutableHomeViewState().apply {
+            hasPermission = true
+            isPowerSettingsShortcutVisible = true
+          },
   )
 }
