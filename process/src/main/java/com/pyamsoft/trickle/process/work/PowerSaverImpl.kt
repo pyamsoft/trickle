@@ -47,41 +47,13 @@ internal constructor(
 
   /** This should work if we have WRITE_SECURE_SETTINGS */
   @CheckResult
-  private fun togglePowerSaving(enable: Boolean, type: String): Boolean {
+  private fun togglePowerSaving(enable: Boolean): Boolean {
     val value = if (enable) 1 else 0
-    Timber.d("Attempt power-saving via settings: $type")
     return Settings.Global.putInt(resolver, "low_power", value)
   }
 
   private fun resetRunContext() {
     ignorePowerWhenAlreadyInPowerSavingMode = false
-  }
-
-  @CheckResult
-  private suspend fun ignoreIfDeviceIsAlreadyPowerSaving(enable: Boolean): Boolean {
-    if (enable) {
-      resetRunContext()
-
-      if (preferences.isIgnoreInPowerSavingMode()) {
-        if (powerManager.isPowerSaveMode) {
-          ignorePowerWhenAlreadyInPowerSavingMode = true
-          Timber.d("Do not act while device is already in power saving mode ")
-          return true
-        }
-      }
-    } else {
-      val shouldIgnore = ignorePowerWhenAlreadyInPowerSavingMode
-
-      // Set back to false
-      resetRunContext()
-
-      if (shouldIgnore) {
-        Timber.d("Service is ignoring command while device is in power-saving mode")
-        return true
-      }
-    }
-
-    return false
   }
 
   @CheckResult
@@ -106,59 +78,107 @@ internal constructor(
   }
 
   @CheckResult
+  private suspend fun turnPowerSavingOff(
+      force: Boolean,
+  ): Boolean {
+    // If forced, we don't need to check previous power saving state or preference
+    if (!force) {
+      // Retrieve a previously written value
+      val shouldIgnore = ignorePowerWhenAlreadyInPowerSavingMode
+
+      // Reset running environment
+      resetRunContext()
+
+      // Check preference
+      if (!preferences.isPowerSavingEnabled()) {
+        Timber.w("Cannot turn power saving OFF when preference disabled")
+        resetRunContext()
+        return false
+      }
+
+      // Check previous state
+      if (shouldIgnore) {
+        Timber.d("Power Saving was enabled from outside, do not turn OFF")
+        return false
+      }
+    }
+
+    Timber.d("Disable power saving mode!")
+    return togglePowerSaving(enable = false)
+  }
+
+  @CheckResult
+  private suspend fun turnPowerSavingOn(
+      force: Boolean,
+  ): Boolean {
+    // Reset run environment
+    resetRunContext()
+
+    // If force, we don't need to check preference or current device power state
+    if (!force) {
+      if (!preferences.isPowerSavingEnabled()) {
+        Timber.w("Cannot turn power saving ON when preference disabled")
+        return false
+      }
+
+      // Check charging status first, we may not do anything
+      if (isBatteryCharging()) {
+        Timber.w("Do not turn power saving ON while device charging")
+        return false
+      }
+
+      // Mark flag as false by default
+      ignorePowerWhenAlreadyInPowerSavingMode = false
+
+      // But if we are not charging, check if we are already in power-saving mode from outside
+      // control, since if so, we do not want to override the device state
+      if (preferences.isIgnoreInPowerSavingMode()) {
+        if (powerManager.isPowerSaveMode) {
+          // Mark this for later, see turnPowerSavingOff
+          ignorePowerWhenAlreadyInPowerSavingMode = true
+
+          Timber.d("Not enabling power-saving because we are in power-saving from outside!")
+          return false
+        }
+      }
+    }
+
+    Timber.d("Enable power saving mode!")
+    return togglePowerSaving(enable = true)
+  }
+
+  @CheckResult
   private suspend fun performPowerSaving(enable: Boolean, force: Boolean): Boolean =
       withContext(context = Dispatchers.Default) {
         Enforcer.assertOffMainThread()
 
-        val attemptType = attemptTypeString(enable)
         return@withContext coroutineScope {
           if (!permissions.hasSecureSettingsPermission()) {
-            Timber.w("No power related work without WRITE_SECURE_SETTINGS permission: $attemptType")
+            Timber.w("No power related work without WRITE_SECURE_SETTINGS permission")
             resetRunContext()
             return@coroutineScope false
           }
 
-          if (!preferences.isPowerSavingEnabled()) {
-            Timber.w("No power related work while job is disabled: $attemptType")
-            resetRunContext()
-            return@coroutineScope false
-          }
-
+          // Check for this unique instance
           if (!force) {
-            // Check charging status first, because we may force-exit
-            if (isBatteryCharging()) {
-              resetRunContext()
-
-              // If we are told to exit, do so here
-              if (preferences.isExitPowerSavingModeWhileCharging()) {
-                Timber.d("Attempt exit power-saving: $attemptType")
-                return@coroutineScope togglePowerSaving(
-                    enable = false,
-                    type = attemptTypeString(false),
-                )
-              } else {
-                Timber.w("No power related work while device is charging: $attemptType")
-                return@coroutineScope false
+            if (preferences.isExitPowerSavingModeWhileCharging()) {
+              if (isBatteryCharging()) {
+                Timber.d("Exit power saving mode unconditionally while device is charging")
+                resetRunContext()
+                return@coroutineScope togglePowerSaving(enable = false)
               }
-            }
-
-            // But if we are not charging, check if we are already in power-saving mode from outside
-            // control, since if so, we do not want to override the device state
-            if (ignoreIfDeviceIsAlreadyPowerSaving(enable)) {
-              Timber.w("Command was ignored because of power-saving mode: $attemptType")
-              return@coroutineScope false
             }
           }
 
           try {
-            Timber.d("Attempt power saving: $attemptType")
-            return@coroutineScope togglePowerSaving(
-                enable = enable,
-                type = attemptType,
-            )
+            if (enable) {
+              turnPowerSavingOn(force)
+            } else {
+              turnPowerSavingOff(force)
+            }
           } catch (e: Throwable) {
             e.ifNotCancellation {
-              Timber.e(e, "Power saving error. Attempted: $attemptType")
+              Timber.e(e, "Error turning power saving mode: ${if (enable) "ON" else "OFF"}")
               resetRunContext()
               return@coroutineScope false
             }
@@ -177,11 +197,5 @@ internal constructor(
   companion object {
 
     private val BATTERY_STATUS_INTENT_FILTER = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-
-    @JvmStatic
-    @CheckResult
-    private fun attemptTypeString(enable: Boolean): String {
-      return if (enable) "POWER-SAVE" else "POWER-NORMAL"
-    }
   }
 }
