@@ -81,7 +81,7 @@ internal constructor(
   override fun observeExitPowerSavingModeWhileCharging(
       onChange: (Boolean) -> Unit
   ): PreferenceListener {
-    return preferences.onChange(KEY_EXIT_WHILE_CHARGING) { onChange(isIgnoreInPowerSavingMode()) }
+    return preferences.onChange(KEY_EXIT_WHILE_CHARGING) { onChange(isExitPowerSavingModeWhileCharging()) }
   }
 
   companion object {

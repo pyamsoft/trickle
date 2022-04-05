@@ -10,7 +10,6 @@ import androidx.annotation.CheckResult
 import androidx.core.content.getSystemService
 import com.pyamsoft.pydroid.core.Enforcer
 import com.pyamsoft.pydroid.core.requireNotNull
-import com.pyamsoft.pydroid.util.ifNotCancellation
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.permission.PermissionChecker
 import javax.inject.Inject
@@ -47,9 +46,20 @@ internal constructor(
 
   /** This should work if we have WRITE_SECURE_SETTINGS */
   @CheckResult
-  private fun togglePowerSaving(enable: Boolean): Boolean {
+  private fun togglePowerSaving(enable: Boolean): PowerSaver.State {
     val value = if (enable) 1 else 0
-    return Settings.Global.putInt(resolver, "low_power", value)
+
+    return try {
+      if (Settings.Global.putInt(resolver, "low_power", value)) {
+        if (enable) PowerSaver.State.Enabled else PowerSaver.State.Disabled
+      } else {
+        Timber.w("Failed to putInt into settings global low_power $value")
+        powerSavingError("Failed to write global settings")
+      }
+    } catch (e: Throwable) {
+      Timber.e(e, "Error writing settings global low_power $value")
+      PowerSaver.State.Failure(e)
+    }
   }
 
   private fun resetRunContext() {
@@ -80,7 +90,7 @@ internal constructor(
   @CheckResult
   private suspend fun turnPowerSavingOff(
       force: Boolean,
-  ): Boolean {
+  ): PowerSaver.State {
     // If forced, we don't need to check previous power saving state or preference
     if (!force) {
       // Retrieve a previously written value
@@ -93,13 +103,13 @@ internal constructor(
       if (!preferences.isPowerSavingEnabled()) {
         Timber.w("Cannot turn power saving OFF when preference disabled")
         resetRunContext()
-        return false
+        return powerSavingError("Preference is disabled, cannot act")
       }
 
       // Check previous state
       if (shouldIgnore) {
         Timber.d("Power Saving was enabled from outside, do not turn OFF")
-        return false
+        return powerSavingError("Managed from outside, cannot act")
       }
     }
 
@@ -110,7 +120,7 @@ internal constructor(
   @CheckResult
   private suspend fun turnPowerSavingOn(
       force: Boolean,
-  ): Boolean {
+  ): PowerSaver.State {
     // Reset run environment
     resetRunContext()
 
@@ -118,13 +128,13 @@ internal constructor(
     if (!force) {
       if (!preferences.isPowerSavingEnabled()) {
         Timber.w("Cannot turn power saving ON when preference disabled")
-        return false
+        return powerSavingError("Preference is disabled, cannot act")
       }
 
       // Check charging status first, we may not do anything
       if (isBatteryCharging()) {
         Timber.w("Do not turn power saving ON while device charging")
-        return false
+        return powerSavingError("Device is charging, cannot act")
       }
 
       // Mark flag as false by default
@@ -138,7 +148,7 @@ internal constructor(
           ignorePowerWhenAlreadyInPowerSavingMode = true
 
           Timber.d("Not enabling power-saving because we are in power-saving from outside!")
-          return false
+          return powerSavingError("Managed from outside, cannot act")
         }
       }
     }
@@ -148,7 +158,7 @@ internal constructor(
   }
 
   @CheckResult
-  private suspend fun performPowerSaving(enable: Boolean, force: Boolean): Boolean =
+  private suspend fun performPowerSaving(enable: Boolean, force: Boolean): PowerSaver.State =
       withContext(context = Dispatchers.Default) {
         Enforcer.assertOffMainThread()
 
@@ -156,7 +166,7 @@ internal constructor(
           if (!permissions.hasSecureSettingsPermission()) {
             Timber.w("No power related work without WRITE_SECURE_SETTINGS permission")
             resetRunContext()
-            return@coroutineScope false
+            return@coroutineScope powerSavingError("Missing WRITE_SECURE_SETTINGS permission")
           }
 
           // Check for this unique instance
@@ -170,32 +180,30 @@ internal constructor(
             }
           }
 
-          try {
-            if (enable) {
-              turnPowerSavingOn(force)
-            } else {
-              turnPowerSavingOff(force)
-            }
-          } catch (e: Throwable) {
-            e.ifNotCancellation {
-              Timber.e(e, "Error turning power saving mode: ${if (enable) "ON" else "OFF"}")
-              resetRunContext()
-              return@coroutineScope false
-            }
+          return@coroutineScope if (enable) {
+            turnPowerSavingOn(force)
+          } else {
+            turnPowerSavingOff(force)
           }
         }
       }
 
-  override suspend fun attemptPowerSaving(enable: Boolean): Boolean {
+  override suspend fun attemptPowerSaving(enable: Boolean): PowerSaver.State {
     return performPowerSaving(enable = enable, force = false)
   }
 
-  override suspend fun forcePowerSaving(enable: Boolean): Boolean {
+  override suspend fun forcePowerSaving(enable: Boolean): PowerSaver.State {
     return performPowerSaving(enable = enable, force = true)
   }
 
   companion object {
 
     private val BATTERY_STATUS_INTENT_FILTER = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+
+    @JvmStatic
+    @CheckResult
+    private fun powerSavingError(message: String): PowerSaver.State {
+      return PowerSaver.State.Failure(RuntimeException(message))
+    }
   }
 }

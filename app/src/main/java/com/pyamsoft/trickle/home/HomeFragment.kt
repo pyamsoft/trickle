@@ -106,10 +106,10 @@ class HomeFragment : Fragment() {
   private fun handleRestartPowerService() {
     viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.Main) {
       viewModel.requireNotNull().handleRestartClicked()
-      if (powerSaver.requireNotNull().forcePowerSaving(enable = false)) {
-        Timber.d("Power saving mode: OFF")
-      } else {
-        Timber.w("Did not modify power saving mode")
+      when (val result = powerSaver.requireNotNull().attemptPowerSaving(enable = false)) {
+        is PowerSaver.State.Disabled -> Timber.d("Power Saving DISABLED")
+        is PowerSaver.State.Enabled -> Timber.d("Power Saving ENABLED")
+        is PowerSaver.State.Failure -> Timber.w(result.throwable, "Power Saving Error")
       }
     }
   }
