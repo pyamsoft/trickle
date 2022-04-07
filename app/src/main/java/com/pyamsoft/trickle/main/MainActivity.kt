@@ -15,7 +15,6 @@ import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleComponent
 import com.pyamsoft.trickle.databinding.ActivityMainBinding
 import javax.inject.Inject
-import timber.log.Timber
 
 class MainActivity : PYDroidActivity() {
 
@@ -23,7 +22,8 @@ class MainActivity : PYDroidActivity() {
 
   override val changelog = buildChangeLog {
     feature("Optionally do not manage power settings when device is already in power-saving mode.")
-    bugfix("When auto management is off, do not turn power-saving mode off when screen is turned on.")
+    bugfix(
+        "When auto management is off, do not turn power-saving mode off when screen is turned on.")
   }
 
   private var injector: MainComponent? = null
@@ -62,7 +62,6 @@ class MainActivity : PYDroidActivity() {
     // Snackbar respects window offsets and hosts snackbar composables
     // Because these are not in a nice Scaffold, we cannot take advantage of Coordinator style
     // actions (a FAB will not move out of the way for example)
-    val navi = navigator.requireNotNull()
     val vm = viewModel.requireNotNull()
 
     vm.restoreState(savedInstanceState)
@@ -75,12 +74,7 @@ class MainActivity : PYDroidActivity() {
     }
 
     vm.handleSyncDarkTheme(this)
-
-    navi.restore {
-      if (it.select(MainPage.Home.asScreen())) {
-        Timber.d("Loaded default Home screen")
-      }
-    }
+    navigator.requireNotNull().restore { MainPage.Home.asScreen() }
   }
 
   override fun onBackPressed() {
