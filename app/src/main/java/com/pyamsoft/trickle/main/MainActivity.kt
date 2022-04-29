@@ -74,7 +74,10 @@ class MainActivity : PYDroidActivity() {
     }
 
     vm.handleSyncDarkTheme(this)
-    navigator.requireNotNull().restore { MainPage.Home.asScreen() }
+    navigator.requireNotNull().also { n ->
+      n.restoreState(savedInstanceState)
+      n.loadIfEmpty { MainPage.Home.asScreen() }
+    }
   }
 
   override fun onBackPressed() {
@@ -104,6 +107,12 @@ class MainActivity : PYDroidActivity() {
       MainComponent::class.java.name -> injector.requireNotNull()
       else -> super.getSystemService(name)
     }
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    super.onSaveInstanceState(outState)
+    viewModel?.saveState(outState)
+    navigator?.saveState(outState)
   }
 
   override fun onDestroy() {

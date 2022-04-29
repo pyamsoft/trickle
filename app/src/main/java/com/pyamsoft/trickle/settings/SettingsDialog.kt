@@ -66,13 +66,21 @@ class SettingsDialog : AppCompatDialogFragment() {
 
     viewModel.requireNotNull().restoreState(savedInstanceState)
 
-    navigator.requireNotNull().restore { SettingsPage.Settings.asScreen() }
+    navigator.requireNotNull().also { n ->
+      n.restoreState(savedInstanceState)
+      n.loadIfEmpty { SettingsPage.Settings.asScreen() }
+    }
   }
 
   override fun onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
     makeFullscreen()
     recompose()
+  }
+
+  override fun onSaveInstanceState(outState: Bundle) {
+    viewModel?.saveState(outState)
+    navigator?.saveState(outState)
   }
 
   override fun onDestroyView() {
