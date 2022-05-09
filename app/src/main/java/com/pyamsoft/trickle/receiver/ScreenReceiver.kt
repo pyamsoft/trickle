@@ -83,7 +83,19 @@ class ScreenReceiver : BroadcastReceiver() {
     return canActInPowerSavingMode(enable = enable)
   }
 
-  private fun doWork(context: Context, enable: Boolean) {
+  private fun turnOnPowerSaving(context: Context) {
+    doWork(context, enable = true) { powerSaveModeOn() }
+  }
+
+  private fun turnOffPowerSaving(context: Context) {
+    doWork(context, enable = false) { powerSaveModeOff() }
+  }
+
+  private inline fun doWork(
+      context: Context,
+      enable: Boolean,
+      crossinline powerCommand: suspend PowerSaver.() -> PowerSaver.State
+  ) {
     inject(context)
 
     currentJob?.cancel()
@@ -98,7 +110,7 @@ class ScreenReceiver : BroadcastReceiver() {
           delay(500L)
 
           // Then act
-          when (val result = powerSaver.requireNotNull().attemptPowerSaving(enable)) {
+          when (val result = powerSaver.requireNotNull().powerCommand()) {
             is PowerSaver.State.Disabled -> Timber.d("Power Saving DISABLED")
             is PowerSaver.State.Enabled -> Timber.d("Power Saving ENABLED")
             is PowerSaver.State.Failure -> Timber.w(result.throwable, "Power Saving Error")
@@ -108,9 +120,9 @@ class ScreenReceiver : BroadcastReceiver() {
 
   override fun onReceive(context: Context, intent: Intent) {
     if (intent.action == Intent.ACTION_SCREEN_ON) {
-      doWork(context, enable = false)
+      turnOffPowerSaving(context)
     } else if (intent.action == Intent.ACTION_SCREEN_OFF) {
-      doWork(context, enable = true)
+      turnOnPowerSaving(context)
     }
   }
 

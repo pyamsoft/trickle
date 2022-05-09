@@ -3,12 +3,9 @@ package com.pyamsoft.trickle.process.work
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.BatteryManager
 import android.provider.Settings
 import androidx.annotation.CheckResult
-import androidx.core.content.getSystemService
 import com.pyamsoft.pydroid.core.Enforcer
-import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.permission.PermissionChecker
 import javax.inject.Inject
@@ -25,12 +22,8 @@ internal constructor(
     private val context: Context,
     private val preferences: PowerPreferences,
     private val permissions: PermissionChecker,
+    private val batteryCharge: BatteryCharge,
 ) : PowerSaver {
-
-  private val batteryManager by
-      lazy(LazyThreadSafetyMode.NONE) {
-        context.getSystemService<BatteryManager>().requireNotNull()
-      }
 
   private val resolver by lazy(LazyThreadSafetyMode.NONE) { context.contentResolver }
 
@@ -50,27 +43,6 @@ internal constructor(
       Timber.e(e, "Error writing settings global low_power $value")
       PowerSaver.State.Failure(e)
     }
-  }
-
-  @CheckResult
-  private fun isBatteryChargingIntent(): Boolean {
-    val statusIntent: Intent? = context.registerReceiver(null, BATTERY_STATUS_INTENT_FILTER)
-    val batteryStatus =
-        statusIntent?.getIntExtra(
-            BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
-            ?: BatteryManager.BATTERY_STATUS_UNKNOWN
-    return batteryStatus == BatteryManager.BATTERY_STATUS_CHARGING ||
-        batteryStatus == BatteryManager.BATTERY_STATUS_FULL
-  }
-
-  @CheckResult
-  private fun isBatteryChargingBattery(): Boolean {
-    return batteryManager.isCharging
-  }
-
-  @CheckResult
-  private fun isBatteryCharging(): Boolean {
-    return isBatteryChargingBattery() || isBatteryChargingIntent()
   }
 
   @CheckResult
@@ -103,7 +75,7 @@ internal constructor(
       }
 
       // Check charging status first, we may not do anything
-      if (isBatteryCharging()) {
+      if (batteryCharge.isCharging()) {
         Timber.w("Do not turn power saving ON while device charging")
         return powerSavingError("Device is charging, cannot act")
       }
@@ -114,7 +86,10 @@ internal constructor(
   }
 
   @CheckResult
-  private suspend fun performPowerSaving(enable: Boolean, force: Boolean): PowerSaver.State =
+  private suspend inline fun performPowerSaving(
+      force: Boolean,
+      crossinline block: suspend (Boolean) -> PowerSaver.State
+  ): PowerSaver.State =
       withContext(context = Dispatchers.Default) {
         Enforcer.assertOffMainThread()
 
@@ -127,32 +102,34 @@ internal constructor(
           // Check for this unique instance
           if (!force) {
             if (preferences.isExitPowerSavingModeWhileCharging()) {
-              if (isBatteryCharging()) {
+              if (batteryCharge.isCharging()) {
                 Timber.d("Exit power saving mode unconditionally while device is charging")
                 return@coroutineScope togglePowerSaving(enable = false)
               }
             }
           }
 
-          return@coroutineScope if (enable) {
-            turnPowerSavingOn(force)
-          } else {
-            turnPowerSavingOff(force)
-          }
+          return@coroutineScope block(force)
         }
       }
 
-  override suspend fun attemptPowerSaving(enable: Boolean): PowerSaver.State {
-    return performPowerSaving(enable = enable, force = false)
+  override suspend fun powerSaveModeOff(): PowerSaver.State {
+    return performPowerSaving(force = false) { turnPowerSavingOff(it) }
   }
 
-  override suspend fun forcePowerSaving(enable: Boolean): PowerSaver.State {
-    return performPowerSaving(enable = enable, force = true)
+  override suspend fun forcePowerSaveModeOff(): PowerSaver.State {
+    return performPowerSaving(force = true) { turnPowerSavingOff(it) }
+  }
+
+  override suspend fun powerSaveModeOn(): PowerSaver.State {
+    return performPowerSaving(force = false) { turnPowerSavingOn(it) }
+  }
+
+  override suspend fun forcePowerSaveModeOn(): PowerSaver.State {
+    return performPowerSaving(force = true) { turnPowerSavingOn(it) }
   }
 
   companion object {
-
-    private val BATTERY_STATUS_INTENT_FILTER = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
 
     @JvmStatic
     @CheckResult

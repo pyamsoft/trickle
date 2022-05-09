@@ -11,15 +11,17 @@ import com.pyamsoft.pydroid.util.doOnStop
 
 object HomeCopyCommand {
 
+  private const val LABEL = "ADB Command"
+
   @JvmStatic
-  fun copyCommandToClipboard(activity: FragmentActivity, label: String, command: String) {
+  fun copyCommandToClipboard(activity: FragmentActivity, command: String) {
     val clipboard =
         activity.applicationContext.getSystemService<ClipboardManager>().requireNotNull()
-    clipboard.setPrimaryClip(ClipData.newPlainText(label, command))
+    clipboard.setPrimaryClip(ClipData.newPlainText(LABEL, command))
     val toast =
         Toast.makeText(
             activity.applicationContext,
-            "ADB command copied to clipboard!",
+            "$LABEL copied to clipboard!",
             Toast.LENGTH_SHORT,
         )
     activity.doOnStart { toast.show() }

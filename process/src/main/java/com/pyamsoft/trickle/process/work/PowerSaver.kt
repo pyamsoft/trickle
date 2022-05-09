@@ -4,9 +4,13 @@ import androidx.annotation.CheckResult
 
 interface PowerSaver {
 
-  @CheckResult suspend fun forcePowerSaving(enable: Boolean): State
+  @CheckResult suspend fun forcePowerSaveModeOn(): State
 
-  @CheckResult suspend fun attemptPowerSaving(enable: Boolean): State
+  @CheckResult suspend fun powerSaveModeOn(): State
+
+  @CheckResult suspend fun forcePowerSaveModeOff(): State
+
+  @CheckResult suspend fun powerSaveModeOff(): State
 
   sealed class State {
     object Enabled : State()

@@ -106,7 +106,7 @@ class HomeFragment : Fragment() {
   private fun handleRestartPowerService() {
     viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.Main) {
       viewModel.requireNotNull().handleRestartClicked()
-      when (val result = powerSaver.requireNotNull().attemptPowerSaving(enable = false)) {
+      when (val result = powerSaver.requireNotNull().powerSaveModeOff()) {
         is PowerSaver.State.Disabled -> Timber.d("Power Saving DISABLED")
         is PowerSaver.State.Enabled -> Timber.d("Power Saving ENABLED")
         is PowerSaver.State.Failure -> Timber.w(result.throwable, "Power Saving Error")
@@ -117,7 +117,6 @@ class HomeFragment : Fragment() {
   private fun handleCopyCommand(command: String) {
     HomeCopyCommand.copyCommandToClipboard(
         requireActivity(),
-        "ADB Command",
         command,
     )
   }
