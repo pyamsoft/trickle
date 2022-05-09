@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
-import android.os.PowerManager
 import android.provider.Settings
 import androidx.annotation.CheckResult
 import androidx.core.content.getSystemService
@@ -33,16 +32,7 @@ internal constructor(
         context.getSystemService<BatteryManager>().requireNotNull()
       }
 
-  private val powerManager by
-      lazy(LazyThreadSafetyMode.NONE) { context.getSystemService<PowerManager>().requireNotNull() }
-
   private val resolver by lazy(LazyThreadSafetyMode.NONE) { context.contentResolver }
-
-  /**
-   * When going down for power saving, we set this variable When coming back up from power saving we
-   * read and unset this variable
-   */
-  private var ignorePowerWhenAlreadyInPowerSavingMode = false
 
   /** This should work if we have WRITE_SECURE_SETTINGS */
   @CheckResult
@@ -60,10 +50,6 @@ internal constructor(
       Timber.e(e, "Error writing settings global low_power $value")
       PowerSaver.State.Failure(e)
     }
-  }
-
-  private fun resetRunContext() {
-    ignorePowerWhenAlreadyInPowerSavingMode = false
   }
 
   @CheckResult
@@ -93,23 +79,11 @@ internal constructor(
   ): PowerSaver.State {
     // If forced, we don't need to check previous power saving state or preference
     if (!force) {
-      // Retrieve a previously written value
-      val shouldIgnore = ignorePowerWhenAlreadyInPowerSavingMode
-
-      // Reset running environment
-      resetRunContext()
 
       // Check preference
       if (!preferences.isPowerSavingEnabled()) {
         Timber.w("Cannot turn power saving OFF when preference disabled")
-        resetRunContext()
         return powerSavingError("Preference is disabled, cannot act")
-      }
-
-      // Check previous state
-      if (shouldIgnore) {
-        Timber.d("Power Saving was enabled from outside, do not turn OFF")
-        return powerSavingError("Managed from outside, cannot act")
       }
     }
 
@@ -121,9 +95,6 @@ internal constructor(
   private suspend fun turnPowerSavingOn(
       force: Boolean,
   ): PowerSaver.State {
-    // Reset run environment
-    resetRunContext()
-
     // If force, we don't need to check preference or current device power state
     if (!force) {
       if (!preferences.isPowerSavingEnabled()) {
@@ -135,21 +106,6 @@ internal constructor(
       if (isBatteryCharging()) {
         Timber.w("Do not turn power saving ON while device charging")
         return powerSavingError("Device is charging, cannot act")
-      }
-
-      // Mark flag as false by default
-      ignorePowerWhenAlreadyInPowerSavingMode = false
-
-      // But if we are not charging, check if we are already in power-saving mode from outside
-      // control, since if so, we do not want to override the device state
-      if (preferences.isIgnoreInPowerSavingMode()) {
-        if (powerManager.isPowerSaveMode) {
-          // Mark this for later, see turnPowerSavingOff
-          ignorePowerWhenAlreadyInPowerSavingMode = true
-
-          Timber.d("Not enabling power-saving because we are in power-saving from outside!")
-          return powerSavingError("Managed from outside, cannot act")
-        }
       }
     }
 
@@ -165,7 +121,6 @@ internal constructor(
         return@withContext coroutineScope {
           if (!permissions.hasSecureSettingsPermission()) {
             Timber.w("No power related work without WRITE_SECURE_SETTINGS permission")
-            resetRunContext()
             return@coroutineScope powerSavingError("Missing WRITE_SECURE_SETTINGS permission")
           }
 
@@ -174,7 +129,6 @@ internal constructor(
             if (preferences.isExitPowerSavingModeWhileCharging()) {
               if (isBatteryCharging()) {
                 Timber.d("Exit power saving mode unconditionally while device is charging")
-                resetRunContext()
                 return@coroutineScope togglePowerSaving(enable = false)
               }
             }
