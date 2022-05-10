@@ -21,9 +21,9 @@ class MainActivity : PYDroidActivity() {
   override val applicationIcon = R.mipmap.ic_launcher_round
 
   override val changelog = buildChangeLog {
-    feature("Optionally do not manage power settings when device is already in power-saving mode.")
-    bugfix(
-        "When auto management is off, do not turn power-saving mode off when screen is turned on.")
+    bugfix("Fix rotation causing incorrect layouts")
+    bugfix("UI performance improvements")
+    bugfix("Fix power saving mode accidentally being toggled at the wrong time")
   }
 
   private var injector: MainComponent? = null
