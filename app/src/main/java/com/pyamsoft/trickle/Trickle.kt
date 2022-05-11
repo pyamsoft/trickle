@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import androidx.annotation.CheckResult
-import coil.Coil
+import coil.ImageLoader
 import com.pyamsoft.pydroid.bootstrap.libraries.OssLibraries
 import com.pyamsoft.pydroid.ui.ModuleProvider
 import com.pyamsoft.pydroid.ui.PYDroid
@@ -17,12 +17,14 @@ internal class Trickle : Application() {
     val url = "https://github.com/pyamsoft/trickle"
     val parameters =
         PYDroid.Parameters(
+            // Needs to be lazy since Coil internally calls getSystemService(), leading to SO
+            // exception
+            lazyImageLoader = lazy(LazyThreadSafetyMode.NONE) { ImageLoader(this) },
             viewSourceUrl = url,
             bugReportUrl = "$url/issues",
             privacyPolicyUrl = PRIVACY_POLICY_URL,
             termsConditionsUrl = TERMS_CONDITIONS_URL,
             version = BuildConfig.VERSION_CODE,
-            imageLoader = { Coil.imageLoader(this) },
             logger = createLogger(),
             theme = { activity, themeProvider, content ->
               activity.TrickleTheme(
