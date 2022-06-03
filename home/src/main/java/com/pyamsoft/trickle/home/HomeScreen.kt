@@ -261,7 +261,7 @@ private fun Setting(
     onChange: (Boolean) -> Unit,
 ) {
   Row(
-      modifier = modifier,
+      modifier = modifier.clickable { onChange(!enabled) },
   ) {
     Column(
         modifier = Modifier.weight(1F),
@@ -292,7 +292,8 @@ private fun Option(
     onChange: (Boolean) -> Unit,
 ) {
   Row(
-      modifier = modifier.padding(start = MaterialTheme.keylines.content),
+      modifier =
+          modifier.clickable { onChange(!enabled) }.padding(start = MaterialTheme.keylines.content),
       verticalAlignment = Alignment.CenterVertically,
   ) {
     Text(
