@@ -35,6 +35,7 @@ import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.ViewWindowInsetObserver
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.inject.Injector
+import com.pyamsoft.pydroid.ui.navigator.FragmentNavigator
 import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
 import com.pyamsoft.pydroid.ui.util.dispose
@@ -43,6 +44,7 @@ import com.pyamsoft.pydroid.util.doOnDestroy
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.main.MainComponent
+import com.pyamsoft.trickle.main.MainPage
 import com.pyamsoft.trickle.process.work.PowerSaver
 import com.pyamsoft.trickle.service.ServiceLauncher
 import com.pyamsoft.trickle.settings.SettingsDialog
@@ -52,7 +54,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
 
   @JvmField @Inject internal var theming: Theming? = null
   @JvmField @Inject internal var viewModel: HomeViewModeler? = null
@@ -223,6 +225,10 @@ class HomeFragment : Fragment() {
     theming = null
     viewModel = null
     powerSaver = null
+  }
+
+  override fun getScreenId(): MainPage {
+    return MainPage.Home
   }
 
   companion object {

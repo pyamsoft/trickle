@@ -16,15 +16,11 @@
 
 package com.pyamsoft.trickle.main
 
-import android.os.Bundle
-import androidx.annotation.CheckResult
 import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentTransaction
 import com.pyamsoft.pydroid.arch.UiSavedStateReader
 import com.pyamsoft.pydroid.arch.UiSavedStateWriter
 import com.pyamsoft.pydroid.ui.navigator.FragmentNavigator
-import com.pyamsoft.pydroid.ui.navigator.Navigator
 import com.pyamsoft.trickle.home.HomeFragment
 import javax.inject.Inject
 import javax.inject.Named
@@ -36,63 +32,20 @@ internal constructor(
     @IdRes @Named("main_container") fragmentContainerId: Int,
 ) : FragmentNavigator<MainPage>(activity, fragmentContainerId) {
 
-  override fun restoreState(savedInstanceState: UiSavedStateReader) {
-    val s = savedInstanceState.get<String>(KEY_SCREEN_ID)
-    if (s != null) {
-      val restored =
-          when (s) {
-            MainPage.Home::class.java.name -> MainPage.Home
-            else -> throw IllegalArgumentException("Unable to restore screen: $s")
-          }
-      updateCurrentScreen(restored)
-    }
-  }
+  override fun onRestoreState(savedInstanceState: UiSavedStateReader) {}
 
-  override fun saveState(outState: UiSavedStateWriter) {
-    val s = currentScreen()
-    if (s != null) {
-      outState.put(KEY_SCREEN_ID, s::class.java.name)
-    } else {
-      outState.remove<String>(KEY_SCREEN_ID)
-    }
-  }
+  override fun onSaveState(outState: UiSavedStateWriter) {}
+
+  override fun produceFragmentForScreen(screen: MainPage): Fragment =
+      when (screen) {
+        is MainPage.Home -> HomeFragment.newInstance()
+      }
 
   override fun performFragmentTransaction(
       container: Int,
-      data: FragmentTag,
-      newScreen: Navigator.Screen<MainPage>,
-      previousScreen: MainPage?
+      newScreen: Fragment,
+      previousScreen: Fragment?
   ) {
-    commitNow {
-      decideAnimationForPage(newScreen.screen, previousScreen)
-      replace(container, data.fragment(newScreen.arguments), data.tag)
-    }
-  }
-
-  override fun provideFragmentTagMap(): Map<MainPage, FragmentTag> {
-    return mapOf(
-        MainPage.Home to createFragmentTag("HomeFragment") { HomeFragment.newInstance() },
-    )
-  }
-
-  companion object {
-
-    private const val KEY_SCREEN_ID = "key_screen_id"
-
-    private fun FragmentTransaction.decideAnimationForPage(newPage: MainPage, oldPage: MainPage?) {
-      // TODO
-    }
-
-    @JvmStatic
-    @CheckResult
-    private inline fun createFragmentTag(
-        tag: String,
-        crossinline fragment: (arguments: Bundle?) -> Fragment,
-    ): FragmentTag {
-      return object : FragmentTag {
-        override val fragment: (arguments: Bundle?) -> Fragment = { fragment(it) }
-        override val tag: String = tag
-      }
-    }
+    commitNow { replace(container, newScreen, newScreen::class.java.name) }
   }
 }

@@ -76,7 +76,7 @@ class MainActivity : PYDroidActivity() {
     vm.handleSyncDarkTheme(this)
     navigator.requireNotNull().also { n ->
       n.restoreState(savedInstanceState)
-      n.loadIfEmpty { MainPage.Home.asScreen() }
+      n.loadIfEmpty { MainPage.Home }
     }
   }
 
