@@ -26,13 +26,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CheckResult
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.google.accompanist.insets.LocalWindowInsets
-import com.google.accompanist.insets.ViewWindowInsetObserver
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.inject.Injector
 import com.pyamsoft.pydroid.ui.navigator.FragmentNavigator
@@ -60,8 +57,6 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
   @JvmField @Inject internal var viewModel: HomeViewModeler? = null
   @JvmField @Inject internal var powerSaver: PowerSaver? = null
   @JvmField @Inject internal var launcher: ServiceLauncher? = null
-
-  private var windowInsetObserver: ViewWindowInsetObserver? = null
 
   @CheckResult
   private fun tryOpenIntent(intent: Intent): Boolean {
@@ -157,28 +152,22 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
     return ComposeView(act).apply {
       id = R.id.screen_home
 
-      val observer = ViewWindowInsetObserver(this)
-      val windowInsets = observer.start()
-      windowInsetObserver = observer
-
       setContent {
         vm.Render { state ->
           act.TrickleTheme(themeProvider) {
-            CompositionLocalProvider(LocalWindowInsets provides windowInsets) {
-              HomeScreen(
-                  modifier = Modifier.fillMaxSize(),
-                  state = state,
-                  appNameRes = R.string.app_name,
-                  onCopy = { handleCopyCommand(it) },
-                  onOpenBatterySettings = { handleOpenSystemSettings() },
-                  onOpenApplicationSettings = { handleOpenApplicationSettings() },
-                  onRestartPowerService = { handleRestartPowerService() },
-                  onRestartApp = { handleRestartApp() },
-                  onTogglePowerSaving = { handleTogglePowerSaving(it) },
-                  onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
-                  onToggleExitWhileCharging = { handleToggleExitWhileCharging(it) },
-              )
-            }
+            HomeScreen(
+                modifier = Modifier.fillMaxSize(),
+                state = state,
+                appNameRes = R.string.app_name,
+                onCopy = { handleCopyCommand(it) },
+                onOpenBatterySettings = { handleOpenSystemSettings() },
+                onOpenApplicationSettings = { handleOpenApplicationSettings() },
+                onRestartPowerService = { handleRestartPowerService() },
+                onRestartApp = { handleRestartApp() },
+                onTogglePowerSaving = { handleTogglePowerSaving(it) },
+                onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
+                onToggleExitWhileCharging = { handleToggleExitWhileCharging(it) },
+            )
           }
         }
       }
@@ -218,9 +207,6 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
   override fun onDestroyView() {
     super.onDestroyView()
     dispose()
-
-    windowInsetObserver?.stop()
-    windowInsetObserver = null
 
     theming = null
     viewModel = null

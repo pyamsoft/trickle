@@ -32,7 +32,11 @@ import com.pyamsoft.trickle.receiver.ScreenReceiver
 import com.pyamsoft.trickle.service.MonitorService
 import com.pyamsoft.trickle.service.ServiceComponent
 import com.pyamsoft.trickle.service.ServiceModule
-import dagger.*
+import dagger.Binds
+import dagger.BindsInstance
+import dagger.Component
+import dagger.Module
+import dagger.Provides
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -62,9 +66,9 @@ internal interface TrickleComponent {
 
     @CheckResult
     fun create(
-        @BindsInstance application: Application,
-        @Named("debug") @BindsInstance debug: Boolean,
-        @BindsInstance theming: Theming,
+      @BindsInstance application: Application,
+      @Named("debug") @BindsInstance debug: Boolean,
+      @BindsInstance theming: Theming,
     ): TrickleComponent
   }
 

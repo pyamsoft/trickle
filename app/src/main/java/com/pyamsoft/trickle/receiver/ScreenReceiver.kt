@@ -14,8 +14,12 @@ import com.pyamsoft.trickle.TrickleComponent
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.work.PowerSaver
 import com.pyamsoft.trickle.receiver.ScreenReceiver.Unregister
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlinx.coroutines.*
 import timber.log.Timber
 
 class ScreenReceiver : BroadcastReceiver() {
