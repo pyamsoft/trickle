@@ -21,9 +21,7 @@ class MainActivity : PYDroidActivity() {
   override val applicationIcon = R.mipmap.ic_launcher_round
 
   override val changelog = buildChangeLog {
-    bugfix("Fix rotation causing incorrect layouts")
     bugfix("UI performance improvements")
-    bugfix("Fix power saving mode accidentally being toggled at the wrong time")
   }
 
   private var injector: MainComponent? = null
