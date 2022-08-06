@@ -37,7 +37,6 @@ import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
 import com.pyamsoft.pydroid.ui.util.dispose
 import com.pyamsoft.pydroid.ui.util.recompose
-import com.pyamsoft.pydroid.util.doOnDestroy
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.main.MainComponent
@@ -120,23 +119,29 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
 
   private fun handleTogglePowerSaving(enabled: Boolean) {
     viewModel.requireNotNull().handleSetPowerSavingEnabled(
-            scope = viewLifecycleOwner.lifecycleScope,
-            enabled = enabled,
-        ) { handleLaunchService() }
+        scope = viewLifecycleOwner.lifecycleScope,
+        enabled = enabled,
+    ) {
+      handleLaunchService()
+    }
   }
 
   private fun handleToggleIgnoreInPowerSavingMode(ignore: Boolean) {
     viewModel.requireNotNull().handleSetIgnoreInPowerSavingMode(
-            scope = viewLifecycleOwner.lifecycleScope,
-            ignore = ignore,
-        ) { handleLaunchService() }
+        scope = viewLifecycleOwner.lifecycleScope,
+        ignore = ignore,
+    ) {
+      handleLaunchService()
+    }
   }
 
   private fun handleToggleExitWhileCharging(exit: Boolean) {
     viewModel.requireNotNull().handleSetExitwhileCharging(
-            scope = viewLifecycleOwner.lifecycleScope,
-            exit = exit,
-        ) { handleLaunchService() }
+        scope = viewLifecycleOwner.lifecycleScope,
+        exit = exit,
+    ) {
+      handleLaunchService()
+    }
   }
 
   override fun onCreateView(
@@ -181,11 +186,10 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
       vm.restoreState(savedInstanceState)
 
       // Listen for changes in preferences
-      vm.listenForExitWhileChargingChanges().also { viewLifecycleOwner.doOnDestroy { it.cancel() } }
-      vm.listenForPowerSavingChanges().also { viewLifecycleOwner.doOnDestroy { it.cancel() } }
-      vm.listenForIgnorePowerSavingModeChanges().also {
-        viewLifecycleOwner.doOnDestroy { it.cancel() }
-      }
+      val scope = viewLifecycleOwner.lifecycleScope
+      vm.listenForExitWhileChargingChanges(scope = scope)
+      vm.listenForPowerSavingChanges(scope = scope)
+      vm.listenForIgnorePowerSavingModeChanges(scope = scope)
     }
   }
 

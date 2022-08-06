@@ -1,7 +1,7 @@
 package com.pyamsoft.trickle.process
 
 import androidx.annotation.CheckResult
-import com.pyamsoft.pydroid.util.PreferenceListener
+import kotlinx.coroutines.flow.Flow
 
 interface PowerPreferences {
 
@@ -9,18 +9,17 @@ interface PowerPreferences {
 
   suspend fun setPowerSavingEnabled(enable: Boolean)
 
-  @CheckResult fun observePowerSavingEnabled(onChange: (Boolean) -> Unit): PreferenceListener
+  @CheckResult fun observePowerSavingEnabled(): Flow<Boolean>
 
   @CheckResult suspend fun isIgnoreInPowerSavingMode(): Boolean
 
   suspend fun setIgnoreInPowerSavingMode(ignore: Boolean)
 
-  @CheckResult fun observeIgnoreInPowerSavingMode(onChange: (Boolean) -> Unit): PreferenceListener
+  @CheckResult fun observeIgnoreInPowerSavingMode(): Flow<Boolean>
 
   @CheckResult suspend fun isExitPowerSavingModeWhileCharging(): Boolean
 
   suspend fun setExitPowerSavingModeWhileCharging(exit: Boolean)
 
-  @CheckResult
-  fun observeExitPowerSavingModeWhileCharging(onChange: (Boolean) -> Unit): PreferenceListener
+  @CheckResult fun observeExitPowerSavingModeWhileCharging(): Flow<Boolean>
 }

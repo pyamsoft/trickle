@@ -1,10 +1,8 @@
 package com.pyamsoft.trickle.home
 
-import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.arch.AbstractViewModeler
 import com.pyamsoft.pydroid.arch.UiSavedStateReader
 import com.pyamsoft.pydroid.arch.UiSavedStateWriter
-import com.pyamsoft.pydroid.util.PreferenceListener
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.permission.PermissionChecker
 import javax.inject.Inject
@@ -48,19 +46,24 @@ internal constructor(
     }
   }
 
-  @CheckResult
-  fun listenForPowerSavingChanges(): PreferenceListener {
-    return preferences.observePowerSavingEnabled { state.isPowerSaving = it }
+  fun listenForPowerSavingChanges(scope: CoroutineScope) {
+    scope.launch(context = Dispatchers.Default) {
+      preferences.observePowerSavingEnabled().collect { state.isPowerSaving = it }
+    }
   }
 
-  @CheckResult
-  fun listenForIgnorePowerSavingModeChanges(): PreferenceListener {
-    return preferences.observeIgnoreInPowerSavingMode { state.isIgnoreInPowerSavingMode = it }
+  fun listenForIgnorePowerSavingModeChanges(scope: CoroutineScope) {
+    scope.launch(context = Dispatchers.Default) {
+      preferences.observeIgnoreInPowerSavingMode().collect { state.isIgnoreInPowerSavingMode = it }
+    }
   }
 
-  @CheckResult
-  fun listenForExitWhileChargingChanges(): PreferenceListener {
-    return preferences.observeExitPowerSavingModeWhileCharging { state.isExitWhileCharging = it }
+  fun listenForExitWhileChargingChanges(scope: CoroutineScope) {
+    scope.launch(context = Dispatchers.Default) {
+      preferences.observeExitPowerSavingModeWhileCharging().collect {
+        state.isExitWhileCharging = it
+      }
+    }
   }
 
   fun handleSync(
