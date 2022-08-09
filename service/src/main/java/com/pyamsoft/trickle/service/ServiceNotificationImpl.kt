@@ -9,6 +9,7 @@ import com.pyamsoft.trickle.process.PowerPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -31,10 +32,10 @@ internal constructor(
   }
 
   override suspend fun updateNotification() =
-      withContext(context = Dispatchers.Default) {
+      withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
 
-        val isPowerSavingEnabled = powerPreferences.isPowerSavingEnabled()
+        val isPowerSavingEnabled = powerPreferences.observePowerSavingEnabled().first()
         return@withContext notifier.show(
                 id = NOTIFICATION_ID,
                 channelInfo = CHANNEL_INFO,
@@ -44,7 +45,7 @@ internal constructor(
       }
 
   override suspend fun togglePowerSavingEnabled(enable: Boolean) =
-      withContext(context = Dispatchers.Default) {
+      withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
         powerPreferences.setPowerSavingEnabled(enable)
       }

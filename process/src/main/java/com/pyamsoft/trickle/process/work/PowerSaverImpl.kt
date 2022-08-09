@@ -1,8 +1,6 @@
 package com.pyamsoft.trickle.process.work
 
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.provider.Settings
 import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.core.Enforcer
@@ -12,6 +10,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -46,6 +45,11 @@ internal constructor(
   }
 
   @CheckResult
+  private suspend fun isPowerSavingEnabled(): Boolean {
+    return preferences.observePowerSavingEnabled().first()
+  }
+
+  @CheckResult
   private suspend fun turnPowerSavingOff(
       force: Boolean,
   ): PowerSaver.State {
@@ -53,7 +57,7 @@ internal constructor(
     if (!force) {
 
       // Check preference
-      if (!preferences.isPowerSavingEnabled()) {
+      if (!isPowerSavingEnabled()) {
         Timber.w("Cannot turn power saving OFF when preference disabled")
         return powerSavingError("Preference is disabled, cannot act")
       }
@@ -69,7 +73,7 @@ internal constructor(
   ): PowerSaver.State {
     // If force, we don't need to check preference or current device power state
     if (!force) {
-      if (!preferences.isPowerSavingEnabled()) {
+      if (!isPowerSavingEnabled()) {
         Timber.w("Cannot turn power saving ON when preference disabled")
         return powerSavingError("Preference is disabled, cannot act")
       }
@@ -101,7 +105,7 @@ internal constructor(
 
           // Check for this unique instance
           if (!force) {
-            if (preferences.isExitPowerSavingModeWhileCharging()) {
+            if (preferences.observeExitPowerSavingModeWhileCharging().first()) {
               if (batteryCharge.isCharging()) {
                 Timber.d("Exit power saving mode unconditionally while device is charging")
                 return@coroutineScope togglePowerSaving(enable = false)

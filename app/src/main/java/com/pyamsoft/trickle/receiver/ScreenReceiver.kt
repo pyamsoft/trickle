@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import timber.log.Timber
@@ -59,7 +60,7 @@ class ScreenReceiver : BroadcastReceiver() {
       resetRunContext()
 
       // Check preference and device state
-      if (preferences.requireNotNull().isIgnoreInPowerSavingMode()) {
+      if (preferences.requireNotNull().observeIgnoreInPowerSavingMode().first()) {
         if (powerManager.requireNotNull().isPowerSaveMode) {
           ignorePowerWhenAlreadyInPowerSavingMode = true
           Timber.d("Power Saving is managed from outside, do not act")

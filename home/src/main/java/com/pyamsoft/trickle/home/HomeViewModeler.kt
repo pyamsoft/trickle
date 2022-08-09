@@ -18,6 +18,25 @@ internal constructor(
     private val permissionChecker: PermissionChecker,
 ) : AbstractViewModeler<HomeViewState>(state) {
 
+  private data class LoadConfig(
+      var isEnabled: Boolean,
+      var isIgnore: Boolean,
+      var isExit: Boolean,
+  )
+
+  private fun markLoadCompleted(config: LoadConfig) {
+    if (config.isEnabled && config.isIgnore && config.isExit) {
+      state.loading = false
+    }
+  }
+
+  private fun revealSettingsShortcut() {
+    val s = state
+    if (s.restartClicks > RESTART_CLICK_REQUIRED_COUNT) {
+      s.isPowerSettingsShortcutVisible = true
+    }
+  }
+
   override fun saveState(outState: UiSavedStateWriter) {
     state.apply {
       hasPermission.also { outState.put(KEY_PERMISSION, it) }
@@ -39,29 +58,53 @@ internal constructor(
     }
   }
 
-  private fun revealSettingsShortcut() {
+  fun beginWatching(
+      scope: CoroutineScope,
+      onChange: () -> Unit,
+  ) {
     val s = state
-    if (s.restartClicks > RESTART_CLICK_REQUIRED_COUNT) {
-      s.isPowerSettingsShortcutVisible = true
-    }
-  }
+    s.loading = true
 
-  fun listenForPowerSavingChanges(scope: CoroutineScope) {
-    scope.launch(context = Dispatchers.Default) {
-      preferences.observePowerSavingEnabled().collect { state.isPowerSaving = it }
-    }
-  }
+    val config =
+        LoadConfig(
+            isEnabled = false,
+            isIgnore = false,
+            isExit = false,
+        )
 
-  fun listenForIgnorePowerSavingModeChanges(scope: CoroutineScope) {
-    scope.launch(context = Dispatchers.Default) {
-      preferences.observeIgnoreInPowerSavingMode().collect { state.isIgnoreInPowerSavingMode = it }
-    }
-  }
+    scope.launch(context = Dispatchers.Main) {
+      preferences.observePowerSavingEnabled().collect { ps ->
+        state.isPowerSaving = ps
+        if (s.loading) {
+          config.isEnabled = true
+          markLoadCompleted(config)
+        }
 
-  fun listenForExitWhileChargingChanges(scope: CoroutineScope) {
+        onChange()
+      }
+    }
+
     scope.launch(context = Dispatchers.Default) {
-      preferences.observeExitPowerSavingModeWhileCharging().collect {
-        state.isExitWhileCharging = it
+      preferences.observeIgnoreInPowerSavingMode().collect { ignore ->
+        state.isIgnoreInPowerSavingMode = ignore
+        if (s.loading) {
+          config.isIgnore = true
+          markLoadCompleted(config)
+        }
+
+        onChange()
+      }
+    }
+
+    scope.launch(context = Dispatchers.Default) {
+      preferences.observeExitPowerSavingModeWhileCharging().collect { exit ->
+        state.isExitWhileCharging = exit
+        if (s.loading) {
+          config.isExit = true
+          markLoadCompleted(config)
+        }
+
+        onChange()
       }
     }
   }
@@ -70,46 +113,22 @@ internal constructor(
       scope: CoroutineScope,
       andThen: () -> Unit,
   ) {
-    val s = state
-    s.loading = true
     scope.launch(context = Dispatchers.Main) {
-      s.apply {
-        hasPermission = permissionChecker.hasSecureSettingsPermission()
-        isPowerSaving = preferences.isPowerSavingEnabled()
-        isIgnoreInPowerSavingMode = preferences.isIgnoreInPowerSavingMode()
-        isExitWhileCharging = preferences.isExitPowerSavingModeWhileCharging()
-
-        revealSettingsShortcut()
-
-        loading = false
-      }
-
-      andThen()
+      state.hasPermission = permissionChecker.hasSecureSettingsPermission()
     }
+
+    revealSettingsShortcut()
+    andThen()
   }
 
-  fun handleSetPowerSavingEnabled(
-      scope: CoroutineScope,
-      enabled: Boolean,
-      andThen: () -> Unit,
-  ) {
+  fun handleSetPowerSavingEnabled(scope: CoroutineScope, enabled: Boolean) {
     state.isPowerSaving = enabled
-    scope.launch(context = Dispatchers.Main) {
-      preferences.setPowerSavingEnabled(enabled)
-      andThen()
-    }
+    scope.launch(context = Dispatchers.Main) { preferences.setPowerSavingEnabled(enabled) }
   }
 
-  fun handleSetIgnoreInPowerSavingMode(
-      scope: CoroutineScope,
-      ignore: Boolean,
-      andThen: () -> Unit,
-  ) {
+  fun handleSetIgnoreInPowerSavingMode(scope: CoroutineScope, ignore: Boolean) {
     state.isIgnoreInPowerSavingMode = ignore
-    scope.launch(context = Dispatchers.Main) {
-      preferences.setIgnoreInPowerSavingMode(ignore)
-      andThen()
-    }
+    scope.launch(context = Dispatchers.Main) { preferences.setIgnoreInPowerSavingMode(ignore) }
   }
 
   fun handleRestartClicked() {
@@ -118,11 +137,10 @@ internal constructor(
     revealSettingsShortcut()
   }
 
-  fun handleSetExitwhileCharging(scope: CoroutineScope, exit: Boolean, andThen: () -> Unit) {
+  fun handleSetExitwhileCharging(scope: CoroutineScope, exit: Boolean) {
     state.isExitWhileCharging = exit
     scope.launch(context = Dispatchers.Main) {
       preferences.setExitPowerSavingModeWhileCharging(exit)
-      andThen()
     }
   }
 

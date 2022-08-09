@@ -118,30 +118,30 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
   }
 
   private fun handleTogglePowerSaving(enabled: Boolean) {
-    viewModel.requireNotNull().handleSetPowerSavingEnabled(
-        scope = viewLifecycleOwner.lifecycleScope,
-        enabled = enabled,
-    ) {
-      handleLaunchService()
-    }
+    viewModel
+        .requireNotNull()
+        .handleSetPowerSavingEnabled(
+            scope = viewLifecycleOwner.lifecycleScope,
+            enabled = enabled,
+        )
   }
 
   private fun handleToggleIgnoreInPowerSavingMode(ignore: Boolean) {
-    viewModel.requireNotNull().handleSetIgnoreInPowerSavingMode(
-        scope = viewLifecycleOwner.lifecycleScope,
-        ignore = ignore,
-    ) {
-      handleLaunchService()
-    }
+    viewModel
+        .requireNotNull()
+        .handleSetIgnoreInPowerSavingMode(
+            scope = viewLifecycleOwner.lifecycleScope,
+            ignore = ignore,
+        )
   }
 
   private fun handleToggleExitWhileCharging(exit: Boolean) {
-    viewModel.requireNotNull().handleSetExitwhileCharging(
-        scope = viewLifecycleOwner.lifecycleScope,
-        exit = exit,
-    ) {
-      handleLaunchService()
-    }
+    viewModel
+        .requireNotNull()
+        .handleSetExitwhileCharging(
+            scope = viewLifecycleOwner.lifecycleScope,
+            exit = exit,
+        )
   }
 
   override fun onCreateView(
@@ -186,10 +186,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
       vm.restoreState(savedInstanceState)
 
       // Listen for changes in preferences
-      val scope = viewLifecycleOwner.lifecycleScope
-      vm.listenForExitWhileChargingChanges(scope = scope)
-      vm.listenForPowerSavingChanges(scope = scope)
-      vm.listenForIgnorePowerSavingModeChanges(scope = scope)
+      vm.beginWatching(scope = viewLifecycleOwner.lifecycleScope) { handleLaunchService() }
     }
   }
 

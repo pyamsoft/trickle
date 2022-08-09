@@ -23,15 +23,6 @@ internal constructor(
     PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
   }
 
-  override suspend fun isPowerSavingEnabled(): Boolean =
-      withContext(context = Dispatchers.IO) {
-        Enforcer.assertOffMainThread()
-        return@withContext preferences.getBoolean(
-            KEY_POWER_SAVING_ENABLED,
-            DEFAULT_POWER_SAVING_ENABLED,
-        )
-      }
-
   override suspend fun setPowerSavingEnabled(enable: Boolean) =
       withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
@@ -44,15 +35,6 @@ internal constructor(
         return@withContext preferences.booleanFlow(
             KEY_POWER_SAVING_ENABLED,
             DEFAULT_POWER_SAVING_ENABLED,
-        )
-      }
-
-  override suspend fun isIgnoreInPowerSavingMode(): Boolean =
-      withContext(context = Dispatchers.IO) {
-        Enforcer.assertOffMainThread()
-        return@withContext preferences.getBoolean(
-            KEY_IGNORE_IN_POWER_SAVING_MODE,
-            DEFAULT_IGNORE_IN_POWER_SAVING_MODE,
         )
       }
 
@@ -75,15 +57,6 @@ internal constructor(
       withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
         preferences.edit { putBoolean(KEY_EXIT_WHILE_CHARGING, exit) }
-      }
-
-  override suspend fun isExitPowerSavingModeWhileCharging(): Boolean =
-      withContext(context = Dispatchers.IO) {
-        Enforcer.assertOffMainThread()
-        return@withContext preferences.getBoolean(
-            KEY_EXIT_WHILE_CHARGING,
-            DEFAULT_EXIT_WHILE_CHARGING,
-        )
       }
 
   override suspend fun observeExitPowerSavingModeWhileCharging(): Flow<Boolean> =
