@@ -31,12 +31,13 @@ internal constructor(
         .let { Timber.d("Started foreground notification: $it") }
   }
 
-  override suspend fun updateNotification() =
+  override suspend fun updateNotification(service: Service) =
       withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
 
         val isPowerSavingEnabled = powerPreferences.observePowerSavingEnabled().first()
-        return@withContext notifier.show(
+        return@withContext notifier.startForeground(
+                service = service,
                 id = NOTIFICATION_ID,
                 channelInfo = CHANNEL_INFO,
                 notification = ServiceDispatcher.Data(isPowerSavingEnabled = isPowerSavingEnabled),

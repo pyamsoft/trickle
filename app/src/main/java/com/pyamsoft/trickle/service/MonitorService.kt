@@ -28,10 +28,11 @@ class MonitorService : Service() {
   }
 
   private fun updatePowerSaving(intent: Intent?) {
+    val self = this
     serviceScope.launch(context = Dispatchers.Main) {
       notification.requireNotNull().also { l ->
         updatePowerPreference(l, intent)
-        l.updateNotification()
+        l.updateNotification(self)
       }
     }
   }

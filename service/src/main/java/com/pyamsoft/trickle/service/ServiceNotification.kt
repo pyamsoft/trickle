@@ -8,7 +8,7 @@ interface ServiceNotification {
 
   fun stopNotification(service: Service)
 
-  suspend fun updateNotification()
+  suspend fun updateNotification(service: Service)
 
   suspend fun togglePowerSavingEnabled(enable: Boolean)
 
