@@ -37,6 +37,7 @@ import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
 import com.pyamsoft.pydroid.ui.util.dispose
 import com.pyamsoft.pydroid.ui.util.recompose
+import com.pyamsoft.pydroid.util.doOnResume
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.main.MainComponent
@@ -98,7 +99,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
       handleLaunchService()
 
       // For vitals, report the app is usable now
-      requireActivity().reportFullyDrawn()
+      viewLifecycleOwner.doOnResume { requireActivity().reportFullyDrawn() }
     }
   }
 
