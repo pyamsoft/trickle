@@ -96,6 +96,9 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
   private fun handleSyncPermissionState() {
     viewModel.requireNotNull().handleSync(scope = viewLifecycleOwner.lifecycleScope) {
       handleLaunchService()
+
+      // For vitals, report the app is usable now
+      requireActivity().reportFullyDrawn()
     }
   }
 
