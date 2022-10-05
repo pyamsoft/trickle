@@ -20,6 +20,8 @@ apply plugin: "kotlin-kapt"
 
 //noinspection GroovyMissingReturnStatement
 android {
+  namespace "com.pyamsoft.trickle.process"
+
   compileSdkVersion rootProject.ext.compileSdk
 
   //noinspection GroovyMissingReturnStatement

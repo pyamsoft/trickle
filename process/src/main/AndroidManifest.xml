@@ -16,7 +16,7 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.pyamsoft.trickle.process">
+    >
 
     <!--
     Needed to call Settings.Global.putInt in PowerSaverImpl.kt
