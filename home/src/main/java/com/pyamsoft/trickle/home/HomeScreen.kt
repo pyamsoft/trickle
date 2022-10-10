@@ -391,7 +391,7 @@ private fun AdbInstructions(
           style =
               MaterialTheme.typography.body2.copy(
                   color = Color.Green,
-                  fontWeight = FontWeight.Bold,
+                  fontWeight = FontWeight.W700,
                   fontFamily = FontFamily.Monospace,
               ),
       )
