@@ -388,7 +388,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
         Text(
             modifier =
                 Modifier
-                    .clickable { onCopy(command) }.padding(MaterialTheme.keylines.content),
+                    .clickable { onCopy(command) }.padding(MaterialTheme.keylines.baseline),
             text = command,
             style =
                 MaterialTheme.typography.body2.copy(
