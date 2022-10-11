@@ -173,7 +173,8 @@ fun Activity.TrickleTheme(
   PYDroidTheme(
       colors = themeColors(this, isDarkMode),
       shapes = themeShapes(),
-      typography = themeTypography()) {
+      typography = themeTypography(),
+  ) {
     // We update the LocalContentColor to match our onBackground. This allows the default
     // content color to be more appropriate to the theme background
     CompositionLocalProvider(
