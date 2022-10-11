@@ -94,7 +94,7 @@ private fun themeShapes(): Shapes {
 @Composable
 @CheckResult
 private fun themeTypography(): Typography {
-  val typography = MaterialTheme.typography
+  val typography = Typography()
   return typography.copy(
       h1 =
           typography.h1.copy(
