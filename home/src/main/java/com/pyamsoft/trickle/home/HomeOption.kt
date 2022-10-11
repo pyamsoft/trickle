@@ -87,7 +87,7 @@ internal fun HomeOption(
             text = description,
             style =
                 MaterialTheme.typography.caption.copy(
-                    color = color.copy(alpha = mediumAlpha),
+                    color = MaterialTheme.colors.onSurface.copy(alpha = mediumAlpha),
                     fontWeight = FontWeight.W400,
                 ),
         )

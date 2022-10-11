@@ -84,6 +84,7 @@ internal fun HomeMainSwitch(
                 ),
         )
         Text(
+            modifier = Modifier.padding(top = MaterialTheme.keylines.baseline),
             text = "When the screen turns back on, exit power saving mode automatically.",
             style =
                 MaterialTheme.typography.body1.copy(
