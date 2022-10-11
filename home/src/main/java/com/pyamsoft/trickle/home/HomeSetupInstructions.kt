@@ -135,12 +135,14 @@ private fun onTextClicked(
     text: AnnotatedString,
     uriHandler: UriHandler,
     start: Int,
+    tag: String,
+    linkText: String,
 ) {
   text
       .getStringAnnotations(
-          tag = ADB_URI_TAG,
+          tag = tag,
           start = start,
-          end = start + ADB_LINK_TEXT.length,
+          end = start + linkText.length,
       )
       .firstOrNull()
       ?.also { uriHandler.openUri(it.item) }
@@ -154,7 +156,15 @@ private fun DownloadAdb(
       modifier = modifier,
   ) {
     val text = buildAnnotatedString {
-      append("Download ")
+      withStyle(
+          style =
+              SpanStyle(
+                  color = MaterialTheme.colors.onBackground,
+              ),
+      ) {
+        append("Download ")
+      }
+
       withStringAnnotation(
           tag = ADB_URI_TAG,
           annotation = ADB_URL,
@@ -170,7 +180,14 @@ private fun DownloadAdb(
         }
       }
 
-      append(" and install it on your Laptop or Desktop machine.")
+      withStyle(
+          style =
+              SpanStyle(
+                  color = MaterialTheme.colors.onBackground,
+              ),
+      ) {
+        append(" and install it on your Laptop or Desktop machine.")
+      }
     }
 
     val uriHandler = LocalUriHandler.current
@@ -182,6 +199,8 @@ private fun DownloadAdb(
               text = text,
               uriHandler = uriHandler,
               start = it,
+              tag = ADB_URI_TAG,
+              linkText = ADB_LINK_TEXT,
           )
         },
     )
@@ -200,7 +219,14 @@ private fun EnableDeveloperSettings(
       modifier = modifier,
   ) {
     val text = buildAnnotatedString {
-      append("Enable ")
+      withStyle(
+          style =
+              SpanStyle(
+                  color = MaterialTheme.colors.onBackground,
+              ),
+      ) {
+        append("Enable ")
+      }
       withStringAnnotation(
           tag = DEV_SETTINGS_URI_TAG,
           annotation = DEV_SETTINGS_URL,
@@ -216,7 +242,14 @@ private fun EnableDeveloperSettings(
         }
       }
 
-      append(" on your device")
+      withStyle(
+          style =
+              SpanStyle(
+                  color = MaterialTheme.colors.onBackground,
+              ),
+      ) {
+        append(" on your device")
+      }
     }
 
     val uriHandler = LocalUriHandler.current
@@ -228,6 +261,8 @@ private fun EnableDeveloperSettings(
               text = text,
               uriHandler = uriHandler,
               start = it,
+              tag = DEV_SETTINGS_URI_TAG,
+              linkText = DEV_SETTINGS_LINK_TEXT,
           )
         },
     )
@@ -318,34 +353,42 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     OtherInstruction(
         modifier = Modifier.padding(top = MaterialTheme.keylines.content),
     ) {
-      Text(
-          text = "Grant $appName permission to change system battery settings using ADB.",
-          style =
-              MaterialTheme.typography.caption.copy(
-                  color =
-                      MaterialTheme.colors.onBackground.copy(
-                          alpha = ContentAlpha.medium,
-                      ),
-              ),
-      )
-      Text(
-          text = "Open a Terminal and execute the following command",
-          style = MaterialTheme.typography.body1,
-      )
+      Column {
+        Text(
+            text = "Grant $appName permission to change system battery settings using ADB.",
+            style =
+                MaterialTheme.typography.caption.copy(
+                    color =
+                        MaterialTheme.colors.onBackground.copy(
+                            alpha = ContentAlpha.medium,
+                        ),
+                ),
+        )
+        Text(
+            text = "Open a Terminal and execute the following command",
+            style = MaterialTheme.typography.body1,
+        )
+      }
     }
   }
 
   item {
     val command = rememberAdbCommand()
 
-    Column {
-      SelectionContainer {
+    Column(
+        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
+    ) {
+      SelectionContainer(
+          modifier =
+              Modifier.background(
+                  color = Color.DarkGray,
+                  shape = MaterialTheme.shapes.medium,
+              ),
+      ) {
         Text(
             modifier =
-                Modifier.clickable { onCopy(command) }
-                    .padding(top = MaterialTheme.keylines.content)
-                    .background(color = Color.DarkGray)
-                    .padding(MaterialTheme.keylines.content),
+                Modifier
+                    .clickable { onCopy(command) }.padding(MaterialTheme.keylines.content),
             text = command,
             style =
                 MaterialTheme.typography.body2.copy(
