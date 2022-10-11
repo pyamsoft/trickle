@@ -2,7 +2,6 @@ package com.pyamsoft.trickle.home
 
 import android.content.Context
 import androidx.annotation.CheckResult
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.Button
+import androidx.compose.material.Card
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -37,6 +37,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.ZeroSize
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.pydroid.ui.defaults.CardDefaults
 import com.pyamsoft.trickle.ui.icons.Devices
 import com.pyamsoft.trickle.ui.icons.PhoneAndroid
 
@@ -378,25 +379,25 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     Column(
         modifier = Modifier.padding(top = MaterialTheme.keylines.content),
     ) {
-      SelectionContainer(
-          modifier =
-              Modifier.background(
-                  color = Color.DarkGray,
-                  shape = MaterialTheme.shapes.medium,
-              ),
+      Card(
+          shape = MaterialTheme.shapes.medium,
+          elevation = CardDefaults.Elevation,
+          backgroundColor = Color.DarkGray,
       ) {
-        Text(
+        SelectionContainer(
             modifier =
-                Modifier
-                    .clickable { onCopy(command) }.padding(MaterialTheme.keylines.baseline),
-            text = command,
-            style =
-                MaterialTheme.typography.body2.copy(
-                    color = Color.Green,
-                    fontWeight = FontWeight.W700,
-                    fontFamily = FontFamily.Monospace,
-                ),
-        )
+                Modifier.clickable { onCopy(command) }.padding(MaterialTheme.keylines.content),
+        ) {
+          Text(
+              text = command,
+              style =
+                  MaterialTheme.typography.body2.copy(
+                      color = Color.Green,
+                      fontWeight = FontWeight.W700,
+                      fontFamily = FontFamily.Monospace,
+                  ),
+          )
+        }
       }
 
       Box(
