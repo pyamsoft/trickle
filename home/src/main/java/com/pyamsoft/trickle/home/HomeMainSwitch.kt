@@ -29,7 +29,6 @@ private const val TITLE = "Sip Power"
 @Composable
 internal fun HomeMainSwitch(
     modifier: Modifier = Modifier,
-    appName: String,
     enabled: Boolean,
     onChange: (Boolean) -> Unit,
 ) {
@@ -100,7 +99,6 @@ internal fun HomeMainSwitch(
 private fun PreviewHomeMainSwitch(enabled: Boolean) {
   HomeMainSwitch(
       enabled = enabled,
-      appName = "TEST",
       onChange = {},
   )
 }

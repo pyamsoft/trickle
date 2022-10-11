@@ -38,7 +38,6 @@ internal fun LazyListScope.renderPowerSavingSettings(
   item {
     HomeMainSwitch(
         modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content * 2),
-        appName = appName,
         enabled = isPowerSaving,
         onChange = onTogglePowerSaving,
     )
