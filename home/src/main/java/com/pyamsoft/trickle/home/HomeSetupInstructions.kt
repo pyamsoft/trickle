@@ -310,7 +310,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
           small = true,
       ) {
         Text(
-            text = "Other Device",
+            text = "Laptop or Desktop",
             style =
                 MaterialTheme.typography.caption.copy(
                     color =
