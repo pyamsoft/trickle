@@ -21,7 +21,8 @@ class MainActivity : PYDroidActivity() {
   override val applicationIcon = R.mipmap.ic_launcher_round
 
   override val changelog = buildChangeLog {
-    bugfix("UI performance improvements")
+    change("New UI style")
+    change("Clearer setup instructions")
   }
 
   private var injector: MainComponent? = null

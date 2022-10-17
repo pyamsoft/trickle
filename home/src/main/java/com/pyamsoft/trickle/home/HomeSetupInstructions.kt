@@ -73,7 +73,7 @@ private fun OtherDevice(
               .size(if (small) 20.dp else 24.dp)
               .padding(end = if (small) 2.dp else ZeroSize),
       imageVector = Icons.Filled.Devices,
-      contentDescription = "Other Devices",
+      contentDescription = "Laptop or Desktop",
       tint = OTHER_DEVICE_COLOR,
   )
 }
@@ -174,7 +174,7 @@ private fun DownloadAdb(
             style =
                 SpanStyle(
                     textDecoration = TextDecoration.Underline,
-                    color = MaterialTheme.colors.primary,
+                    color = MaterialTheme.colors.secondary,
                 ),
         ) {
           append(ADB_LINK_TEXT)
@@ -236,7 +236,7 @@ private fun EnableDeveloperSettings(
             style =
                 SpanStyle(
                     textDecoration = TextDecoration.Underline,
-                    color = MaterialTheme.colors.primary,
+                    color = MaterialTheme.colors.secondary,
                 ),
         ) {
           append(DEV_SETTINGS_LINK_TEXT)
