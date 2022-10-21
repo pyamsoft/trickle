@@ -71,7 +71,7 @@ buildscript {
     fragment = "1.5.3"
 
     // Material Design
-    materialDesign = "1.6.1"
+    materialDesign = "1.7.0"
   }
 
   dependencies {
