@@ -72,7 +72,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
         description =
             """This allows $appName to run all the time.
                 |
-                |This will provide the most reliable power saving experience, and will actually help you save more battery, despite being "unoptimized".
+                |Provides the most reliable experience, and will help you save more battery, despite being "unoptimized".
                 |(recommended)
             """
                 .trimMargin(),
