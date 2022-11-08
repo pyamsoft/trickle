@@ -28,6 +28,7 @@ import androidx.annotation.CheckResult
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.pyamsoft.pydroid.core.requireNotNull
@@ -66,6 +67,19 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
     } catch (e: ActivityNotFoundException) {
       Timber.e(e, "Could not open intent: ${intent.action}")
       false
+    }
+  }
+
+  private fun handleOpenBatterySettings() {
+    val action = Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
+    val packageName = requireActivity().packageName
+
+    // Try specific first, may fail on some devices
+    if (!tryOpenIntent(Intent(action, "package:${packageName}".toUri()))) {
+      Timber.w("Failed specific intent for $action with packageName: $packageName")
+      if (!tryOpenIntent(Intent(action))) {
+        Timber.w("Failed generic intent for $action")
+      }
     }
   }
 
@@ -176,6 +190,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
                 onTogglePowerSaving = { handleTogglePowerSaving(it) },
                 onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
                 onToggleExitWhileCharging = { handleToggleExitWhileCharging(it) },
+                onDisableBatteryOptimization = { handleOpenBatterySettings() },
             )
           }
         }

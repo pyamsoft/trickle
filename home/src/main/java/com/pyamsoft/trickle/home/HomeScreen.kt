@@ -45,6 +45,7 @@ fun HomeScreen(
     onCopy: (String) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenApplicationSettings: () -> Unit,
+    onDisableBatteryOptimization: () -> Unit,
     onRestartPowerService: () -> Unit,
     onRestartApp: () -> Unit,
 ) {
@@ -96,6 +97,7 @@ fun HomeScreen(
               onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
               onToggleExitWhileCharging = onToggleExitWhileCharging,
               onStartTroubleshooting = { setTroubleShooting(true) },
+              onDisableBatteryOptimization = onDisableBatteryOptimization,
           )
         } else {
           renderHomeSetupInstructions(
@@ -179,6 +181,7 @@ private fun PreviewHomeScreen(state: HomeViewState) {
       onRestartPowerService = {},
       onRestartApp = {},
       onToggleExitWhileCharging = {},
+      onDisableBatteryOptimization = {},
   )
 }
 

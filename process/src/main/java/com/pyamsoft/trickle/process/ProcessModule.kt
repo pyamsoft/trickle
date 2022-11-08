@@ -1,6 +1,8 @@
 package com.pyamsoft.trickle.process
 
 import androidx.annotation.CheckResult
+import com.pyamsoft.trickle.process.optimize.BatteryOptimizer
+import com.pyamsoft.trickle.process.optimize.BatteryOptimizerImpl
 import com.pyamsoft.trickle.process.permission.PermissionChecker
 import com.pyamsoft.trickle.process.permission.PermissionCheckerImpl
 import com.pyamsoft.trickle.process.work.BatteryCharge
@@ -12,6 +14,10 @@ import dagger.Module
 
 @Module
 abstract class ProcessModule {
+
+  @Binds
+  @CheckResult
+  internal abstract fun bindBatteryOptimizer(impl: BatteryOptimizerImpl): BatteryOptimizer
 
   @Binds @CheckResult internal abstract fun bindPowerSaving(impl: PowerSaverImpl): PowerSaver
 

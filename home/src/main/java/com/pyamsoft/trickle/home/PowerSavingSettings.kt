@@ -29,11 +29,10 @@ internal fun LazyListScope.renderPowerSavingSettings(
     onTogglePowerSaving: (Boolean) -> Unit,
     onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
     onToggleExitWhileCharging: (Boolean) -> Unit,
+    onDisableBatteryOptimization: () -> Unit,
     onRestartPowerService: () -> Unit,
 ) {
   val isPowerSaving = state.isPowerSaving
-  val isIgnoreInPowerSavingMode = state.isIgnoreInPowerSavingMode
-  val isExitWhileCharging = state.isExitWhileCharging
 
   item {
     HomeMainSwitch(
@@ -50,7 +49,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
         description =
             "$appName will not change settings if the device is already in power saving mode",
         enabled = isPowerSaving,
-        checked = isIgnoreInPowerSavingMode,
+        checked = state.isIgnoreInPowerSavingMode,
         onChange = onToggleIgnoreInPowerSavingMode,
     )
   }
@@ -61,8 +60,25 @@ internal fun LazyListScope.renderPowerSavingSettings(
         name = "Drink Deep",
         description = "When the device is charging, $appName will exit power saving mode",
         enabled = isPowerSaving,
-        checked = isExitWhileCharging,
+        checked = state.isExitWhileCharging,
         onChange = onToggleExitWhileCharging,
+    )
+  }
+
+  item {
+    HomeOption(
+        modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content),
+        name = "Disable Battery Optimizations",
+        description =
+            """This allows $appName to run all the time.
+                |
+                |This will provide the most reliable power saving experience, and will actually help you save more battery, despite being "unoptimized".
+                |(recommended)
+            """
+                .trimMargin(),
+        enabled = isPowerSaving,
+        checked = state.isBatteryOptimizationsIgnored,
+        onChange = { onDisableBatteryOptimization() },
     )
   }
 
@@ -224,6 +240,7 @@ private fun PreviewPowerSavingSettings(
         onRestartPowerService = {},
         onToggleExitWhileCharging = {},
         onStartTroubleshooting = {},
+        onDisableBatteryOptimization = {},
     )
   }
 }

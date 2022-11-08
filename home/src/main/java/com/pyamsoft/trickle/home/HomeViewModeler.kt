@@ -4,6 +4,7 @@ import com.pyamsoft.pydroid.arch.AbstractViewModeler
 import com.pyamsoft.pydroid.arch.UiSavedStateReader
 import com.pyamsoft.pydroid.arch.UiSavedStateWriter
 import com.pyamsoft.trickle.process.PowerPreferences
+import com.pyamsoft.trickle.process.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.process.permission.PermissionChecker
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -13,9 +14,10 @@ import kotlinx.coroutines.launch
 class HomeViewModeler
 @Inject
 internal constructor(
-    private val state: MutableHomeViewState,
-    private val preferences: PowerPreferences,
-    private val permissionChecker: PermissionChecker,
+  private val state: MutableHomeViewState,
+  private val preferences: PowerPreferences,
+  private val permissionChecker: PermissionChecker,
+  private val batteryOptimizer: BatteryOptimizer,
 ) : AbstractViewModeler<HomeViewState>(state) {
 
   private data class LoadConfig(
@@ -113,12 +115,17 @@ internal constructor(
       scope: CoroutineScope,
       andThen: () -> Unit,
   ) {
+    val s = state
     scope.launch(context = Dispatchers.Main) {
-      state.hasPermission = permissionChecker.hasSecureSettingsPermission()
-    }
+      s.hasPermission = permissionChecker.hasSecureSettingsPermission()
 
-    revealSettingsShortcut()
-    andThen()
+      // Battery optimization
+      s.isBatteryOptimizationsIgnored = batteryOptimizer.isOptimizationsIgnored()
+
+      // Finish
+      revealSettingsShortcut()
+      andThen()
+    }
   }
 
   fun handleSetPowerSavingEnabled(scope: CoroutineScope, enabled: Boolean) {
