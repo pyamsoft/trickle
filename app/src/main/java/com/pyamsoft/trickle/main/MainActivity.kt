@@ -66,10 +66,9 @@ class MainActivity : PYDroidActivity() {
     vm.restoreState(savedInstanceState)
 
     binding.mainComposeBottom.setContent {
-      vm.Render { state ->
-        val theme = state.theme
-        SystemBars(theme)
-      }
+      val state = vm.state()
+      val theme = state.theme
+      SystemBars(theme)
     }
 
     vm.handleSyncDarkTheme(this)

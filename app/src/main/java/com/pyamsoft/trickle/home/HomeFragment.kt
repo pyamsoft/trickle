@@ -176,23 +176,21 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
       id = R.id.screen_home
 
       setContent {
-        vm.Render { state ->
-          act.TrickleTheme(themeProvider) {
-            HomeScreen(
-                modifier = Modifier.fillMaxSize(),
-                state = state,
-                appNameRes = R.string.app_name,
-                onCopy = { handleCopyCommand(it) },
-                onOpenBatterySettings = { handleOpenSystemSettings() },
-                onOpenApplicationSettings = { handleOpenApplicationSettings() },
-                onRestartPowerService = { handleRestartPowerService() },
-                onRestartApp = { handleRestartApp() },
-                onTogglePowerSaving = { handleTogglePowerSaving(it) },
-                onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
-                onToggleExitWhileCharging = { handleToggleExitWhileCharging(it) },
-                onDisableBatteryOptimization = { handleOpenBatterySettings() },
-            )
-          }
+        act.TrickleTheme(themeProvider) {
+          HomeScreen(
+              modifier = Modifier.fillMaxSize(),
+              state = vm.state(),
+              appNameRes = R.string.app_name,
+              onCopy = { handleCopyCommand(it) },
+              onOpenBatterySettings = { handleOpenSystemSettings() },
+              onOpenApplicationSettings = { handleOpenApplicationSettings() },
+              onRestartPowerService = { handleRestartPowerService() },
+              onRestartApp = { handleRestartApp() },
+              onTogglePowerSaving = { handleTogglePowerSaving(it) },
+              onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
+              onToggleExitWhileCharging = { handleToggleExitWhileCharging(it) },
+              onDisableBatteryOptimization = { handleOpenBatterySettings() },
+          )
         }
       }
     }

@@ -55,8 +55,6 @@ internal interface TrickleComponent {
 
   fun inject(receiver: OnBootReceiver)
 
-  fun inject(application: Trickle)
-
   @CheckResult fun plusMainComponent(): MainComponent.Factory
 
   @CheckResult fun plusServiceComponent(): ServiceComponent.Factory
