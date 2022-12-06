@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.pyamsoft.pydroid.theme.keylines
 
 internal fun LazyListScope.renderPowerSavingSettings(
+    itemModifier: Modifier = Modifier,
     appName: String,
     isTroubleshooting: Boolean,
     state: HomeViewState,
@@ -36,7 +37,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
 
   item {
     HomeMainSwitch(
-        modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content * 2),
+        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content * 2),
         enabled = isPowerSaving,
         onChange = onTogglePowerSaving,
     )
@@ -44,7 +45,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
 
   item {
     HomeOption(
-        modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content),
+        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
         name = "Play Nice",
         description =
             "$appName will not change settings if the device is already in power saving mode",
@@ -56,7 +57,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
 
   item {
     HomeOption(
-        modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content),
+        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
         name = "Drink Deep",
         description = "When the device is charging, $appName will exit power saving mode",
         enabled = isPowerSaving,
@@ -67,8 +68,8 @@ internal fun LazyListScope.renderPowerSavingSettings(
 
   item {
     HomeOption(
-        modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content),
-        name = "Disable Battery Optimizations",
+        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
+        name = "Ignore Battery Optimizations",
         description =
             """This allows $appName to run all the time.
                 |
@@ -83,6 +84,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
   }
 
   renderExtras(
+      itemModifier = itemModifier,
       isTroubleshooting = isTroubleshooting,
       state = state,
       onOpenSettings = onOpenBatterySettings,
@@ -92,6 +94,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
 }
 
 private fun LazyListScope.renderExtras(
+    itemModifier: Modifier = Modifier,
     isTroubleshooting: Boolean,
     state: HomeViewState,
     onStartTroubleshooting: () -> Unit,
@@ -100,6 +103,7 @@ private fun LazyListScope.renderExtras(
 ) {
   if (isTroubleshooting) {
     renderTroubleshooting(
+        itemModifier = itemModifier,
         state = state,
         onRestartPowerService = onRestartPowerService,
         onOpenSettings = onOpenSettings,
@@ -107,7 +111,7 @@ private fun LazyListScope.renderExtras(
   } else {
     item {
       Box(
-          modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content * 2),
+          modifier = itemModifier.padding(top = MaterialTheme.keylines.content * 2),
           contentAlignment = Alignment.Center,
       ) {
         OutlinedButton(
@@ -123,6 +127,7 @@ private fun LazyListScope.renderExtras(
 }
 
 private fun LazyListScope.renderTroubleshooting(
+    itemModifier: Modifier = Modifier,
     state: HomeViewState,
     onRestartPowerService: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -131,7 +136,7 @@ private fun LazyListScope.renderTroubleshooting(
 
   item {
     Text(
-        modifier = Modifier.padding(top = MaterialTheme.keylines.content * 2),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content * 2),
         text = "TROUBLESHOOTING",
         style =
             MaterialTheme.typography.caption.copy(
@@ -147,7 +152,7 @@ private fun LazyListScope.renderTroubleshooting(
 
   item {
     Text(
-        modifier = Modifier.padding(top = MaterialTheme.keylines.typography),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.typography),
         text =
             "If your device does not automatically manage power saving mode, the Power Service may need to be reset.",
         style = MaterialTheme.typography.body1,
@@ -156,7 +161,7 @@ private fun LazyListScope.renderTroubleshooting(
 
   item {
     Text(
-        modifier = Modifier.padding(top = MaterialTheme.keylines.typography),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.typography),
         text = "Click the button below a couple of times and see if that fixes things",
         color =
             MaterialTheme.colors.onBackground.copy(
@@ -167,7 +172,7 @@ private fun LazyListScope.renderTroubleshooting(
 
   item {
     Box(
-        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
         contentAlignment = Alignment.Center,
     ) {
       Button(
@@ -182,7 +187,7 @@ private fun LazyListScope.renderTroubleshooting(
 
   item {
     AnimatedVisibility(
-        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content * 2),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content * 2),
         visible = isVisible,
     ) {
       Column(

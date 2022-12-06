@@ -283,13 +283,14 @@ private fun rememberAdbCommand(): String {
 }
 
 internal fun LazyListScope.renderHomeSetupInstructions(
+    itemModifier: Modifier = Modifier,
     appName: String,
     onCopy: (String) -> Unit,
     onRestartApp: () -> Unit,
 ) {
   item {
     Column(
-        modifier = Modifier.padding(bottom = MaterialTheme.keylines.content),
+        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
     ) {
       ThisInstruction(
           small = true,
@@ -325,7 +326,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
 
   item {
     OtherInstruction(
-        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
       DownloadAdb()
     }
@@ -333,7 +334,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
 
   item {
     ThisInstruction(
-        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
       EnableDeveloperSettings()
     }
@@ -341,7 +342,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
 
   item {
     ThisInstruction(
-        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
       Text(
           text = "Connect to your Laptop or Desktop with a USB cable",
@@ -352,7 +353,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
 
   item {
     OtherInstruction(
-        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
       Column {
         Text(
@@ -377,7 +378,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     val command = rememberAdbCommand()
 
     Column(
-        modifier = Modifier.padding(top = MaterialTheme.keylines.content),
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
       Card(
           shape = MaterialTheme.shapes.medium,
@@ -416,7 +417,9 @@ internal fun LazyListScope.renderHomeSetupInstructions(
   }
 
   item {
-    Column {
+    Column(
+        modifier = itemModifier,
+    ) {
       ThisInstruction(
           modifier = Modifier.padding(top = MaterialTheme.keylines.content),
       ) {

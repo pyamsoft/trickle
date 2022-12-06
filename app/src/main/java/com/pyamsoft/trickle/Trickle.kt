@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import androidx.annotation.CheckResult
-import coil.ImageLoader
 import com.pyamsoft.pydroid.bootstrap.libraries.OssLibraries
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.ui.PYDroid
@@ -13,10 +12,6 @@ import com.pyamsoft.trickle.receiver.OnBootReceiver
 import timber.log.Timber
 
 internal class Trickle : Application() {
-
-  // Must be lazy since Coil calls getSystemService() internally,
-  // leading to SO exception
-  private val lazyImageLoader = lazy(LazyThreadSafetyMode.NONE) { ImageLoader(this) }
 
   // The order that the PYDroid instance and TrickleComponent instance are created is very specific.
   //
@@ -34,9 +29,6 @@ internal class Trickle : Application() {
           PYDroid.init(
               this,
               PYDroid.Parameters(
-                  // Must be lazy since Coil calls getSystemService() internally,
-                  // leading to SO exception
-                  lazyImageLoader = lazyImageLoader,
                   viewSourceUrl = url,
                   bugReportUrl = "$url/issues",
                   privacyPolicyUrl = PRIVACY_POLICY_URL,

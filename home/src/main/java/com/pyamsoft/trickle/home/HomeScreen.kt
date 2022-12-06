@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.pydroid.ui.widget.NewVersionWidget
 
 @Composable
 fun HomeScreen(
@@ -79,6 +80,12 @@ fun HomeScreen(
         )
       }
 
+      item {
+        NewVersionWidget(
+            modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content),
+        )
+      }
+
       if (isLoading) {
         item {
           Loading(
@@ -88,6 +95,7 @@ fun HomeScreen(
       } else {
         if (hasPermission) {
           renderPowerSavingSettings(
+              itemModifier = Modifier.fillMaxWidth(),
               appName = appName,
               state = state,
               isTroubleshooting = isTroubleshooting,
@@ -101,6 +109,7 @@ fun HomeScreen(
           )
         } else {
           renderHomeSetupInstructions(
+              itemModifier = Modifier.fillMaxWidth(),
               appName = appName,
               onCopy = onCopy,
               onRestartApp = onRestartApp,
