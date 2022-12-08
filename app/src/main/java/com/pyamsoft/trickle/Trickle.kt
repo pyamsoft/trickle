@@ -6,58 +6,48 @@ import android.content.pm.PackageManager
 import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.bootstrap.libraries.OssLibraries
 import com.pyamsoft.pydroid.core.requireNotNull
+import com.pyamsoft.pydroid.ui.ModuleProvider
 import com.pyamsoft.pydroid.ui.PYDroid
+import com.pyamsoft.pydroid.ui.installPYDroid
 import com.pyamsoft.pydroid.util.isDebugMode
 import com.pyamsoft.trickle.receiver.OnBootReceiver
 import timber.log.Timber
 
 internal class Trickle : Application() {
 
-  // The order that the PYDroid instance and TrickleComponent instance are created is very specific.
-  //
-  // Coil lazy loader must be first, then PYDroid, and then Component
-  private var pydroid: PYDroid? = null
   private var component: TrickleComponent? = null
 
-  private fun installPYDroid() {
-    if (pydroid == null) {
-      val url = "https://github.com/pyamsoft/trickle"
+  @CheckResult
+  private fun installPYDroid(): ModuleProvider {
+    val url = "https://github.com/pyamsoft/trickle"
 
-      installLogger()
-
-      pydroid =
-          PYDroid.init(
-              this,
-              PYDroid.Parameters(
-                  viewSourceUrl = url,
-                  bugReportUrl = "$url/issues",
-                  privacyPolicyUrl = PRIVACY_POLICY_URL,
-                  termsConditionsUrl = TERMS_CONDITIONS_URL,
-                  version = BuildConfig.VERSION_CODE,
-                  logger = createLogger(),
-                  theme = TrickleThemeProvider,
-                  debug =
-                      PYDroid.DebugParameters(
-                          enabled = true,
-                          upgradeAvailable = true,
-                          ratingAvailable = false,
-                      ),
-              ),
-          )
-    } else {
-      Timber.w("Cannot install PYDroid again")
-    }
+    return installPYDroid(
+        PYDroid.Parameters(
+            viewSourceUrl = url,
+            bugReportUrl = "$url/issues",
+            privacyPolicyUrl = PRIVACY_POLICY_URL,
+            termsConditionsUrl = TERMS_CONDITIONS_URL,
+            version = BuildConfig.VERSION_CODE,
+            logger = createLogger(),
+            theme = TrickleThemeProvider,
+            debug =
+                PYDroid.DebugParameters(
+                    enabled = true,
+                    upgradeAvailable = true,
+                    ratingAvailable = false,
+                ),
+        ),
+    )
   }
 
-  private fun installComponent() {
+  private fun installComponent(moduleProvider: ModuleProvider) {
     if (component == null) {
-      val p = pydroid.requireNotNull { "Must install PYDroid before installing TrickleComponent" }
       component =
           DaggerTrickleComponent.factory()
               .create(
                   application = this,
                   debug = isDebugMode(),
-                  theming = p.modules().theming(),
+                  theming = moduleProvider.get().theming(),
               )
     } else {
       Timber.w("Cannot install TrickleComponent again")
@@ -67,12 +57,6 @@ internal class Trickle : Application() {
   @CheckResult
   private fun componentGraph(): TrickleComponent {
     return component.requireNotNull { "TrickleComponent was not installed, something is wrong." }
-  }
-
-  @CheckResult
-  private fun fallbackGetSystemService(name: String): Any? {
-    return if (name == TrickleComponent::class.java.name) componentGraph()
-    else super.getSystemService(name)
   }
 
   /** Ensure the BootReceiver is set to state enabled */
@@ -87,15 +71,17 @@ internal class Trickle : Application() {
 
   override fun onCreate() {
     super.onCreate()
-    installPYDroid()
-    installComponent()
+    installLogger()
+    val modules = installPYDroid()
+    installComponent(modules)
 
     addLibraries()
     ensureBootReceiverEnabled()
   }
 
   override fun getSystemService(name: String): Any? {
-    return pydroid?.getSystemService(name) ?: fallbackGetSystemService(name)
+    return if (name == TrickleComponent::class.java.name) componentGraph()
+    else super.getSystemService(name)
   }
 
   companion object {
@@ -107,6 +93,9 @@ internal class Trickle : Application() {
 
       // We are using pydroid-autopsy
       OssLibraries.usingAutopsy = true
+
+      // We are using pydroid-inject
+      OssLibraries.usingInject = true
 
       OssLibraries.add(
           "Dagger",
