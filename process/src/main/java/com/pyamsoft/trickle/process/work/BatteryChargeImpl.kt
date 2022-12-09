@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.annotation.CheckResult
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.pyamsoft.pydroid.core.requireNotNull
 import javax.inject.Inject
@@ -28,7 +29,14 @@ internal constructor(
 
   @CheckResult
   private fun isBatteryChargingIntent(): Boolean {
-    val statusIntent: Intent? = context.registerReceiver(null, BATTERY_STATUS_INTENT_FILTER)
+    val statusIntent: Intent? =
+        ContextCompat.registerReceiver(
+            context,
+            null,
+            BATTERY_STATUS_INTENT_FILTER,
+            ContextCompat.RECEIVER_EXPORTED,
+        )
+
     val batteryStatus =
         statusIntent?.getIntExtra(
             BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)

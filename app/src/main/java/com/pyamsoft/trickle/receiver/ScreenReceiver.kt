@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.PowerManager
 import androidx.annotation.CheckResult
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.inject.Injector
@@ -14,13 +15,13 @@ import com.pyamsoft.trickle.TrickleComponent
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.work.PowerSaver
 import com.pyamsoft.trickle.receiver.ScreenReceiver.Unregister
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import timber.log.Timber
 
 class ScreenReceiver : BroadcastReceiver() {
@@ -144,7 +145,12 @@ class ScreenReceiver : BroadcastReceiver() {
     fun register(service: Service): Unregister {
       val receiver = ScreenReceiver()
       Timber.d("Screen Receiver registered")
-      service.registerReceiver(receiver, filter)
+      ContextCompat.registerReceiver(
+          service,
+          receiver,
+          filter,
+          ContextCompat.RECEIVER_EXPORTED,
+      )
       return Unregister { service.unregisterReceiver(receiver) }
     }
   }
