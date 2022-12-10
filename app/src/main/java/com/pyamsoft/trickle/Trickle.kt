@@ -30,12 +30,6 @@ internal class Trickle : Application() {
             version = BuildConfig.VERSION_CODE,
             logger = createLogger(),
             theme = TrickleThemeProvider,
-            debug =
-                PYDroid.DebugParameters(
-                    enabled = true,
-                    upgradeAvailable = true,
-                    ratingAvailable = false,
-                ),
         ),
     )
   }

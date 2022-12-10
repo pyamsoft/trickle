@@ -36,8 +36,7 @@ class MainActivity : AppCompatActivity() {
                 override val applicationIcon = R.mipmap.ic_launcher_round
 
                 override val changelog = buildChangeLog {
-                  change("New UI style")
-                  change("Clearer setup instructions")
+                  bugfix("Safer registration of Screen event receiver")
                 }
               },
       )
