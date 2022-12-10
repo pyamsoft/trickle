@@ -5,7 +5,6 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.pyamsoft.pydroid.core.requireNotNull
-import com.pyamsoft.pydroid.inject.Injector
 import com.pyamsoft.pydroid.ui.app.installPYDroid
 import com.pyamsoft.pydroid.ui.changelog.ChangeLogProvider
 import com.pyamsoft.pydroid.ui.changelog.buildChangeLog
@@ -14,14 +13,13 @@ import com.pyamsoft.pydroid.ui.util.dispose
 import com.pyamsoft.pydroid.ui.util.recompose
 import com.pyamsoft.pydroid.util.doOnCreate
 import com.pyamsoft.pydroid.util.stableLayoutHideNavigation
+import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.R
-import com.pyamsoft.trickle.TrickleComponent
 import com.pyamsoft.trickle.databinding.ActivityMainBinding
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
-  private var injector: MainComponent? = null
   private var viewBinding: ActivityMainBinding? = null
 
   @JvmField @Inject internal var navigator: Navigator<MainPage>? = null
@@ -58,14 +56,16 @@ class MainActivity : AppCompatActivity() {
     val binding = ActivityMainBinding.inflate(layoutInflater).apply { viewBinding = this }
     setContentView(binding.root)
 
-    injector =
-        Injector.obtainFromApplication<TrickleComponent>(this)
+    val component =
+        ObjectGraph.ApplicationScope.retrieve(this)
             .plusMainComponent()
             .create(
                 this,
                 binding.mainFragmentContainerView.id,
             )
-            .also { c -> c.inject(this) }
+    component.inject(this)
+    ObjectGraph.ActivityScope.install(this, component)
+
     setTheme(R.style.Theme_Trickle)
     super.onCreate(savedInstanceState)
     stableLayoutHideNavigation()
@@ -101,14 +101,6 @@ class MainActivity : AppCompatActivity() {
     viewBinding?.apply { mainComposeBottom.recompose() }
   }
 
-  override fun getSystemService(name: String): Any? {
-    return when (name) {
-      // Must be defined before super.onCreate or throws npe
-      MainComponent::class.java.name -> injector.requireNotNull()
-      else -> super.getSystemService(name)
-    }
-  }
-
   override fun onSaveInstanceState(outState: Bundle) {
     super.onSaveInstanceState(outState)
     viewModel?.saveState(outState)
@@ -122,6 +114,5 @@ class MainActivity : AppCompatActivity() {
     viewBinding = null
     navigator = null
     viewModel = null
-    injector = null
   }
 }

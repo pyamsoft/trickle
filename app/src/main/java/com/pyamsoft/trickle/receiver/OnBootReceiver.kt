@@ -20,8 +20,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.pyamsoft.pydroid.core.requireNotNull
-import com.pyamsoft.pydroid.inject.Injector
-import com.pyamsoft.trickle.TrickleComponent
+import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.service.ServiceLauncher
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +42,7 @@ internal class OnBootReceiver internal constructor() : BroadcastReceiver() {
       return
     }
 
-    Injector.obtainFromApplication<TrickleComponent>(context).inject(this)
+    ObjectGraph.ApplicationScope.retrieve(context).inject(this)
   }
 
   override fun onReceive(context: Context, intent: Intent) {

@@ -4,8 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import com.pyamsoft.pydroid.core.requireNotNull
-import com.pyamsoft.pydroid.inject.Injector
-import com.pyamsoft.trickle.TrickleComponent
+import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.receiver.ScreenReceiver
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -58,10 +57,7 @@ class MonitorService : Service() {
 
   override fun onCreate() {
     super.onCreate()
-    Injector.obtainFromApplication<TrickleComponent>(this)
-        .plusServiceComponent()
-        .create()
-        .inject(this)
+    ObjectGraph.ApplicationScope.retrieve(this).plusServiceComponent().create().inject(this)
 
     notification.requireNotNull().createNotification(this)
   }

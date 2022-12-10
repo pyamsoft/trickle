@@ -5,17 +5,13 @@ import android.content.ComponentName
 import android.content.pm.PackageManager
 import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.bootstrap.libraries.OssLibraries
-import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.ui.ModuleProvider
 import com.pyamsoft.pydroid.ui.PYDroid
 import com.pyamsoft.pydroid.ui.installPYDroid
 import com.pyamsoft.pydroid.util.isDebugMode
 import com.pyamsoft.trickle.receiver.OnBootReceiver
-import timber.log.Timber
 
 internal class Trickle : Application() {
-
-  private var component: TrickleComponent? = null
 
   @CheckResult
   private fun installPYDroid(): ModuleProvider {
@@ -35,22 +31,14 @@ internal class Trickle : Application() {
   }
 
   private fun installComponent(moduleProvider: ModuleProvider) {
-    if (component == null) {
-      component =
-          DaggerTrickleComponent.factory()
-              .create(
-                  application = this,
-                  debug = isDebugMode(),
-                  theming = moduleProvider.get().theming(),
-              )
-    } else {
-      Timber.w("Cannot install TrickleComponent again")
-    }
-  }
-
-  @CheckResult
-  private fun componentGraph(): TrickleComponent {
-    return component.requireNotNull { "TrickleComponent was not installed, something is wrong." }
+    val component =
+        DaggerTrickleComponent.factory()
+            .create(
+                application = this,
+                debug = isDebugMode(),
+                theming = moduleProvider.get().theming(),
+            )
+    ObjectGraph.ApplicationScope.install(this, component)
   }
 
   /** Ensure the BootReceiver is set to state enabled */
@@ -73,11 +61,6 @@ internal class Trickle : Application() {
     ensureBootReceiverEnabled()
   }
 
-  override fun getSystemService(name: String): Any? {
-    return if (name == TrickleComponent::class.java.name) componentGraph()
-    else super.getSystemService(name)
-  }
-
   companion object {
 
     @JvmStatic
@@ -87,9 +70,6 @@ internal class Trickle : Application() {
 
       // We are using pydroid-autopsy
       OssLibraries.usingAutopsy = true
-
-      // We are using pydroid-inject
-      OssLibraries.usingInject = true
 
       OssLibraries.add(
           "Dagger",

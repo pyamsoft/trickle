@@ -32,16 +32,15 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.pyamsoft.pydroid.core.requireNotNull
-import com.pyamsoft.pydroid.inject.Injector
 import com.pyamsoft.pydroid.ui.navigator.FragmentNavigator
 import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
 import com.pyamsoft.pydroid.ui.util.dispose
 import com.pyamsoft.pydroid.ui.util.recompose
 import com.pyamsoft.pydroid.util.doOnResume
+import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
-import com.pyamsoft.trickle.main.MainComponent
 import com.pyamsoft.trickle.main.MainPage
 import com.pyamsoft.trickle.process.work.PowerSaver
 import com.pyamsoft.trickle.service.ServiceLauncher
@@ -168,7 +167,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
       savedInstanceState: Bundle?
   ): View {
     val act = requireActivity()
-    Injector.obtainFromActivity<MainComponent>(act).plusHome().create().inject(this)
+    ObjectGraph.ActivityScope.retrieve(act).plusHome().create().inject(this)
 
     val themeProvider = ThemeProvider { theming.requireNotNull().isDarkTheme(act) }
     val vm = viewModel.requireNotNull()

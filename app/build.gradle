@@ -131,9 +131,6 @@ dependencies {
   api "androidx.fragment:fragment-ktx:$fragment"
   api "androidx.appcompat:appcompat:$appCompat"
 
-  // PYDroid
-  implementation "com.github.pyamsoft.pydroid:inject:$pydroid"
-
   implementation project(':core')
   implementation project(':home')
   implementation project(':main')
