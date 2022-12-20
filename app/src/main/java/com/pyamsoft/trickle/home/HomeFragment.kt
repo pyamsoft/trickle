@@ -26,23 +26,29 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CheckResult
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.core.requireNotNull
+import com.pyamsoft.pydroid.notify.NotifyGuard
 import com.pyamsoft.pydroid.ui.navigator.FragmentNavigator
 import com.pyamsoft.pydroid.ui.theme.ThemeProvider
 import com.pyamsoft.pydroid.ui.theme.Theming
 import com.pyamsoft.pydroid.ui.util.dispose
 import com.pyamsoft.pydroid.ui.util.recompose
+import com.pyamsoft.pydroid.util.PermissionRequester
 import com.pyamsoft.pydroid.util.doOnResume
 import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.main.MainPage
 import com.pyamsoft.trickle.process.work.PowerSaver
+import com.pyamsoft.trickle.service.NotificationRefreshEvent
 import com.pyamsoft.trickle.service.ServiceLauncher
 import com.pyamsoft.trickle.settings.SettingsDialog
 import javax.inject.Inject
@@ -57,6 +63,14 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
   @JvmField @Inject internal var viewModel: HomeViewModeler? = null
   @JvmField @Inject internal var powerSaver: PowerSaver? = null
   @JvmField @Inject internal var launcher: ServiceLauncher? = null
+
+  @JvmField @Inject internal var notifyGuard: NotifyGuard? = null
+
+  @JvmField @Inject internal var notificationPermissionRequester: PermissionRequester? = null
+
+  @JvmField @Inject internal var notificationRefreshBus: EventBus<NotificationRefreshEvent>? = null
+
+  private var notificationRequester: PermissionRequester.Requester? = null
 
   @CheckResult
   private fun tryOpenIntent(intent: Intent): Boolean {
@@ -161,6 +175,24 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
         )
   }
 
+  private fun registerPermissionRequests(notificationPermissionState: MutableState<Boolean>) {
+    notificationRequester?.unregister()
+    notificationRequester =
+        notificationPermissionRequester.requireNotNull().registerRequester(this) { granted ->
+          if (granted) {
+            Timber.d("Notification permission granted")
+
+            // Broadcast in the background
+            viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.IO) {
+              notificationRefreshBus.requireNotNull().send(NotificationRefreshEvent)
+            }
+          } else {
+            Timber.w("Notification permission not granted")
+          }
+          notificationPermissionState.value = granted
+        }
+  }
+
   override fun onCreateView(
       inflater: LayoutInflater,
       container: ViewGroup?,
@@ -171,6 +203,18 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
 
     val themeProvider = ThemeProvider { theming.requireNotNull().isDarkTheme(act) }
     val vm = viewModel.requireNotNull()
+    val appName = act.getString(R.string.app_name)
+    val ng = notifyGuard.requireNotNull()
+
+    // Hold the state here locally so we don't carry outside of Composable lifespan
+    val notificationState = mutableStateOf(ng.canPostNotification())
+
+    // As early as possible because of Lifecycle quirks
+    registerPermissionRequests(notificationState)
+
+    // Also hold onto the requester here instead of in composition
+    val npr = notificationRequester.requireNotNull()
+
     return ComposeView(act).apply {
       id = R.id.screen_home
 
@@ -179,7 +223,8 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
           HomeScreen(
               modifier = Modifier.fillMaxSize(),
               state = vm.state(),
-              appNameRes = R.string.app_name,
+              appName = appName,
+              hasNotificationPermission = notificationState.value,
               onCopy = { handleCopyCommand(it) },
               onOpenBatterySettings = { handleOpenSystemSettings() },
               onOpenApplicationSettings = { handleOpenApplicationSettings() },
@@ -189,6 +234,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
               onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
               onToggleExitWhileCharging = { handleToggleExitWhileCharging(it) },
               onDisableBatteryOptimization = { handleOpenBatterySettings() },
+              onRequestNotificationPermission = { npr.requestPermissions() },
           )
         }
       }
@@ -228,6 +274,12 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
     theming = null
     viewModel = null
     powerSaver = null
+    notificationPermissionRequester = null
+    notifyGuard = null
+    notificationRefreshBus = null
+
+    notificationRequester?.unregister()
+    notificationRequester = null
   }
 
   override fun getScreenId(): MainPage {

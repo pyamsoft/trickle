@@ -15,7 +15,7 @@ internal fun HomeMainSwitch(
       modifier = modifier,
       isEditable = true,
       condition = enabled,
-      title = "Sip Power",
+      title = "Automatic Power Saving",
       description =
           """
          When the screen turns off, enter power saving mode automatically. 

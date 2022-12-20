@@ -21,7 +21,10 @@ import android.app.Application
 import android.app.Service
 import android.content.Context
 import androidx.annotation.CheckResult
+import com.pyamsoft.pydroid.notify.NotifyGuard
+import com.pyamsoft.pydroid.notify.NotifyPermission
 import com.pyamsoft.pydroid.ui.theme.Theming
+import com.pyamsoft.pydroid.util.PermissionRequester
 import com.pyamsoft.trickle.main.MainActivity
 import com.pyamsoft.trickle.main.MainComponent
 import com.pyamsoft.trickle.preference.PreferencesImpl
@@ -64,9 +67,9 @@ internal interface TrickleComponent {
 
     @CheckResult
     fun create(
-      @BindsInstance application: Application,
-      @Named("debug") @BindsInstance debug: Boolean,
-      @BindsInstance theming: Theming,
+        @BindsInstance application: Application,
+        @Named("debug") @BindsInstance debug: Boolean,
+        @BindsInstance theming: Theming,
     ): TrickleComponent
   }
 
@@ -79,6 +82,20 @@ internal interface TrickleComponent {
 
     @Module
     companion object {
+
+      @Provides
+      @JvmStatic
+      @Singleton
+      internal fun provideNotificationPermissionRequester(): PermissionRequester {
+        return NotifyPermission.createDefault()
+      }
+
+      @Provides
+      @JvmStatic
+      @Singleton
+      internal fun provideNotifyGuard(context: Context): NotifyGuard {
+        return NotifyGuard.createDefault(context)
+      }
 
       @Provides
       @JvmStatic

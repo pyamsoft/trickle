@@ -21,8 +21,31 @@ internal constructor(
     private val powerPreferences: PowerPreferences,
 ) : ServiceNotification {
 
+  private suspend fun awaitNotificationUpdate(service: Service, enable: Boolean?) =
+      withContext(context = Dispatchers.IO) {
+        Enforcer.assertOffMainThread()
+
+        val isEnabled =
+            if (enable == null) {
+              powerPreferences.observePowerSavingEnabled().first()
+            } else {
+              powerPreferences.setPowerSavingEnabled(enable)
+              enable
+            }
+
+        return@withContext notifier
+            .startForeground(
+                service = service,
+                id = NOTIFICATION_ID,
+                channelInfo = CHANNEL_INFO,
+                notification = ServiceDispatcher.Data(isPowerSavingEnabled = isEnabled),
+            )
+            .let { Timber.d("Updated foreground notification: $it") }
+      }
+
   override fun createNotification(service: Service) {
-    return notifier.startForeground(
+    return notifier
+        .startForeground(
             service = service,
             id = NOTIFICATION_ID,
             channelInfo = CHANNEL_INFO,
@@ -31,25 +54,10 @@ internal constructor(
         .let { Timber.d("Started foreground notification: $it") }
   }
 
-  override suspend fun updateNotification(service: Service) =
-      withContext(context = Dispatchers.IO) {
-        Enforcer.assertOffMainThread()
+  override suspend fun updateNotification(service: Service) = awaitNotificationUpdate(service, null)
 
-        val isPowerSavingEnabled = powerPreferences.observePowerSavingEnabled().first()
-        return@withContext notifier.startForeground(
-                service = service,
-                id = NOTIFICATION_ID,
-                channelInfo = CHANNEL_INFO,
-                notification = ServiceDispatcher.Data(isPowerSavingEnabled = isPowerSavingEnabled),
-            )
-            .let { Timber.d("Started foreground notification: $it") }
-      }
-
-  override suspend fun togglePowerSavingEnabled(enable: Boolean) =
-      withContext(context = Dispatchers.IO) {
-        Enforcer.assertOffMainThread()
-        powerPreferences.setPowerSavingEnabled(enable)
-      }
+  override suspend fun updateNotification(service: Service, enable: Boolean) =
+      awaitNotificationUpdate(service, enable)
 
   override fun stopNotification(service: Service) {
     notifier.stopForeground(service, NOTIFICATION_ID)

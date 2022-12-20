@@ -1,6 +1,5 @@
 package com.pyamsoft.trickle.home
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,7 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,7 +37,8 @@ import com.pyamsoft.pydroid.ui.widget.NewVersionWidget
 fun HomeScreen(
     modifier: Modifier = Modifier,
     state: HomeViewState,
-    @StringRes appNameRes: Int,
+    appName: String,
+    hasNotificationPermission: Boolean,
     onTogglePowerSaving: (Boolean) -> Unit,
     onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
     onToggleExitWhileCharging: (Boolean) -> Unit,
@@ -49,12 +48,11 @@ fun HomeScreen(
     onDisableBatteryOptimization: () -> Unit,
     onRestartPowerService: () -> Unit,
     onRestartApp: () -> Unit,
+    onRequestNotificationPermission: () -> Unit,
 ) {
   val scaffoldState = rememberScaffoldState()
   val hasPermission = state.hasPermission
   val isLoading = state.loading
-
-  val appName = stringResource(appNameRes)
 
   val (isTroubleshooting, setTroubleShooting) = remember { mutableStateOf(false) }
 
@@ -99,6 +97,7 @@ fun HomeScreen(
               appName = appName,
               state = state,
               isTroubleshooting = isTroubleshooting,
+              hasNotificationPermission = hasNotificationPermission,
               onOpenBatterySettings = onOpenBatterySettings,
               onRestartPowerService = onRestartPowerService,
               onTogglePowerSaving = onTogglePowerSaving,
@@ -106,6 +105,7 @@ fun HomeScreen(
               onToggleExitWhileCharging = onToggleExitWhileCharging,
               onStartTroubleshooting = { setTroubleShooting(true) },
               onDisableBatteryOptimization = onDisableBatteryOptimization,
+              onRequestNotificationPermission = onRequestNotificationPermission,
           )
         } else {
           renderHomeSetupInstructions(
@@ -181,7 +181,8 @@ private fun Header(
 private fun PreviewHomeScreen(state: HomeViewState) {
   HomeScreen(
       state = state,
-      appNameRes = 0,
+      appName = "TEST",
+      hasNotificationPermission = false,
       onToggleIgnoreInPowerSavingMode = {},
       onTogglePowerSaving = {},
       onOpenBatterySettings = {},
@@ -191,6 +192,7 @@ private fun PreviewHomeScreen(state: HomeViewState) {
       onRestartApp = {},
       onToggleExitWhileCharging = {},
       onDisableBatteryOptimization = {},
+      onRequestNotificationPermission = {},
   )
 }
 

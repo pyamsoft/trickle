@@ -3,84 +3,78 @@ package com.pyamsoft.trickle.service
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.receiver.ScreenReceiver
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class MonitorService : Service() {
 
-  /** CoroutineScope for the Service level */
-  private val serviceScope = MainScope()
-
   private var receiver: ScreenReceiver.Unregister? = null
 
   @Inject @JvmField internal var notification: ServiceNotification? = null
+  @Inject @JvmField internal var serviceHandler: ServiceHandler? = null
 
-  private fun watchScreen() {
+  private fun ensureWatchingScreen() {
     receiver = receiver ?: ScreenReceiver.register(this)
   }
 
-  private fun updatePowerSaving(intent: Intent?) {
-    val self = this
-    serviceScope.launch(context = Dispatchers.Main) {
-      notification.requireNotNull().also { l ->
-        updatePowerPreference(l, intent)
-        l.updateNotification(self)
-      }
-    }
-  }
-
-  private suspend fun updatePowerPreference(l: ServiceNotification, intent: Intent?) {
+  @CheckResult
+  private fun getTogglePowerSaving(intent: Intent?): Boolean? {
     // If the intent extra is passed, we can update the preference
     if (intent == null) {
-      return
+      return null
     }
 
     if (!intent.hasExtra(ServiceNotification.KEY_TOGGLE_POWER_SAVING)) {
-      return
+      return null
     }
 
     // If we fail to find it, turn off management
-    val enable = intent.getBooleanExtra(ServiceNotification.KEY_TOGGLE_POWER_SAVING, false)
-    l.togglePowerSavingEnabled(enable)
+    return intent.getBooleanExtra(ServiceNotification.KEY_TOGGLE_POWER_SAVING, false)
   }
 
   override fun onBind(intent: Intent?): IBinder? {
-    throw IllegalStateException("Not a bound service")
+    return null
   }
 
   override fun onCreate() {
     super.onCreate()
     ObjectGraph.ApplicationScope.retrieve(this).plusServiceComponent().create().inject(this)
 
+    // Start notification first for android O immediately
     notification.requireNotNull().createNotification(this)
+
+    // Register for screen events
+    ensureWatchingScreen()
+
+    // Handler
+    serviceHandler.requireNotNull().bind(this)
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    watchScreen()
-    updatePowerSaving(intent)
+    ensureWatchingScreen()
+
+    getTogglePowerSaving(intent)?.also { enable ->
+      serviceHandler.requireNotNull().toggle(this, enable)
+    }
 
     return START_STICKY
   }
 
   override fun onDestroy() {
     super.onDestroy()
-    Timber.d("Stop notification in foreground and kill service")
 
-    receiver?.unregister()
+    Timber.d("Destroy service")
+
     notification?.stopNotification(this)
+    serviceHandler?.destroy()
+    receiver?.unregister()
 
+    serviceHandler = null
     notification = null
     receiver = null
-
-    serviceScope.cancel()
-
-    stopSelf()
   }
 }

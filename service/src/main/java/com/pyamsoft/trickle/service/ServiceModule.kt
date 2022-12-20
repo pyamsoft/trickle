@@ -2,6 +2,8 @@ package com.pyamsoft.trickle.service
 
 import android.content.Context
 import androidx.annotation.CheckResult
+import com.pyamsoft.pydroid.bus.EventBus
+import com.pyamsoft.pydroid.bus.EventConsumer
 import com.pyamsoft.pydroid.notify.Notifier
 import com.pyamsoft.pydroid.notify.NotifyDispatcher
 import dagger.Binds
@@ -27,8 +29,21 @@ abstract class ServiceModule {
 
   @Binds internal abstract fun bindLauncher(impl: ServiceLauncherImpl): ServiceLauncher
 
+  @Binds
+  @CheckResult
+  internal abstract fun bindNotificationRefreshConsumer(
+      impl: EventBus<NotificationRefreshEvent>
+  ): EventConsumer<NotificationRefreshEvent>
+
   @Module
   companion object {
+
+    @Provides
+    @JvmStatic
+    @Singleton
+    internal fun provideNotificationRefreshEventBus(): EventBus<NotificationRefreshEvent> {
+      return EventBus.create()
+    }
 
     @Provides
     @Singleton

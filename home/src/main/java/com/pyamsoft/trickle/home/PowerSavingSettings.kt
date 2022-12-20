@@ -1,13 +1,20 @@
 package com.pyamsoft.trickle.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
@@ -15,16 +22,16 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.trickle.ui.icons.Label
 
 internal fun LazyListScope.renderPowerSavingSettings(
     itemModifier: Modifier = Modifier,
     appName: String,
-    isTroubleshooting: Boolean,
     state: HomeViewState,
+    isTroubleshooting: Boolean,
+    hasNotificationPermission: Boolean,
     onStartTroubleshooting: () -> Unit,
     onOpenBatterySettings: () -> Unit,
     onTogglePowerSaving: (Boolean) -> Unit,
@@ -32,6 +39,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
     onToggleExitWhileCharging: (Boolean) -> Unit,
     onDisableBatteryOptimization: () -> Unit,
     onRestartPowerService: () -> Unit,
+    onRequestNotificationPermission: () -> Unit,
 ) {
   val isPowerSaving = state.isPowerSaving
 
@@ -58,7 +66,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
   item {
     HomeOption(
         modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
-        name = "Drink Deep",
+        name = "Sip Power",
         description = "When the device is charging, $appName will exit power saving mode",
         enabled = isPowerSaving,
         checked = state.isExitWhileCharging,
@@ -67,55 +75,55 @@ internal fun LazyListScope.renderPowerSavingSettings(
   }
 
   item {
-    HomeOption(
-        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
-        name = "Ignore Battery Optimizations",
-        description =
-            """This allows $appName to run all the time.
+    Column(
+        modifier = itemModifier.padding(vertical = MaterialTheme.keylines.content),
+    ) {
+      Label(
+          modifier = Modifier.padding(bottom = MaterialTheme.keylines.baseline),
+          text = "Battery",
+      )
+      HomeOption(
+          name = "Ignore Battery Optimizations",
+          description =
+              """This allows $appName to run all the time.
                 |
                 |Provides the most reliable experience, and will help you save more battery, despite being "unoptimized".
                 |(recommended)
             """
-                .trimMargin(),
-        enabled = isPowerSaving,
-        checked = state.isBatteryOptimizationsIgnored,
-        onChange = { onDisableBatteryOptimization() },
-    )
+                  .trimMargin(),
+          enabled = isPowerSaving,
+          checked = state.isBatteryOptimizationsIgnored,
+          onChange = { onDisableBatteryOptimization() },
+      )
+    }
   }
 
-  renderExtras(
+  // Includes bottom space if rendered
+  renderOptionalNotification(
       itemModifier = itemModifier,
-      isTroubleshooting = isTroubleshooting,
-      state = state,
-      onOpenSettings = onOpenBatterySettings,
-      onRestartPowerService = onRestartPowerService,
-      onStartTroubleshooting = onStartTroubleshooting,
+      hasPermission = hasNotificationPermission,
+      onRequest = onRequestNotificationPermission,
   )
-}
 
-private fun LazyListScope.renderExtras(
-    itemModifier: Modifier = Modifier,
-    isTroubleshooting: Boolean,
-    state: HomeViewState,
-    onStartTroubleshooting: () -> Unit,
-    onRestartPowerService: () -> Unit,
-    onOpenSettings: () -> Unit,
-) {
   if (isTroubleshooting) {
     renderTroubleshooting(
         itemModifier = itemModifier,
         state = state,
         onRestartPowerService = onRestartPowerService,
-        onOpenSettings = onOpenSettings,
+        onOpenSettings = onOpenBatterySettings,
     )
   } else {
     item {
       Box(
-          modifier = itemModifier.padding(top = MaterialTheme.keylines.content * 2),
+          modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
           contentAlignment = Alignment.Center,
       ) {
         OutlinedButton(
             onClick = onStartTroubleshooting,
+            colors =
+                ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colors.error,
+                ),
         ) {
           Text(
               text = "View Troubleshooting Instructions",
@@ -123,6 +131,12 @@ private fun LazyListScope.renderExtras(
         }
       }
     }
+  }
+
+  item {
+    Spacer(
+        modifier = itemModifier.height(MaterialTheme.keylines.content),
+    )
   }
 }
 
@@ -135,18 +149,9 @@ private fun LazyListScope.renderTroubleshooting(
   val isVisible = state.isPowerSettingsShortcutVisible
 
   item {
-    Text(
-        modifier = itemModifier.padding(top = MaterialTheme.keylines.content * 2),
-        text = "TROUBLESHOOTING",
-        style =
-            MaterialTheme.typography.caption.copy(
-                fontSize = 10.sp,
-                fontWeight = FontWeight.W700,
-                color =
-                    MaterialTheme.colors.onBackground.copy(
-                        alpha = ContentAlpha.medium,
-                    ),
-            ),
+    Label(
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
+        text = "Troubleshooting",
     )
   }
 
@@ -189,6 +194,8 @@ private fun LazyListScope.renderTroubleshooting(
     AnimatedVisibility(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content * 2),
         visible = isVisible,
+        enter = fadeIn() + slideInVertically(),
+        exit = slideOutVertically() + fadeOut(),
     ) {
       Column(
           modifier = Modifier.fillMaxWidth(),
@@ -239,6 +246,7 @@ private fun PreviewPowerSavingSettings(
         appName = "TEST",
         state = state,
         isTroubleshooting = isTroubleshooting,
+        hasNotificationPermission = false,
         onToggleIgnoreInPowerSavingMode = {},
         onTogglePowerSaving = {},
         onOpenBatterySettings = {},
@@ -246,6 +254,7 @@ private fun PreviewPowerSavingSettings(
         onToggleExitWhileCharging = {},
         onStartTroubleshooting = {},
         onDisableBatteryOptimization = {},
+        onRequestNotificationPermission = {},
     )
   }
 }

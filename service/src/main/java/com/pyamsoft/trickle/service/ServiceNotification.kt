@@ -10,7 +10,10 @@ interface ServiceNotification {
 
   suspend fun updateNotification(service: Service)
 
-  suspend fun togglePowerSavingEnabled(enable: Boolean)
+  suspend fun updateNotification(
+      service: Service,
+      enable: Boolean,
+  )
 
   companion object {
 
