@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.keylines
-import com.pyamsoft.pydroid.ui.widget.NewVersionWidget
+import com.pyamsoft.trickle.ui.icons.renderPYDroidExtras
 
 @Composable
 fun HomeScreen(
@@ -78,11 +78,7 @@ fun HomeScreen(
         )
       }
 
-      item {
-        NewVersionWidget(
-            modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content),
-        )
-      }
+      renderPYDroidExtras()
 
       if (isLoading) {
         item {

@@ -192,13 +192,12 @@ private fun LazyListScope.renderTroubleshooting(
 
   item {
     AnimatedVisibility(
-        modifier = itemModifier.padding(top = MaterialTheme.keylines.content * 2),
         visible = isVisible,
         enter = fadeIn() + slideInVertically(),
         exit = slideOutVertically() + fadeOut(),
     ) {
       Column(
-          modifier = Modifier.fillMaxWidth(),
+          modifier = itemModifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content * 2),
           horizontalAlignment = Alignment.CenterHorizontally,
       ) {
         Text(
