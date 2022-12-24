@@ -18,7 +18,7 @@ internal fun HomeMainSwitch(
       title = "Automatic Power Saving",
       description =
           """
-         When the screen turns off, enter power saving mode automatically. 
+         When the screen turns off, enter power saving mode automatically.
          When the screen turns back on, exit power saving mode automatically.
       """
               .trimIndent(),

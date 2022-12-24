@@ -14,10 +14,10 @@ import kotlinx.coroutines.launch
 class HomeViewModeler
 @Inject
 internal constructor(
-  private val state: MutableHomeViewState,
-  private val preferences: PowerPreferences,
-  private val permissionChecker: PermissionChecker,
-  private val batteryOptimizer: BatteryOptimizer,
+    private val state: MutableHomeViewState,
+    private val preferences: PowerPreferences,
+    private val permissionChecker: PermissionChecker,
+    private val batteryOptimizer: BatteryOptimizer,
 ) : AbstractViewModeler<HomeViewState>(state) {
 
   private data class LoadConfig(
