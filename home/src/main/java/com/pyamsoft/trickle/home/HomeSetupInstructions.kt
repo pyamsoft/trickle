@@ -3,21 +3,11 @@ package com.pyamsoft.trickle.home
 import android.content.Context
 import androidx.annotation.CheckResult
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -88,7 +78,12 @@ private fun ThisInstruction(
       modifier = modifier,
       verticalAlignment = Alignment.CenterVertically,
   ) {
-    ThisDevice(small = small)
+    Box(
+        modifier = Modifier.fillMaxHeight(),
+        contentAlignment = Alignment.Center,
+    ) {
+      ThisDevice(small = small)
+    }
 
     Box(
         modifier = Modifier.weight(1F).padding(start = MaterialTheme.keylines.content),
@@ -108,7 +103,12 @@ private fun OtherInstruction(
       modifier = modifier,
       verticalAlignment = Alignment.CenterVertically,
   ) {
-    OtherDevice(small = small)
+    Box(
+        modifier = Modifier.fillMaxHeight(),
+        contentAlignment = Alignment.Center,
+    ) {
+      OtherDevice(small = small)
+    }
 
     Box(
         modifier = Modifier.weight(1F).padding(start = MaterialTheme.keylines.content),
@@ -289,38 +289,38 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     onRestartApp: () -> Unit,
 ) {
   item {
-    Column(
-        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
+    ThisInstruction(
+        modifier = itemModifier,
+        small = true,
     ) {
-      ThisInstruction(
-          small = true,
-      ) {
-        Text(
-            text = "This Device",
-            style =
-                MaterialTheme.typography.caption.copy(
-                    color =
-                        MaterialTheme.colors.onBackground.copy(
-                            alpha = ContentAlpha.medium,
-                        ),
-                ),
-        )
-      }
+      Text(
+          text = "This Device",
+          style =
+              MaterialTheme.typography.caption.copy(
+                  color =
+                      MaterialTheme.colors.onBackground.copy(
+                          alpha = ContentAlpha.medium,
+                      ),
+              ),
+      )
+    }
+  }
 
-      OtherInstruction(
-          small = true,
-      ) {
-        Text(
-            text = "Laptop or Desktop",
-            style =
-                MaterialTheme.typography.caption.copy(
-                    color =
-                        MaterialTheme.colors.onBackground.copy(
-                            alpha = ContentAlpha.medium,
-                        ),
-                ),
-        )
-      }
+  item {
+    OtherInstruction(
+        modifier = itemModifier,
+        small = true,
+    ) {
+      Text(
+          text = "Laptop or Desktop",
+          style =
+              MaterialTheme.typography.caption.copy(
+                  color =
+                      MaterialTheme.colors.onBackground.copy(
+                          alpha = ContentAlpha.medium,
+                      ),
+              ),
+      )
     }
   }
 
@@ -344,10 +344,23 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     ThisInstruction(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
-      Text(
-          text = "Connect to your Laptop or Desktop with a USB cable",
-          style = MaterialTheme.typography.body1,
-      )
+      Column {
+        Text(
+            text = "You may be asked to accept a prompt to allow USB connections to your device.",
+            style =
+                MaterialTheme.typography.caption.copy(
+                    color =
+                        MaterialTheme.colors.onBackground.copy(
+                            alpha = ContentAlpha.medium,
+                        ),
+                ),
+        )
+
+        Text(
+            text = "Connect to your Laptop or Desktop with a USB cable",
+            style = MaterialTheme.typography.body1,
+        )
+      }
     }
   }
 
@@ -424,8 +437,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
           modifier = Modifier.padding(top = MaterialTheme.keylines.content),
       ) {
         Text(
-            text =
-                "Restart this application by clicking the button below, or by swiping this application out of your Recents screen.",
+            text = "Restart this application by clicking the button below, and re-opening it.",
             style = MaterialTheme.typography.body1,
         )
       }

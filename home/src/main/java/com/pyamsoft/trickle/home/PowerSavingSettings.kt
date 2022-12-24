@@ -1,35 +1,23 @@
 package com.pyamsoft.trickle.home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.ContentAlpha
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.pydroid.theme.warning
 import com.pyamsoft.trickle.ui.icons.Label
 
 internal fun LazyListScope.renderPowerSavingSettings(
     itemModifier: Modifier = Modifier,
     appName: String,
     state: HomeViewState,
+    showNotificationSettings: Boolean,
     isTroubleshooting: Boolean,
     hasNotificationPermission: Boolean,
     onStartTroubleshooting: () -> Unit,
@@ -98,16 +86,27 @@ internal fun LazyListScope.renderPowerSavingSettings(
     }
   }
 
-  // Includes bottom space if rendered
-  renderOptionalNotification(
-      itemModifier = itemModifier,
-      hasPermission = hasNotificationPermission,
-      onRequest = onRequestNotificationPermission,
-  )
+  if (showNotificationSettings) {
+    renderNotificationSettings(
+        itemModifier = itemModifier,
+        hasPermission = hasNotificationPermission,
+        onRequest = onRequestNotificationPermission,
+    )
+
+    item {
+      Spacer(
+          modifier =
+              Modifier.fillMaxWidth()
+                  .padding(horizontal = MaterialTheme.keylines.content)
+                  .height(MaterialTheme.keylines.content),
+      )
+    }
+  }
 
   if (isTroubleshooting) {
     renderTroubleshooting(
         itemModifier = itemModifier,
+        appName = appName,
         state = state,
         onRestartPowerService = onRestartPowerService,
         onOpenSettings = onOpenBatterySettings,
@@ -122,7 +121,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
             onClick = onStartTroubleshooting,
             colors =
                 ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colors.error,
+                    contentColor = MaterialTheme.colors.warning,
                 ),
         ) {
           Text(
@@ -142,6 +141,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
 
 private fun LazyListScope.renderTroubleshooting(
     itemModifier: Modifier = Modifier,
+    appName: String,
     state: HomeViewState,
     onRestartPowerService: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -159,7 +159,7 @@ private fun LazyListScope.renderTroubleshooting(
     Text(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.typography),
         text =
-            "If your device does not automatically manage power saving mode, the Power Service may need to be reset.",
+            "If your device does not automatically manage power saving mode, the $appName Service may need to be reset.",
         style = MaterialTheme.typography.body1,
     )
   }
@@ -168,9 +168,12 @@ private fun LazyListScope.renderTroubleshooting(
     Text(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.typography),
         text = "Click the button below a couple of times and see if that fixes things",
-        color =
-            MaterialTheme.colors.onBackground.copy(
-                alpha = ContentAlpha.medium,
+        style =
+            MaterialTheme.typography.caption.copy(
+                color =
+                    MaterialTheme.colors.onBackground.copy(
+                        alpha = ContentAlpha.medium,
+                    ),
             ),
     )
   }
@@ -184,7 +187,7 @@ private fun LazyListScope.renderTroubleshooting(
           onClick = onRestartPowerService,
       ) {
         Text(
-            text = "Restart Power Service",
+            text = "Restart $appName Service",
         )
       }
     }
@@ -202,7 +205,7 @@ private fun LazyListScope.renderTroubleshooting(
       ) {
         Text(
             text =
-                "Sometimes restarting the Power Service isn't enough, you'll need to change device Settings",
+                "Sometimes restarting $appName Service isn't enough, and you'll need to change device Settings.",
             style = MaterialTheme.typography.body1,
         )
 
@@ -214,7 +217,8 @@ private fun LazyListScope.renderTroubleshooting(
 
         Text(
             modifier = Modifier.padding(top = MaterialTheme.keylines.typography),
-            text = "Toggle Power Saving Mode on and off 3 times, this should fix the Power Service",
+            text =
+                "Toggle Power-Saving Mode on and off 3 times, this should fix the $appName Service.",
             style = MaterialTheme.typography.body1,
         )
 
@@ -245,6 +249,7 @@ private fun PreviewPowerSavingSettings(
         appName = "TEST",
         state = state,
         isTroubleshooting = isTroubleshooting,
+        showNotificationSettings = false,
         hasNotificationPermission = false,
         onToggleIgnoreInPowerSavingMode = {},
         onTogglePowerSaving = {},
