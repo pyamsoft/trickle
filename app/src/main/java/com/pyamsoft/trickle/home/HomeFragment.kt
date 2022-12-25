@@ -27,9 +27,7 @@ import android.view.ViewGroup
 import androidx.annotation.CheckResult
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.net.toUri
@@ -85,7 +83,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
     }
   }
 
-  private fun onOpenBatterySettings() {
+  private fun handleOpenBatterySettings() {
     val action = Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
     val packageName = requireActivity().packageName
 
@@ -98,11 +96,11 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
     }
   }
 
-  private fun onOpenApplicationSettings() {
+  private fun handleOpenApplicationSettings() {
     SettingsDialog.show(requireActivity())
   }
 
-  private fun onOpenSystemSettings() {
+  private fun handleOpenSystemSettings() {
     if (!tryOpenIntent(BATTERY_INTENT)) {
       if (!tryOpenIntent(POWER_USAGE_INTENT)) {
         if (!tryOpenIntent(SETTINGS_INTENT)) {
@@ -112,7 +110,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
     }
   }
 
-  private fun onRestartApp() {
+  private fun handleRestartApp() {
     Timber.d("APP BEING KILLED FOR ADB RESTART")
     exitProcess(0)
   }
@@ -132,7 +130,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
     }
   }
 
-  private fun onRestartPowerService() {
+  private fun handleRestartPowerService() {
     viewLifecycleOwner.lifecycleScope.launch(context = Dispatchers.Main) {
       viewModel.requireNotNull().handleRestartClicked()
       when (val result = powerSaver.requireNotNull().powerSaveModeOff()) {
@@ -143,14 +141,14 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
     }
   }
 
-  private fun onCopyCommand(command: String) {
+  private fun handleCopyCommand(command: String) {
     HomeCopyCommand.copyCommandToClipboard(
         requireActivity(),
         command,
     )
   }
 
-  private fun onTogglePowerSaving(enabled: Boolean) {
+  private fun handleTogglePowerSaving(enabled: Boolean) {
     viewModel
         .requireNotNull()
         .handleSetPowerSavingEnabled(
@@ -159,7 +157,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
         )
   }
 
-  private fun onToggleIgnoreInPowerSavingMode(ignore: Boolean) {
+  private fun handleToggleIgnoreInPowerSavingMode(ignore: Boolean) {
     viewModel
         .requireNotNull()
         .handleSetIgnoreInPowerSavingMode(
@@ -168,7 +166,7 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
         )
   }
 
-  private fun onToggleExitWhileCharging(exit: Boolean) {
+  private fun handleToggleExitWhileCharging(exit: Boolean) {
     viewModel
         .requireNotNull()
         .handleSetExitwhileCharging(
@@ -221,46 +219,22 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
       id = R.id.screen_home
 
       setContent {
-        val handleCopyCommand by rememberUpdatedState { cmd: String -> onCopyCommand(cmd) }
-
-        val handleRestartPowerService by rememberUpdatedState { onRestartPowerService() }
-
-        val handleRestartApp by rememberUpdatedState { onRestartApp() }
-
-        val handleOpenBatterySettings by rememberUpdatedState { onOpenBatterySettings() }
-
-        val handleOpenPermissionSettings by rememberUpdatedState { onOpenApplicationSettings() }
-
-        val handleTogglePowerSaving by rememberUpdatedState { enabled: Boolean ->
-          onTogglePowerSaving(enabled)
-        }
-
-        val handleToggleIgnoreInPowerSavingMode by rememberUpdatedState { ignore: Boolean ->
-          onToggleIgnoreInPowerSavingMode(ignore)
-        }
-
-        val handleToggleExitWhileCharging by rememberUpdatedState { exit: Boolean ->
-          onToggleExitWhileCharging(exit)
-        }
-
-        val handleRequestNotificationPermission by rememberUpdatedState { npr.requestPermissions() }
-
         act.TrickleTheme(themeProvider) {
           HomeScreen(
               modifier = Modifier.fillMaxSize(),
               state = vm.state(),
               appName = appName,
               hasNotificationPermission = notificationState.value,
-              onCopy = handleCopyCommand,
-              onOpenBatterySettings = handleOpenBatterySettings,
-              onOpenApplicationSettings = handleOpenPermissionSettings,
-              onRestartPowerService = handleRestartPowerService,
-              onRestartApp = handleRestartApp,
-              onTogglePowerSaving = handleTogglePowerSaving,
-              onToggleIgnoreInPowerSavingMode = handleToggleIgnoreInPowerSavingMode,
-              onToggleExitWhileCharging = handleToggleExitWhileCharging,
-              onDisableBatteryOptimization = handleOpenBatterySettings,
-              onRequestNotificationPermission = handleRequestNotificationPermission,
+              onCopy = { handleCopyCommand(it) },
+              onOpenBatterySettings = { handleOpenSystemSettings() },
+              onOpenApplicationSettings = { handleOpenApplicationSettings() },
+              onRestartPowerService = { handleRestartPowerService() },
+              onRestartApp = { handleRestartApp() },
+              onTogglePowerSaving = { handleTogglePowerSaving(it) },
+              onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
+              onToggleExitWhileCharging = { handleToggleExitWhileCharging(it) },
+              onDisableBatteryOptimization = { handleOpenBatterySettings() },
+              onRequestNotificationPermission = { npr.requestPermissions() },
           )
         }
       }
