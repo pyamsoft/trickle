@@ -34,7 +34,9 @@ class MainActivity : AppCompatActivity() {
                 override val applicationIcon = R.mipmap.ic_launcher_round
 
                 override val changelog = buildChangeLog {
-                  bugfix("Safer registration of Screen event receiver")
+                  change("Better clarification of setup instructions")
+                  change("Add controls for optional Notification on Android T")
+                  bugfix("General bugfixes and code optimization")
                 }
               },
       )
