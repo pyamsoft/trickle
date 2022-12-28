@@ -58,13 +58,19 @@ fun HomeScreen(
 
       item {
         Header(
-            modifier = Modifier.fillMaxWidth().padding(bottom = MaterialTheme.keylines.content),
+            modifier = Modifier.fillMaxWidth(),
             appName = appName,
             onOpenApplicationSettings = onOpenApplicationSettings,
         )
       }
 
       renderPYDroidExtras()
+
+      item {
+        Spacer(
+            modifier = Modifier.height(MaterialTheme.keylines.content),
+        )
+      }
 
       if (isLoading) {
         item {
