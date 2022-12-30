@@ -3,6 +3,7 @@ package com.pyamsoft.trickle.process.work
 import android.content.Context
 import android.provider.Settings
 import androidx.annotation.CheckResult
+import androidx.annotation.RequiresPermission
 import com.pyamsoft.pydroid.core.Enforcer
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.permission.PermissionChecker
@@ -27,6 +28,7 @@ internal constructor(
 
   /** This should work if we have WRITE_SECURE_SETTINGS */
   @CheckResult
+  @RequiresPermission(value = android.Manifest.permission.WRITE_SECURE_SETTINGS)
   private fun togglePowerSaving(enable: Boolean): PowerSaver.State {
     val value = if (enable) 1 else 0
 
