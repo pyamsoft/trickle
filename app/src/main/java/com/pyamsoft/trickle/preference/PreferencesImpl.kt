@@ -23,15 +23,26 @@ internal constructor(
     PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
   }
 
+  private suspend fun removeOldPreferences() =
+      withContext(context = Dispatchers.IO) {
+        if (preferences.contains(OldKeys.EXIT_WHILE_CHARGING)) {
+          preferences.edit { remove(OldKeys.EXIT_WHILE_CHARGING) }
+        }
+      }
+
   override suspend fun setPowerSavingEnabled(enable: Boolean) =
       withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
+        removeOldPreferences()
+
         preferences.edit { putBoolean(KEY_POWER_SAVING_ENABLED, enable) }
       }
 
   override suspend fun observePowerSavingEnabled(): Flow<Boolean> =
       withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
+        removeOldPreferences()
+
         return@withContext preferences.booleanFlow(
             KEY_POWER_SAVING_ENABLED,
             DEFAULT_POWER_SAVING_ENABLED,
@@ -41,32 +52,26 @@ internal constructor(
   override suspend fun setIgnoreInPowerSavingMode(ignore: Boolean) =
       withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
+        removeOldPreferences()
+
         preferences.edit { putBoolean(KEY_IGNORE_IN_POWER_SAVING_MODE, ignore) }
       }
 
   override suspend fun observeIgnoreInPowerSavingMode(): Flow<Boolean> =
       withContext(context = Dispatchers.IO) {
         Enforcer.assertOffMainThread()
+        removeOldPreferences()
+
         return@withContext preferences.booleanFlow(
             KEY_IGNORE_IN_POWER_SAVING_MODE,
             DEFAULT_IGNORE_IN_POWER_SAVING_MODE,
         )
       }
 
-  override suspend fun setExitPowerSavingModeWhileCharging(exit: Boolean) =
-      withContext(context = Dispatchers.IO) {
-        Enforcer.assertOffMainThread()
-        preferences.edit { putBoolean(KEY_EXIT_WHILE_CHARGING, exit) }
-      }
+  private object OldKeys {
 
-  override suspend fun observeExitPowerSavingModeWhileCharging(): Flow<Boolean> =
-      withContext(context = Dispatchers.IO) {
-        Enforcer.assertOffMainThread()
-        return@withContext preferences.booleanFlow(
-            KEY_EXIT_WHILE_CHARGING,
-            DEFAULT_EXIT_WHILE_CHARGING,
-        )
-      }
+    const val EXIT_WHILE_CHARGING = "key_exit_while_charging_v1"
+  }
 
   companion object {
 
@@ -75,8 +80,5 @@ internal constructor(
 
     private const val KEY_IGNORE_IN_POWER_SAVING_MODE = "key_ignore_in_power_saving_mode_v1"
     private const val DEFAULT_IGNORE_IN_POWER_SAVING_MODE = true
-
-    private const val KEY_EXIT_WHILE_CHARGING = "key_exit_while_charging_v1"
-    private const val DEFAULT_EXIT_WHILE_CHARGING = true
   }
 }

@@ -21,13 +21,12 @@ internal constructor(
 ) : AbstractViewModeler<HomeViewState>(state) {
 
   private data class LoadConfig(
-      var isEnabled: Boolean,
-      var isIgnore: Boolean,
-      var isExit: Boolean,
+      var isEnabled: Boolean = false,
+      var isIgnore: Boolean = false,
   )
 
   private fun markLoadCompleted(config: LoadConfig) {
-    if (config.isEnabled && config.isIgnore && config.isExit) {
+    if (config.isEnabled && config.isIgnore) {
       state.loading = false
     }
   }
@@ -45,7 +44,6 @@ internal constructor(
       isPowerSaving.also { outState.put(KEY_PREFERENCE, it) }
       isIgnoreInPowerSavingMode.also { outState.put(KEY_IGNORE, it) }
       isPowerSettingsShortcutVisible.also { outState.put(KEY_CLICKS, it) }
-      isExitWhileCharging.also { outState.put(KEY_EXIT, it) }
     }
   }
 
@@ -56,7 +54,6 @@ internal constructor(
       get<Boolean>(KEY_PREFERENCE)?.also { s.isPowerSaving = it }
       get<Boolean>(KEY_IGNORE)?.also { s.isIgnoreInPowerSavingMode = it }
       get<Boolean>(KEY_CLICKS)?.also { s.isPowerSettingsShortcutVisible = it }
-      get<Boolean>(KEY_EXIT)?.also { s.isExitWhileCharging = it }
     }
   }
 
@@ -67,12 +64,7 @@ internal constructor(
     val s = state
     s.loading = true
 
-    val config =
-        LoadConfig(
-            isEnabled = false,
-            isIgnore = false,
-            isExit = false,
-        )
+    val config = LoadConfig()
 
     scope.launch(context = Dispatchers.Main) {
       preferences.observePowerSavingEnabled().collect { ps ->
@@ -91,18 +83,6 @@ internal constructor(
         state.isIgnoreInPowerSavingMode = ignore
         if (s.loading) {
           config.isIgnore = true
-          markLoadCompleted(config)
-        }
-
-        onChange()
-      }
-    }
-
-    scope.launch(context = Dispatchers.Default) {
-      preferences.observeExitPowerSavingModeWhileCharging().collect { exit ->
-        state.isExitWhileCharging = exit
-        if (s.loading) {
-          config.isExit = true
           markLoadCompleted(config)
         }
 
@@ -144,19 +124,11 @@ internal constructor(
     revealSettingsShortcut()
   }
 
-  fun handleSetExitwhileCharging(scope: CoroutineScope, exit: Boolean) {
-    state.isExitWhileCharging = exit
-    scope.launch(context = Dispatchers.Main) {
-      preferences.setExitPowerSavingModeWhileCharging(exit)
-    }
-  }
-
   companion object {
 
     private const val RESTART_CLICK_REQUIRED_COUNT = 5
 
     private const val KEY_CLICKS = "restart_clicks"
-    private const val KEY_EXIT = "exit_charging"
     private const val KEY_PERMISSION = "has_permission"
     private const val KEY_PREFERENCE = "preference_enabled"
     private const val KEY_IGNORE = "ignore_power_saving_mode"

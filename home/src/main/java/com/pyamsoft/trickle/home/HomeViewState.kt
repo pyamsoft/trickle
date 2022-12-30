@@ -11,10 +11,9 @@ interface HomeViewState : UiViewState {
   val hasPermission: Boolean
 
   val isPowerSaving: Boolean
+  val isIgnoreInPowerSavingMode: Boolean
 
   val isPowerSettingsShortcutVisible: Boolean
-  val isIgnoreInPowerSavingMode: Boolean
-  val isExitWhileCharging: Boolean
 
   val isBatteryOptimizationsIgnored: Boolean
 }
@@ -27,10 +26,9 @@ internal class MutableHomeViewState @Inject internal constructor() : HomeViewSta
   override var hasPermission by mutableStateOf(false)
 
   override var isPowerSaving by mutableStateOf(false)
+  override var isIgnoreInPowerSavingMode by mutableStateOf(false)
 
   override var isPowerSettingsShortcutVisible by mutableStateOf(false)
-  override var isIgnoreInPowerSavingMode by mutableStateOf(false)
-  override var isExitWhileCharging by mutableStateOf(false)
 
   override var isBatteryOptimizationsIgnored by mutableStateOf(false)
 }

@@ -166,15 +166,6 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
         )
   }
 
-  private fun handleToggleExitWhileCharging(exit: Boolean) {
-    viewModel
-        .requireNotNull()
-        .handleSetExitwhileCharging(
-            scope = viewLifecycleOwner.lifecycleScope,
-            exit = exit,
-        )
-  }
-
   private fun registerPermissionRequests(notificationPermissionState: MutableState<Boolean>) {
     notificationRequester?.unregister()
     notificationRequester =
@@ -232,7 +223,6 @@ class HomeFragment : Fragment(), FragmentNavigator.Screen<MainPage> {
               onRestartApp = { handleRestartApp() },
               onTogglePowerSaving = { handleTogglePowerSaving(it) },
               onToggleIgnoreInPowerSavingMode = { handleToggleIgnoreInPowerSavingMode(it) },
-              onToggleExitWhileCharging = { handleToggleExitWhileCharging(it) },
               onDisableBatteryOptimization = { handleOpenBatterySettings() },
               onRequestNotificationPermission = { npr.requestPermissions() },
           )

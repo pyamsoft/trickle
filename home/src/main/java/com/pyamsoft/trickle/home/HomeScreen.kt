@@ -26,7 +26,6 @@ fun HomeScreen(
     hasNotificationPermission: Boolean,
     onTogglePowerSaving: (Boolean) -> Unit,
     onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
-    onToggleExitWhileCharging: (Boolean) -> Unit,
     onCopy: (String) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onOpenApplicationSettings: () -> Unit,
@@ -91,7 +90,6 @@ fun HomeScreen(
               onRestartPowerService = onRestartPowerService,
               onTogglePowerSaving = onTogglePowerSaving,
               onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
-              onToggleExitWhileCharging = onToggleExitWhileCharging,
               onStartTroubleshooting = { setTroubleShooting(true) },
               onDisableBatteryOptimization = onDisableBatteryOptimization,
               onRequestNotificationPermission = onRequestNotificationPermission,
@@ -179,7 +177,6 @@ private fun PreviewHomeScreen(state: HomeViewState) {
       onCopy = {},
       onRestartPowerService = {},
       onRestartApp = {},
-      onToggleExitWhileCharging = {},
       onDisableBatteryOptimization = {},
       onRequestNotificationPermission = {},
   )

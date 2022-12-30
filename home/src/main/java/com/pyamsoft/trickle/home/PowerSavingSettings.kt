@@ -24,7 +24,6 @@ internal fun LazyListScope.renderPowerSavingSettings(
     onOpenBatterySettings: () -> Unit,
     onTogglePowerSaving: (Boolean) -> Unit,
     onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
-    onToggleExitWhileCharging: (Boolean) -> Unit,
     onDisableBatteryOptimization: () -> Unit,
     onRestartPowerService: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
@@ -48,17 +47,6 @@ internal fun LazyListScope.renderPowerSavingSettings(
         enabled = isPowerSaving,
         checked = state.isIgnoreInPowerSavingMode,
         onChange = onToggleIgnoreInPowerSavingMode,
-    )
-  }
-
-  item {
-    HomeOption(
-        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
-        name = "Sip Power",
-        description = "When the device is charging, $appName will exit power saving mode",
-        enabled = isPowerSaving,
-        checked = state.isExitWhileCharging,
-        onChange = onToggleExitWhileCharging,
     )
   }
 
@@ -255,7 +243,6 @@ private fun PreviewPowerSavingSettings(
         onTogglePowerSaving = {},
         onOpenBatterySettings = {},
         onRestartPowerService = {},
-        onToggleExitWhileCharging = {},
         onStartTroubleshooting = {},
         onDisableBatteryOptimization = {},
         onRequestNotificationPermission = {},

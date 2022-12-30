@@ -12,8 +12,4 @@ interface PowerPreferences {
   suspend fun setIgnoreInPowerSavingMode(ignore: Boolean)
 
   @CheckResult suspend fun observeIgnoreInPowerSavingMode(): Flow<Boolean>
-
-  suspend fun setExitPowerSavingModeWhileCharging(exit: Boolean)
-
-  @CheckResult suspend fun observeExitPowerSavingModeWhileCharging(): Flow<Boolean>
 }

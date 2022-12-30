@@ -9,7 +9,6 @@ import com.pyamsoft.trickle.process.permission.PermissionChecker
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -97,24 +96,12 @@ internal constructor(
       withContext(context = Dispatchers.Default) {
         Enforcer.assertOffMainThread()
 
-        return@withContext coroutineScope {
-          if (!permissions.hasSecureSettingsPermission()) {
-            Timber.w("No power related work without WRITE_SECURE_SETTINGS permission")
-            return@coroutineScope powerSavingError("Missing WRITE_SECURE_SETTINGS permission")
-          }
-
-          // Check for this unique instance
-          if (!force) {
-            if (preferences.observeExitPowerSavingModeWhileCharging().first()) {
-              if (batteryCharge.isCharging()) {
-                Timber.d("Exit power saving mode unconditionally while device is charging")
-                return@coroutineScope togglePowerSaving(enable = false)
-              }
-            }
-          }
-
-          return@coroutineScope block(force)
+        if (!permissions.hasSecureSettingsPermission()) {
+          Timber.w("No power related work without WRITE_SECURE_SETTINGS permission")
+          return@withContext powerSavingError("Missing WRITE_SECURE_SETTINGS permission")
         }
+
+        return@withContext block(force)
       }
 
   override suspend fun powerSaveModeOff(): PowerSaver.State {
