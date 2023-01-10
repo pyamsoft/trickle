@@ -14,37 +14,25 @@ import com.pyamsoft.pydroid.ui.widget.UpdateProgressWidget
 fun LazyListScope.renderPYDroidExtras() {
   item {
     UpdateProgressWidget(
-        modifier =
-            Modifier.fillMaxWidth()
-                .padding(horizontal = MaterialTheme.keylines.content)
-                .padding(top = MaterialTheme.keylines.content),
+        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
     )
   }
 
   item {
     NewVersionWidget(
-        modifier =
-            Modifier.fillMaxWidth()
-                .padding(horizontal = MaterialTheme.keylines.content)
-                .padding(top = MaterialTheme.keylines.content),
+        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
     )
   }
 
   item {
     ShowChangeLogWidget(
-        modifier =
-            Modifier.fillMaxWidth()
-                .padding(horizontal = MaterialTheme.keylines.content)
-                .padding(top = MaterialTheme.keylines.content),
+        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
     )
   }
 
   item {
     BillingUpsellWidget(
-        modifier =
-            Modifier.fillMaxWidth()
-                .padding(horizontal = MaterialTheme.keylines.content)
-                .padding(top = MaterialTheme.keylines.content),
+        modifier = Modifier.fillMaxWidth().padding(top = MaterialTheme.keylines.content),
     )
   }
 }
