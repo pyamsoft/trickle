@@ -34,8 +34,7 @@ class MainActivity : AppCompatActivity() {
                 override val applicationIcon = R.mipmap.ic_launcher_round
 
                 override val changelog = buildChangeLog {
-                  change("Better clarification of setup instructions")
-                  change("Add controls for optional Notification on Android T")
+                  bugfix("Fix display of list items on main page")
                   bugfix("General bugfixes and code optimization")
                 }
               },
