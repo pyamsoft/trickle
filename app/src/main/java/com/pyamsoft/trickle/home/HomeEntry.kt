@@ -15,12 +15,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.notify.NotifyGuard
 import com.pyamsoft.pydroid.ui.inject.ComposableInjector
@@ -123,17 +121,20 @@ private fun mountHooks(
       permissionResponseBus = permissionResponseBus,
   )
 
-  val owner = LocalLifecycleOwner.current
-  val activity = rememberActivity()
+  val scope = rememberCoroutineScope()
 
   val handleLaunchService by rememberUpdatedState(onLaunchService)
   val handleSyncPermissionState by rememberUpdatedState(onSyncPermissionState)
 
   LaunchedEffect(
       viewModel,
-      owner,
+      scope,
   ) {
-    viewModel.beginWatching(scope = owner.lifecycleScope) { handleLaunchService() }
+    viewModel.beginWatching(
+        scope = scope,
+    ) {
+      handleLaunchService()
+    }
   }
 
   LifecycleEffect {
@@ -141,7 +142,6 @@ private fun mountHooks(
 
       override fun onResume(owner: LifecycleOwner) {
         handleSyncPermissionState()
-        activity.reportFullyDrawn()
       }
     }
   }

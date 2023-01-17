@@ -124,6 +124,7 @@ class MainActivity : AppCompatActivity() {
   override fun onResume() {
     super.onResume()
     viewModel.requireNotNull().handleSyncDarkTheme(this)
+    reportFullyDrawn()
   }
 
   override fun onConfigurationChanged(newConfig: Configuration) {
