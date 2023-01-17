@@ -70,6 +70,8 @@ kapt {
 dependencies {
   coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:$desugar"
 
+  implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist"
+
   // Dagger
   kapt "com.google.dagger:dagger-compiler:$dagger"
 

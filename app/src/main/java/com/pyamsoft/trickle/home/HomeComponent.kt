@@ -22,7 +22,7 @@ import dagger.Subcomponent
 @Subcomponent
 internal interface HomeComponent {
 
-  fun inject(fragment: HomeFragment)
+  fun inject(injector: HomeInjector)
 
   @Subcomponent.Factory
   interface Factory {

@@ -119,8 +119,6 @@ dependencies {
 
   debugImplementation "com.github.pyamsoft.pydroid:autopsy:$pydroid"
 
-  implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist"
-
   // Dagger
   kapt "com.google.dagger:dagger-compiler:$dagger"
 

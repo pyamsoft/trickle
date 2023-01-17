@@ -24,7 +24,9 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.pyamsoft.pydroid.ui.theme.Theming
 
 @Composable
-internal fun SystemBars(theme: Theming.Mode) {
+fun SystemBars(
+    theme: Theming.Mode,
+) {
   val isLighStatusBar =
       if (theme == Theming.Mode.SYSTEM) !isSystemInDarkTheme() else theme == Theming.Mode.LIGHT
 

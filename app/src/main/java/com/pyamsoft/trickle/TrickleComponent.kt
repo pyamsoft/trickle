@@ -21,10 +21,13 @@ import android.app.Application
 import android.app.Service
 import android.content.Context
 import androidx.annotation.CheckResult
+import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.notify.NotifyGuard
 import com.pyamsoft.pydroid.notify.NotifyPermission
 import com.pyamsoft.pydroid.ui.theme.Theming
 import com.pyamsoft.pydroid.util.PermissionRequester
+import com.pyamsoft.trickle.home.PermissionRequests
+import com.pyamsoft.trickle.home.PermissionResponse
 import com.pyamsoft.trickle.main.MainActivity
 import com.pyamsoft.trickle.main.MainComponent
 import com.pyamsoft.trickle.preference.PreferencesImpl
@@ -120,6 +123,20 @@ internal interface TrickleComponent {
       @JvmStatic
       internal fun provideServiceClass(): Class<out Service> {
         return MonitorService::class.java
+      }
+
+      @Provides
+      @JvmStatic
+      @Singleton
+      internal fun providePermissionRequestBus(): EventBus<PermissionRequests> {
+        return EventBus.create()
+      }
+
+      @Provides
+      @JvmStatic
+      @Singleton
+      internal fun providePermissionResponseBus(): EventBus<PermissionResponse> {
+        return EventBus.create()
       }
     }
   }

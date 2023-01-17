@@ -17,45 +17,21 @@
 package com.pyamsoft.trickle.main
 
 import androidx.annotation.CheckResult
-import androidx.annotation.IdRes
-import com.pyamsoft.pydroid.ui.navigator.Navigator
 import com.pyamsoft.trickle.core.ActivityScope
 import com.pyamsoft.trickle.home.HomeComponent
-import com.pyamsoft.trickle.settings.AppSettingsComponent
-import com.pyamsoft.trickle.settings.SettingsComponent
-import dagger.Binds
-import dagger.BindsInstance
-import dagger.Module
 import dagger.Subcomponent
-import javax.inject.Named
 
 @ActivityScope
-@Subcomponent(modules = [MainComponent.MainModule::class])
+@Subcomponent
 internal interface MainComponent {
 
   @CheckResult fun plusHome(): HomeComponent.Factory
-
-  @CheckResult fun plusSettings(): SettingsComponent.Factory
-
-  @CheckResult fun plusAppSettings(): AppSettingsComponent.Factory
 
   fun inject(activity: MainActivity)
 
   @Subcomponent.Factory
   interface Factory {
 
-    @CheckResult
-    fun create(
-        @BindsInstance activity: MainActivity,
-        @BindsInstance @IdRes @Named("main_container") fragmentContainerId: Int,
-    ): MainComponent
-  }
-
-  @Module
-  abstract class MainModule {
-
-    @Binds
-    @CheckResult
-    internal abstract fun bindNavigator(impl: MainNavigator): Navigator<MainPage>
+    @CheckResult fun create(): MainComponent
   }
 }
