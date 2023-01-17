@@ -168,7 +168,6 @@ fun HomeEntry(
 
   val activity = rememberActivity()
   val scope = rememberCoroutineScope()
-  val owner = LocalLifecycleOwner.current
 
   // Since our mount hooks use this callback in bind, we must declare it first
   val handleLaunchService by rememberUpdatedState {
@@ -280,7 +279,7 @@ fun HomeEntry(
   }
 
   val handleRequestNotificationPermission by rememberUpdatedState {
-    owner.lifecycleScope.launch(context = Dispatchers.IO) {
+    scope.launch(context = Dispatchers.IO) {
       // See MainActivity
       permissionRequestBus.send(PermissionRequests.Notification)
     }
