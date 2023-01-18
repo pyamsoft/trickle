@@ -6,6 +6,8 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.pyamsoft.pydroid.bus.EventBus
@@ -46,7 +48,10 @@ class MainActivity : AppCompatActivity() {
 
                 override val applicationIcon = R.mipmap.ic_launcher_round
 
-                override val changelog = buildChangeLog { change("Full usage of Jetpack Compose") }
+                override val changelog = buildChangeLog {
+                  change("Full usage of Jetpack Compose")
+                  bugfix("Big performance gains in Compose by correctly handling state")
+                }
               },
       )
     }
@@ -98,8 +103,8 @@ class MainActivity : AppCompatActivity() {
     val appName = getString(R.string.app_name)
 
     setContent {
-      val state = vm.state()
-      val theme = state.theme
+      val state = vm.state
+      val theme by state.theme.collectAsState()
 
       TrickleTheme(
           theme = theme,
@@ -111,6 +116,9 @@ class MainActivity : AppCompatActivity() {
         MainEntry(
             modifier = Modifier.fillMaxSize(),
             appName = appName,
+            state = state,
+            onOpenSettings = { vm.handleOpenSettings() },
+            onCloseSettings = { vm.handleCloseSettings() },
         )
       }
     }

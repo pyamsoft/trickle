@@ -27,14 +27,14 @@ import com.pyamsoft.pydroid.ui.theme.Theming
 fun SystemBars(
     theme: Theming.Mode,
 ) {
-  val isLighStatusBar =
+  val isLightStatusBar =
       if (theme == Theming.Mode.SYSTEM) !isSystemInDarkTheme() else theme == Theming.Mode.LIGHT
 
   val controller = rememberSystemUiController()
   SideEffect {
     controller.setSystemBarsColor(
         color = Color.Transparent,
-        darkIcons = isLighStatusBar,
+        darkIcons = isLightStatusBar,
         isNavigationBarContrastEnforced = false,
     )
   }

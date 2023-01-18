@@ -13,7 +13,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentActivity
@@ -30,7 +29,6 @@ import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.process.work.PowerSaver
 import com.pyamsoft.trickle.service.NotificationRefreshEvent
 import com.pyamsoft.trickle.service.ServiceLauncher
-import com.pyamsoft.trickle.settings.SettingsDialog
 import javax.inject.Inject
 import kotlin.system.exitProcess
 import kotlinx.coroutines.Dispatchers
@@ -121,21 +119,10 @@ private fun mountHooks(
       permissionResponseBus = permissionResponseBus,
   )
 
-  val scope = rememberCoroutineScope()
-
   val handleLaunchService by rememberUpdatedState(onLaunchService)
   val handleSyncPermissionState by rememberUpdatedState(onSyncPermissionState)
 
-  LaunchedEffect(
-      viewModel,
-      scope,
-  ) {
-    viewModel.beginWatching(
-        scope = scope,
-    ) {
-      handleLaunchService()
-    }
-  }
+  LaunchedEffect(viewModel) { viewModel.beginWatching(scope = this) { handleLaunchService() } }
 
   LifecycleEffect {
     object : DefaultLifecycleObserver {
@@ -159,6 +146,7 @@ private fun mountHooks(
 fun HomeEntry(
     modifier: Modifier = Modifier,
     appName: String,
+    onOpenSettings: () -> Unit,
 ) {
   val component = rememberComposableInjector { HomeInjector() }
   val viewModel = rememberNotNull(component.viewModel)
@@ -194,7 +182,7 @@ fun HomeEntry(
           onSyncPermissionState = handleSyncPermissionState,
       )
 
-  val notificationState = hooks.notificationState
+  val notificationState by hooks.notificationState
 
   val tryOpenIntent by rememberUpdatedState { intent: Intent ->
     return@rememberUpdatedState try {
@@ -221,95 +209,66 @@ fun HomeEntry(
     return@rememberUpdatedState true
   }
 
-  val handleOpenBatterySettings by rememberUpdatedState {
-    if (!safeOpenSettingsIntent(
-        Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS,
-    )) {
-      Timber.w("Failed to open Battery optimization settings")
-    }
-  }
-
-  val handleOpenSystemSettings by rememberUpdatedState {
-    if (!tryOpenIntent(BATTERY_INTENT)) {
-      if (!tryOpenIntent(POWER_USAGE_INTENT)) {
-        if (!tryOpenIntent(SETTINGS_INTENT)) {
-          Timber.w("Could not open any settings pages (battery, power-usage, settings)")
-        }
-      }
-    }
-  }
-
-  val handleRestartApp by rememberUpdatedState {
-    Timber.d("APP BEING KILLED FOR ADB RESTART")
-    exitProcess(0)
-  }
-
-  val handleRestartPowerService by rememberUpdatedState {
-    scope.launch(context = Dispatchers.Main) {
-      viewModel.handleRestartClicked()
-      when (val result = powerSaver.powerSaveModeOff()) {
-        is PowerSaver.State.Disabled -> Timber.d("Power Saving DISABLED")
-        is PowerSaver.State.Enabled -> Timber.d("Power Saving ENABLED")
-        is PowerSaver.State.Failure -> Timber.w(result.throwable, "Power Saving Error")
-      }
-    }
-
-    return@rememberUpdatedState
-  }
-
-  val handleCopyCommand by rememberUpdatedState { command: String ->
-    HomeCopyCommand.copyCommandToClipboard(
-        activity,
-        command,
-    )
-  }
-
-  val handleTogglePowerSaving by rememberUpdatedState { enabled: Boolean ->
-    viewModel.handleSetPowerSavingEnabled(
-        scope = scope,
-        enabled = enabled,
-    )
-  }
-
-  val handleToggleIgnoreInPowerSavingMode by rememberUpdatedState { ignore: Boolean ->
-    viewModel.handleSetIgnoreInPowerSavingMode(
-        scope = scope,
-        ignore = ignore,
-    )
-  }
-
-  val handleRequestNotificationPermission by rememberUpdatedState {
-    scope.launch(context = Dispatchers.IO) {
-      // See MainActivity
-      permissionRequestBus.send(PermissionRequests.Notification)
-    }
-
-    return@rememberUpdatedState
-  }
-
-  val (showDialog, setShowDialog) = rememberSaveable { mutableStateOf(false) }
-  val handleDismissSettings by rememberUpdatedState { setShowDialog(false) }
-  val handleShowSettings by rememberUpdatedState { setShowDialog(true) }
-
   HomeScreen(
       modifier = modifier,
-      state = viewModel.state(),
+      state = viewModel.state,
       appName = appName,
-      hasNotificationPermission = notificationState.value,
-      onCopy = handleCopyCommand,
-      onOpenBatterySettings = handleOpenSystemSettings,
-      onOpenApplicationSettings = handleShowSettings,
-      onRestartPowerService = handleRestartPowerService,
-      onRestartApp = handleRestartApp,
-      onTogglePowerSaving = handleTogglePowerSaving,
-      onToggleIgnoreInPowerSavingMode = handleToggleIgnoreInPowerSavingMode,
-      onDisableBatteryOptimization = handleOpenBatterySettings,
-      onRequestNotificationPermission = handleRequestNotificationPermission,
+      hasNotificationPermission = notificationState,
+      onOpenApplicationSettings = onOpenSettings,
+      onOpenTroubleshooting = { viewModel.handleOpenTroubleshooting() },
+      onCopy = {
+        HomeCopyCommand.copyCommandToClipboard(
+            activity,
+            it,
+        )
+      },
+      onOpenBatterySettings = {
+        if (!tryOpenIntent(BATTERY_INTENT)) {
+          if (!tryOpenIntent(POWER_USAGE_INTENT)) {
+            if (!tryOpenIntent(SETTINGS_INTENT)) {
+              Timber.w("Could not open any settings pages (battery, power-usage, settings)")
+            }
+          }
+        }
+      },
+      onRestartPowerService = {
+        scope.launch(context = Dispatchers.Main) {
+          viewModel.handleRestartClicked()
+          when (val result = powerSaver.powerSaveModeOff()) {
+            is PowerSaver.State.Disabled -> Timber.d("Power Saving DISABLED")
+            is PowerSaver.State.Enabled -> Timber.d("Power Saving ENABLED")
+            is PowerSaver.State.Failure -> Timber.w(result.throwable, "Power Saving Error")
+          }
+        }
+      },
+      onRestartApp = {
+        Timber.d("APP BEING KILLED FOR ADB RESTART")
+        exitProcess(0)
+      },
+      onTogglePowerSaving = {
+        viewModel.handleSetPowerSavingEnabled(
+            scope = scope,
+            enabled = it,
+        )
+      },
+      onToggleIgnoreInPowerSavingMode = {
+        viewModel.handleSetIgnoreInPowerSavingMode(
+            scope = scope,
+            ignore = it,
+        )
+      },
+      onDisableBatteryOptimization = {
+        if (!safeOpenSettingsIntent(
+            Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS,
+        )) {
+          Timber.w("Failed to open Battery optimization settings")
+        }
+      },
+      onRequestNotificationPermission = {
+        scope.launch(context = Dispatchers.IO) {
+          // See MainActivity
+          permissionRequestBus.send(PermissionRequests.Notification)
+        }
+      },
   )
-
-  if (showDialog) {
-    SettingsDialog(
-        onDismiss = handleDismissSettings,
-    )
-  }
 }

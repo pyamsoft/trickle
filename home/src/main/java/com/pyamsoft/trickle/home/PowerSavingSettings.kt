@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,9 +30,10 @@ internal fun LazyListScope.renderPowerSavingSettings(
     onRestartPowerService: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
 ) {
-  val isPowerSaving = state.isPowerSaving
 
   item {
+    val isPowerSaving by state.isPowerSaving.collectAsState()
+
     HomeMainSwitch(
         modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content * 2),
         enabled = isPowerSaving,
@@ -39,18 +42,24 @@ internal fun LazyListScope.renderPowerSavingSettings(
   }
 
   item {
+    val isPowerSaving by state.isPowerSaving.collectAsState()
+    val isIgnoreInPowerSavingMode by state.isIgnoreInPowerSavingMode.collectAsState()
+
     HomeOption(
         modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
         name = "Play Nice",
         description =
             "$appName will not change settings if the device is already in power saving mode",
         enabled = isPowerSaving,
-        checked = state.isIgnoreInPowerSavingMode,
+        checked = isIgnoreInPowerSavingMode,
         onChange = onToggleIgnoreInPowerSavingMode,
     )
   }
 
   item {
+    val isPowerSaving by state.isPowerSaving.collectAsState()
+    val isBatteryOptimizationsIgnored by state.isBatteryOptimizationsIgnored.collectAsState()
+
     Column(
         modifier = itemModifier.padding(vertical = MaterialTheme.keylines.content),
     ) {
@@ -68,7 +77,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
             """
                   .trimMargin(),
           enabled = isPowerSaving,
-          checked = state.isBatteryOptimizationsIgnored,
+          checked = isBatteryOptimizationsIgnored,
           onChange = { onDisableBatteryOptimization() },
       )
     }
@@ -134,7 +143,6 @@ private fun LazyListScope.renderTroubleshooting(
     onRestartPowerService: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
-  val isVisible = state.isPowerSettingsShortcutVisible
 
   item {
     Label(
@@ -182,6 +190,8 @@ private fun LazyListScope.renderTroubleshooting(
   }
 
   item {
+    val isVisible by state.isPowerSettingsShortcutVisible.collectAsState()
+
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn() + slideInVertically(),
@@ -255,7 +265,10 @@ private fun PreviewPowerSavingSettings(
 private fun PreviewPowerSavingSettingsNoTrouble() {
   PreviewPowerSavingSettings(
       isTroubleshooting = false,
-      state = MutableHomeViewState().apply { hasPermission = true },
+      state =
+          MutableHomeViewState().apply {
+            permissionState.value = HomeViewState.PermissionState.GRANTED
+          },
   )
 }
 
@@ -266,8 +279,8 @@ private fun PreviewPowerSavingSettingsNoShortcut() {
       isTroubleshooting = true,
       state =
           MutableHomeViewState().apply {
-            hasPermission = true
-            isPowerSettingsShortcutVisible = false
+            permissionState.value = HomeViewState.PermissionState.GRANTED
+            isPowerSettingsShortcutVisible.value = false
           },
   )
 }
@@ -279,8 +292,8 @@ private fun PreviewPowerSavingSettingsWithShortcut() {
       isTroubleshooting = true,
       state =
           MutableHomeViewState().apply {
-            hasPermission = true
-            isPowerSettingsShortcutVisible = true
+            permissionState.value = HomeViewState.PermissionState.GRANTED
+            isPowerSettingsShortcutVisible.value = true
           },
   )
 }

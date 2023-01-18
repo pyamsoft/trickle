@@ -1,34 +1,55 @@
 package com.pyamsoft.trickle.home
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import com.pyamsoft.pydroid.arch.UiViewState
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
+@Stable
 interface HomeViewState : UiViewState {
-  val loading: Boolean
-  val hasPermission: Boolean
+  val loadingState: StateFlow<LoadingState>
+  val permissionState: StateFlow<PermissionState>
 
-  val isPowerSaving: Boolean
-  val isIgnoreInPowerSavingMode: Boolean
+  val isPowerSaving: StateFlow<Boolean>
+  val isIgnoreInPowerSavingMode: StateFlow<Boolean>
 
-  val isPowerSettingsShortcutVisible: Boolean
+  val isPowerSettingsShortcutVisible: StateFlow<Boolean>
 
-  val isBatteryOptimizationsIgnored: Boolean
+  val isBatteryOptimizationsIgnored: StateFlow<Boolean>
+
+  val isTroubleshooting: StateFlow<Boolean>
+
+  @Stable
+  @Immutable
+  enum class LoadingState {
+    NONE,
+    LOADING,
+    DONE
+  }
+
+  @Stable
+  @Immutable
+  enum class PermissionState {
+    NONE,
+    GRANTED,
+    DENIED
+  }
 }
 
-internal class MutableHomeViewState @Inject internal constructor() : HomeViewState {
-  // Internal
-  internal var restartClicks: Int = 0
+@Stable
+class MutableHomeViewState @Inject internal constructor() : HomeViewState {
 
-  override var loading by mutableStateOf(false)
-  override var hasPermission by mutableStateOf(false)
+  override val loadingState = MutableStateFlow(HomeViewState.LoadingState.NONE)
+  override val permissionState = MutableStateFlow(HomeViewState.PermissionState.NONE)
 
-  override var isPowerSaving by mutableStateOf(false)
-  override var isIgnoreInPowerSavingMode by mutableStateOf(false)
+  override val isPowerSaving = MutableStateFlow(false)
+  override val isIgnoreInPowerSavingMode = MutableStateFlow(false)
 
-  override var isPowerSettingsShortcutVisible by mutableStateOf(false)
+  override val isPowerSettingsShortcutVisible = MutableStateFlow(false)
 
-  override var isBatteryOptimizationsIgnored by mutableStateOf(false)
+  override val isBatteryOptimizationsIgnored = MutableStateFlow(false)
+
+  override val isTroubleshooting = MutableStateFlow(false)
 }

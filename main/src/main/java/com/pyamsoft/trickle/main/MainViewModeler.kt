@@ -1,43 +1,59 @@
 package com.pyamsoft.trickle.main
 
 import android.app.Activity
+import androidx.compose.runtime.saveable.SaveableStateRegistry
 import com.pyamsoft.pydroid.arch.AbstractViewModeler
-import com.pyamsoft.pydroid.arch.UiSavedStateReader
-import com.pyamsoft.pydroid.arch.UiSavedStateWriter
 import com.pyamsoft.pydroid.ui.theme.Theming
 import javax.inject.Inject
 
 class MainViewModeler
 @Inject
 internal constructor(
-    private val state: MutableMainViewState,
+    override val state: MutableMainViewState,
     private val theming: Theming,
 ) : AbstractViewModeler<MainViewState>(state) {
 
   fun handleSyncDarkTheme(activity: Activity) {
     val isDark = theming.isDarkTheme(activity)
-    state.theme = if (isDark) Theming.Mode.DARK else Theming.Mode.LIGHT
+    state.theme.value = if (isDark) Theming.Mode.DARK else Theming.Mode.LIGHT
   }
 
-  override fun saveState(outState: UiSavedStateWriter) {
-    state.theme.also { theme ->
-      if (theme != Theming.Mode.SYSTEM) {
-        outState.put(KEY_THEME, theme.name)
-      } else {
-        outState.remove(KEY_THEME)
+  override fun registerSaveState(
+      registry: SaveableStateRegistry
+  ): List<SaveableStateRegistry.Entry> =
+      mutableListOf<SaveableStateRegistry.Entry>().apply {
+        val s = state
+
+        registry.registerProvider(KEY_THEME) { s.theme.value.name }.also { add(it) }
+        registry.registerProvider(KEY_IS_SETTINGS_OPEN) { s.isSettingsOpen.value }.also { add(it) }
       }
-    }
+
+  override fun consumeRestoredState(registry: SaveableStateRegistry) {
+    val s = state
+
+    registry
+        .consumeRestored(KEY_THEME)
+        ?.let { it as String }
+        ?.let { Theming.Mode.valueOf(it) }
+        ?.also { s.theme.value = it }
+
+    registry
+        .consumeRestored(KEY_IS_SETTINGS_OPEN)
+        ?.let { it as Boolean }
+        ?.also { s.isSettingsOpen.value = it }
   }
 
-  override fun restoreState(savedInstanceState: UiSavedStateReader) {
-    savedInstanceState.get<String>(KEY_THEME)?.also { themeName ->
-      val theme = Theming.Mode.valueOf(themeName)
-      state.theme = theme
-    }
+  fun handleOpenSettings() {
+    state.isSettingsOpen.value = true
+  }
+
+  fun handleCloseSettings() {
+    state.isSettingsOpen.value = false
   }
 
   companion object {
 
     private const val KEY_THEME = "theme"
+    private const val KEY_IS_SETTINGS_OPEN = "is_settings_open"
   }
 }

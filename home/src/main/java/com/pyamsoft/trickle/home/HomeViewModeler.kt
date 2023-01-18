@@ -1,8 +1,7 @@
 package com.pyamsoft.trickle.home
 
+import androidx.compose.runtime.saveable.SaveableStateRegistry
 import com.pyamsoft.pydroid.arch.AbstractViewModeler
-import com.pyamsoft.pydroid.arch.UiSavedStateReader
-import com.pyamsoft.pydroid.arch.UiSavedStateWriter
 import com.pyamsoft.trickle.process.PowerPreferences
 import com.pyamsoft.trickle.process.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.process.permission.PermissionChecker
@@ -14,11 +13,14 @@ import kotlinx.coroutines.launch
 class HomeViewModeler
 @Inject
 internal constructor(
-    private val state: MutableHomeViewState,
+    override val state: MutableHomeViewState,
     private val preferences: PowerPreferences,
     private val permissionChecker: PermissionChecker,
     private val batteryOptimizer: BatteryOptimizer,
 ) : AbstractViewModeler<HomeViewState>(state) {
+
+  // Internal
+  private var restartClicks: Int = 0
 
   private data class LoadConfig(
       var isEnabled: Boolean = false,
@@ -27,34 +29,52 @@ internal constructor(
 
   private fun markLoadCompleted(config: LoadConfig) {
     if (config.isEnabled && config.isIgnore) {
-      state.loading = false
+      state.loadingState.value = HomeViewState.LoadingState.DONE
     }
   }
 
   private fun revealSettingsShortcut() {
     val s = state
-    if (s.restartClicks > RESTART_CLICK_REQUIRED_COUNT) {
-      s.isPowerSettingsShortcutVisible = true
+    if (restartClicks > RESTART_CLICK_REQUIRED_COUNT) {
+      s.isPowerSettingsShortcutVisible.value = true
     }
   }
 
-  override fun saveState(outState: UiSavedStateWriter) {
-    state.apply {
-      hasPermission.also { outState.put(KEY_PERMISSION, it) }
-      isPowerSaving.also { outState.put(KEY_PREFERENCE, it) }
-      isIgnoreInPowerSavingMode.also { outState.put(KEY_IGNORE, it) }
-      isPowerSettingsShortcutVisible.also { outState.put(KEY_CLICKS, it) }
-    }
-  }
+  override fun registerSaveState(
+      registry: SaveableStateRegistry
+  ): List<SaveableStateRegistry.Entry> =
+      mutableListOf<SaveableStateRegistry.Entry>().apply {
+        val s = state
 
-  override fun restoreState(savedInstanceState: UiSavedStateReader) {
+        registry.registerProvider(KEY_CLICKS) { s.isPowerSettingsShortcutVisible.value }
+        registry.registerProvider(KEY_IGNORE) { s.isIgnoreInPowerSavingMode.value }
+        registry.registerProvider(KEY_PREFERENCE) { s.isPowerSaving.value }
+        registry.registerProvider(KEY_PERMISSION) { s.permissionState.value.name }
+      }
+
+  override fun consumeRestoredState(registry: SaveableStateRegistry) {
     val s = state
-    savedInstanceState.apply {
-      get<Boolean>(KEY_PERMISSION)?.also { s.hasPermission = it }
-      get<Boolean>(KEY_PREFERENCE)?.also { s.isPowerSaving = it }
-      get<Boolean>(KEY_IGNORE)?.also { s.isIgnoreInPowerSavingMode = it }
-      get<Boolean>(KEY_CLICKS)?.also { s.isPowerSettingsShortcutVisible = it }
-    }
+
+    registry
+        .consumeRestored(KEY_CLICKS)
+        ?.let { it as Boolean }
+        ?.also { s.isPowerSettingsShortcutVisible.value = it }
+
+    registry
+        .consumeRestored(KEY_IGNORE)
+        ?.let { it as Boolean }
+        ?.also { s.isIgnoreInPowerSavingMode.value = it }
+
+    registry
+        .consumeRestored(KEY_PREFERENCE)
+        ?.let { it as Boolean }
+        ?.also { s.isPowerSaving.value = it }
+
+    registry
+        .consumeRestored(KEY_PERMISSION)
+        ?.let { it as String }
+        ?.let { HomeViewState.PermissionState.valueOf(it) }
+        ?.also { s.permissionState.value = it }
   }
 
   fun beginWatching(
@@ -62,14 +82,17 @@ internal constructor(
       onChange: () -> Unit,
   ) {
     val s = state
-    s.loading = true
+    if (s.loadingState.value != HomeViewState.LoadingState.NONE) {
+      return
+    }
 
     val config = LoadConfig()
 
+    s.loadingState.value = HomeViewState.LoadingState.LOADING
     scope.launch(context = Dispatchers.Main) {
       preferences.observePowerSavingEnabled().collect { ps ->
-        state.isPowerSaving = ps
-        if (s.loading) {
+        state.isPowerSaving.value = ps
+        if (s.loadingState.value == HomeViewState.LoadingState.LOADING) {
           config.isEnabled = true
           markLoadCompleted(config)
         }
@@ -80,8 +103,8 @@ internal constructor(
 
     scope.launch(context = Dispatchers.Default) {
       preferences.observeIgnoreInPowerSavingMode().collect { ignore ->
-        state.isIgnoreInPowerSavingMode = ignore
-        if (s.loading) {
+        state.isIgnoreInPowerSavingMode.value = ignore
+        if (s.loadingState.value == HomeViewState.LoadingState.LOADING) {
           config.isIgnore = true
           markLoadCompleted(config)
         }
@@ -97,10 +120,12 @@ internal constructor(
   ) {
     val s = state
     scope.launch(context = Dispatchers.Main) {
-      s.hasPermission = permissionChecker.hasSecureSettingsPermission()
+      s.permissionState.value =
+          if (permissionChecker.hasSecureSettingsPermission()) HomeViewState.PermissionState.GRANTED
+          else HomeViewState.PermissionState.DENIED
 
       // Battery optimization
-      s.isBatteryOptimizationsIgnored = batteryOptimizer.isOptimizationsIgnored()
+      s.isBatteryOptimizationsIgnored.value = batteryOptimizer.isOptimizationsIgnored()
 
       // Finish
       revealSettingsShortcut()
@@ -109,19 +134,22 @@ internal constructor(
   }
 
   fun handleSetPowerSavingEnabled(scope: CoroutineScope, enabled: Boolean) {
-    state.isPowerSaving = enabled
+    state.isPowerSaving.value = enabled
     scope.launch(context = Dispatchers.Main) { preferences.setPowerSavingEnabled(enabled) }
   }
 
   fun handleSetIgnoreInPowerSavingMode(scope: CoroutineScope, ignore: Boolean) {
-    state.isIgnoreInPowerSavingMode = ignore
+    state.isIgnoreInPowerSavingMode.value = ignore
     scope.launch(context = Dispatchers.Main) { preferences.setIgnoreInPowerSavingMode(ignore) }
   }
 
   fun handleRestartClicked() {
-    val s = state
-    s.restartClicks += 1
+    restartClicks += 1
     revealSettingsShortcut()
+  }
+
+  fun handleOpenTroubleshooting() {
+    state.isTroubleshooting.value = true
   }
 
   companion object {

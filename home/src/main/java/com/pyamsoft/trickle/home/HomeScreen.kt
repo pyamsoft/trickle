@@ -7,7 +7,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,17 +34,16 @@ fun HomeScreen(
     onRestartPowerService: () -> Unit,
     onRestartApp: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
+    onOpenTroubleshooting: () -> Unit,
 ) {
   val showNotificationSettings = remember { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU }
-  val scaffoldState = rememberScaffoldState()
-  val hasPermission = state.hasPermission
-  val isLoading = state.loading
 
-  val (isTroubleshooting, setTroubleShooting) = remember { mutableStateOf(false) }
+  val permissionState by state.permissionState.collectAsState()
+  val loadingState by state.loadingState.collectAsState()
+  val isTroubleshooting by state.isTroubleshooting.collectAsState()
 
   Scaffold(
       modifier = modifier,
-      scaffoldState = scaffoldState,
   ) { pv ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = MaterialTheme.keylines.content),
@@ -71,36 +71,50 @@ fun HomeScreen(
         )
       }
 
-      if (isLoading) {
-        item {
-          Loading(
-              modifier = Modifier.fillMaxWidth(),
-          )
+      when (loadingState) {
+        HomeViewState.LoadingState.NONE,
+        HomeViewState.LoadingState.LOADING -> {
+          item {
+            Loading(
+                modifier = Modifier.fillMaxWidth(),
+            )
+          }
         }
-      } else {
-        if (hasPermission) {
-          renderPowerSavingSettings(
-              itemModifier = Modifier.fillMaxWidth(),
-              appName = appName,
-              state = state,
-              showNotificationSettings = showNotificationSettings,
-              isTroubleshooting = isTroubleshooting,
-              hasNotificationPermission = hasNotificationPermission,
-              onOpenBatterySettings = onOpenBatterySettings,
-              onRestartPowerService = onRestartPowerService,
-              onTogglePowerSaving = onTogglePowerSaving,
-              onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
-              onStartTroubleshooting = { setTroubleShooting(true) },
-              onDisableBatteryOptimization = onDisableBatteryOptimization,
-              onRequestNotificationPermission = onRequestNotificationPermission,
-          )
-        } else {
-          renderHomeSetupInstructions(
-              itemModifier = Modifier.fillMaxWidth(),
-              appName = appName,
-              onCopy = onCopy,
-              onRestartApp = onRestartApp,
-          )
+        HomeViewState.LoadingState.DONE -> {
+          when (permissionState) {
+            HomeViewState.PermissionState.NONE -> {
+              item {
+                Loading(
+                    modifier = Modifier.fillMaxWidth(),
+                )
+              }
+            }
+            HomeViewState.PermissionState.GRANTED -> {
+              renderPowerSavingSettings(
+                  itemModifier = Modifier.fillMaxWidth(),
+                  appName = appName,
+                  state = state,
+                  showNotificationSettings = showNotificationSettings,
+                  isTroubleshooting = isTroubleshooting,
+                  hasNotificationPermission = hasNotificationPermission,
+                  onOpenBatterySettings = onOpenBatterySettings,
+                  onRestartPowerService = onRestartPowerService,
+                  onTogglePowerSaving = onTogglePowerSaving,
+                  onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
+                  onStartTroubleshooting = onOpenTroubleshooting,
+                  onDisableBatteryOptimization = onDisableBatteryOptimization,
+                  onRequestNotificationPermission = onRequestNotificationPermission,
+              )
+            }
+            HomeViewState.PermissionState.DENIED -> {
+              renderHomeSetupInstructions(
+                  itemModifier = Modifier.fillMaxWidth(),
+                  appName = appName,
+                  onCopy = onCopy,
+                  onRestartApp = onRestartApp,
+              )
+            }
+          }
         }
       }
 
@@ -171,6 +185,7 @@ private fun PreviewHomeScreen(state: HomeViewState) {
       appName = "TEST",
       hasNotificationPermission = false,
       onToggleIgnoreInPowerSavingMode = {},
+      onOpenTroubleshooting = {},
       onTogglePowerSaving = {},
       onOpenBatterySettings = {},
       onOpenApplicationSettings = {},
@@ -186,7 +201,10 @@ private fun PreviewHomeScreen(state: HomeViewState) {
 @Composable
 private fun PreviewHomeScreenNoPermission() {
   PreviewHomeScreen(
-      state = MutableHomeViewState().apply { hasPermission = false },
+      state =
+          MutableHomeViewState().apply {
+            permissionState.value = HomeViewState.PermissionState.DENIED
+          },
   )
 }
 
@@ -196,8 +214,8 @@ private fun PreviewHomeScreenHasPermission() {
   PreviewHomeScreen(
       state =
           MutableHomeViewState().apply {
-            hasPermission = true
-            isPowerSettingsShortcutVisible = true
+            permissionState.value = HomeViewState.PermissionState.GRANTED
+            isPowerSettingsShortcutVisible.value = true
           },
   )
 }
