@@ -209,7 +209,7 @@ fun HomeEntry(
     return@rememberUpdatedState true
   }
 
-  HomeScreen(
+  HomePage(
       modifier = modifier,
       state = viewModel.state,
       appName = appName,
@@ -270,5 +270,40 @@ fun HomeEntry(
           permissionRequestBus.send(PermissionRequests.Notification)
         }
       },
+  )
+}
+
+@Composable
+private fun HomePage(
+    modifier: Modifier = Modifier,
+    state: HomeViewState,
+    appName: String,
+    hasNotificationPermission: Boolean,
+    onTogglePowerSaving: (Boolean) -> Unit,
+    onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
+    onCopy: (String) -> Unit,
+    onOpenBatterySettings: () -> Unit,
+    onOpenApplicationSettings: () -> Unit,
+    onDisableBatteryOptimization: () -> Unit,
+    onRestartPowerService: () -> Unit,
+    onRestartApp: () -> Unit,
+    onRequestNotificationPermission: () -> Unit,
+    onOpenTroubleshooting: () -> Unit,
+) {
+  HomeScreen(
+      modifier = modifier,
+      state = state,
+      appName = appName,
+      hasNotificationPermission = hasNotificationPermission,
+      onOpenApplicationSettings = onOpenApplicationSettings,
+      onOpenTroubleshooting = onOpenTroubleshooting,
+      onCopy = onCopy,
+      onOpenBatterySettings = onOpenBatterySettings,
+      onRestartPowerService = onRestartPowerService,
+      onRestartApp = onRestartApp,
+      onTogglePowerSaving = onTogglePowerSaving,
+      onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
+      onDisableBatteryOptimization = onDisableBatteryOptimization,
+      onRequestNotificationPermission = onRequestNotificationPermission,
   )
 }
