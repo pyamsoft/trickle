@@ -211,10 +211,10 @@ fun HomeEntry(
 
   HomePage(
       modifier = modifier,
-      state = viewModel.state,
       appName = appName,
+      state = viewModel.state,
       hasNotificationPermission = notificationState,
-      onOpenApplicationSettings = onOpenSettings,
+      onOpenApplicationSettings = { onOpenSettings() },
       onOpenTroubleshooting = { viewModel.handleOpenTroubleshooting() },
       onCopy = {
         HomeCopyCommand.copyCommandToClipboard(
