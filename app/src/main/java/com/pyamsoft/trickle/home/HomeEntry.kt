@@ -158,68 +158,69 @@ fun HomeEntry(
   val scope = rememberCoroutineScope()
 
   // Since our mount hooks use this callback in bind, we must declare it first
-  val handleLaunchService by rememberUpdatedState {
-    scope.launch(context = Dispatchers.Main) {
-      Timber.d("Launch/Refresh Power service")
-      launcher.launch()
-    }
+  val handleLaunchService =
+      ret@{
+        scope.launch(context = Dispatchers.Main) {
+          Timber.d("Launch/Refresh Power service")
+          launcher.launch()
+        }
 
-    return@rememberUpdatedState
-  }
-
-  val handleSyncPermissionState by rememberUpdatedState {
-    viewModel.handleSync(scope = scope) {
-      // Once synced, attempt service refresh
-      handleLaunchService()
-    }
-  }
+        return@ret
+      }
 
   // Hooks that run on mount
   val hooks =
       mountHooks(
           component = component,
-          onLaunchService = handleLaunchService,
-          onSyncPermissionState = handleSyncPermissionState,
+          onLaunchService = {},
+          onSyncPermissionState = {
+            viewModel.handleSync(scope = scope) {
+              // Once synced, attempt service refresh
+              handleLaunchService()
+            }
+          },
       )
 
   val notificationState by hooks.notificationState
 
-  val tryOpenIntent by rememberUpdatedState { intent: Intent ->
-    return@rememberUpdatedState try {
-      activity.startActivity(intent)
-      true
-    } catch (e: ActivityNotFoundException) {
-      Timber.e(e, "Could not open intent: ${intent.action}")
-      false
-    }
-  }
-
-  val safeOpenSettingsIntent by rememberUpdatedState { action: String ->
-    // Try specific first, may fail on some devices
-    var intent = Intent(action, "package:${activity.packageName}".toUri())
-    if (!tryOpenIntent(intent)) {
-      Timber.w("Failed specific intent for $action")
-      intent = Intent(action)
-      if (!tryOpenIntent(intent)) {
-        Timber.w("Failed generic intent for $action")
-        return@rememberUpdatedState false
+  val tryOpenIntent =
+      ret@{ intent: Intent ->
+        return@ret try {
+          activity.startActivity(intent)
+          true
+        } catch (e: ActivityNotFoundException) {
+          Timber.e(e, "Could not open intent: ${intent.action}")
+          false
+        }
       }
-    }
 
-    return@rememberUpdatedState true
-  }
+  val safeOpenSettingsIntent =
+      ret@{ action: String ->
+        // Try specific first, may fail on some devices
+        var intent = Intent(action, "package:${activity.packageName}".toUri())
+        if (!tryOpenIntent(intent)) {
+          Timber.w("Failed specific intent for $action")
+          intent = Intent(action)
+          if (!tryOpenIntent(intent)) {
+            Timber.w("Failed generic intent for $action")
+            return@ret false
+          }
+        }
+
+        return@ret true
+      }
 
   HomePage(
       modifier = modifier,
       appName = appName,
       state = viewModel.state,
       hasNotificationPermission = notificationState,
-      onOpenApplicationSettings = { onOpenSettings() },
+      onOpenApplicationSettings = onOpenSettings,
       onOpenTroubleshooting = { viewModel.handleOpenTroubleshooting() },
-      onCopy = {
+      onCopy = { command ->
         HomeCopyCommand.copyCommandToClipboard(
-            activity,
-            it,
+            activity = activity,
+            command = command,
         )
       },
       onOpenBatterySettings = {
@@ -245,16 +246,16 @@ fun HomeEntry(
         Timber.d("APP BEING KILLED FOR ADB RESTART")
         exitProcess(0)
       },
-      onTogglePowerSaving = {
+      onTogglePowerSaving = { enabled ->
         viewModel.handleSetPowerSavingEnabled(
             scope = scope,
-            enabled = it,
+            enabled = enabled,
         )
       },
-      onToggleIgnoreInPowerSavingMode = {
+      onToggleIgnoreInPowerSavingMode = { ignored ->
         viewModel.handleSetIgnoreInPowerSavingMode(
             scope = scope,
-            ignore = it,
+            ignore = ignored,
         )
       },
       onDisableBatteryOptimization = {
