@@ -17,26 +17,26 @@ fun SettingsDialog(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
 ) {
-    Dialog(
-        onDismissRequest = onDismiss,
+  Dialog(
+      onDismissRequest = onDismiss,
+  ) {
+    Column(
+        modifier = modifier.padding(MaterialTheme.keylines.content),
     ) {
-        Column(
-            modifier = modifier.padding(MaterialTheme.keylines.content),
-        ) {
-            SettingsToolbar(
-                modifier = Modifier.fillMaxWidth(),
-                onClose = onDismiss,
-            )
-            SettingsPage(
-                modifier = Modifier.fillMaxWidth().weight(1F),
-                customElevation = DialogDefaults.Elevation,
-                customBottomItemMargin = MaterialTheme.keylines.baseline,
-                shape =
-                MaterialTheme.shapes.medium.copy(
-                    topStart = ZeroCornerSize,
-                    topEnd = ZeroCornerSize,
-                ),
-            )
-        }
+      SettingsToolbar(
+          modifier = Modifier.fillMaxWidth(),
+          onClose = onDismiss,
+      )
+      SettingsPage(
+          modifier = Modifier.fillMaxWidth().weight(1F),
+          customElevation = DialogDefaults.Elevation,
+          customBottomItemMargin = MaterialTheme.keylines.baseline,
+          shape =
+              MaterialTheme.shapes.medium.copy(
+                  topStart = ZeroCornerSize,
+                  topEnd = ZeroCornerSize,
+              ),
+      )
     }
+  }
 }
