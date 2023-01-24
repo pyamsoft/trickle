@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
                 override val changelog = buildChangeLog {
                   change("Full usage of Jetpack Compose")
                   bugfix("Big performance gains in Compose by correctly handling state")
+                  bugfix("Fix service notification being swiped away")
                 }
               },
       )
