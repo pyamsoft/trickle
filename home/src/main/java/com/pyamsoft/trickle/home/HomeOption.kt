@@ -46,6 +46,7 @@ internal fun HomeOption(
             } else {
               hapticManager?.toggleOff()
             }
+            onChange(newState)
           },
       )
     }

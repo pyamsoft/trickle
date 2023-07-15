@@ -63,5 +63,6 @@ dependencies {
 
   implementation(project(":core"))
   implementation(project(":battery"))
+  implementation(project(":service"))
   implementation(project(":ui"))
 }

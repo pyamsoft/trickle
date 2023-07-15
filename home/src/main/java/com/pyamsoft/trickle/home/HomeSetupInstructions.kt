@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -41,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.pydroid.ui.defaults.CardDefaults
 import com.pyamsoft.pydroid.ui.theme.ZeroSize
+import com.pyamsoft.pydroid.ui.uri.LocalExternalUriHandler
 import com.pyamsoft.trickle.ui.icons.Devices
 import com.pyamsoft.trickle.ui.icons.PhoneAndroid
 
@@ -215,7 +215,7 @@ private fun DownloadAdb(
       }
     }
 
-    val uriHandler = LocalUriHandler.current
+    val uriHandler = LocalExternalUriHandler.current
     ClickableText(
         text = text,
         style = MaterialTheme.typography.body1,
@@ -277,7 +277,7 @@ private fun EnableDeveloperSettings(
       }
     }
 
-    val uriHandler = LocalUriHandler.current
+    val uriHandler = LocalExternalUriHandler.current
     ClickableText(
         text = text,
         style = MaterialTheme.typography.body1,

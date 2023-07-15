@@ -4,6 +4,7 @@ import androidx.compose.runtime.saveable.SaveableStateRegistry
 import com.pyamsoft.pydroid.arch.AbstractViewModeler
 import com.pyamsoft.trickle.battery.permission.PermissionGuard
 import com.pyamsoft.trickle.core.InAppRatingPreferences
+import com.pyamsoft.trickle.service.ServiceLauncher
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,7 @@ internal constructor(
     override val state: MutableMainViewState,
     private val inAppRatingPreferences: InAppRatingPreferences,
     private val permissionGuard: PermissionGuard,
+    private val launcher: ServiceLauncher,
 ) : MainViewState by state, AbstractViewModeler<MainViewState>(state) {
 
   override fun registerSaveState(
@@ -82,6 +84,11 @@ internal constructor(
       state.permission.value =
           if (hasPermission) MainViewState.PermissionState.GRANTED
           else MainViewState.PermissionState.NOT_GRANTED
+
+      if (!hasPermission) {
+        Timber.w("Stop service without WRITE_SECURE_SETTINGS permission.")
+        launcher.stop()
+      }
     }
   }
 
