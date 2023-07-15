@@ -48,7 +48,7 @@ buildscript {
     fragment = "1.5.5"
 
     // Material Design
-    materialDesign = "1.8.0"
+    materialDesign = "1.9.0"
   }
 }
 
