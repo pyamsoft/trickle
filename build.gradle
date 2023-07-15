@@ -26,7 +26,7 @@ buildscript {
     pydroid = "26.2.0"
 
     // Leak Canary
-    leakCanary = "2.10"
+    leakCanary = "2.12"
 
     // Logging
     timber = "5.0.1"
