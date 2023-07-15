@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.pydroid.ui.defaults.CardDefaults
+import com.pyamsoft.pydroid.ui.haptics.LocalHapticManager
 import com.pyamsoft.pydroid.ui.theme.ZeroSize
 import com.pyamsoft.pydroid.ui.uri.LocalExternalUriHandler
 import com.pyamsoft.trickle.ui.icons.Devices
@@ -426,6 +427,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
   item(
       contentType = InstructionContentTypes.ADB_COPY_COMMAND,
   ) {
+    val hapticManager = LocalHapticManager.current
     val command = rememberAdbCommand()
 
     Column(
@@ -438,7 +440,11 @@ internal fun LazyListScope.renderHomeSetupInstructions(
       ) {
         SelectionContainer(
             modifier =
-                Modifier.clickable { onCopy(command) }.padding(MaterialTheme.keylines.content),
+                Modifier.clickable {
+                      hapticManager?.actionButtonPress()
+                      onCopy(command)
+                    }
+                    .padding(MaterialTheme.keylines.content),
         ) {
           Text(
               text = command,
@@ -457,7 +463,10 @@ internal fun LazyListScope.renderHomeSetupInstructions(
           contentAlignment = Alignment.Center,
       ) {
         Button(
-            onClick = { onCopy(command) },
+            onClick = {
+              hapticManager?.actionButtonPress()
+              onCopy(command)
+            },
         ) {
           Text(
               text = "Copy to Clipboard",
@@ -470,6 +479,8 @@ internal fun LazyListScope.renderHomeSetupInstructions(
   item(
       contentType = InstructionContentTypes.RESTART_APP,
   ) {
+    val hapticManager = LocalHapticManager.current
+
     Column(
         modifier = itemModifier,
     ) {
@@ -487,7 +498,10 @@ internal fun LazyListScope.renderHomeSetupInstructions(
           contentAlignment = Alignment.Center,
       ) {
         Button(
-            onClick = onRestartApp,
+            onClick = {
+              hapticManager?.actionButtonPress()
+              onRestartApp()
+            },
         ) {
           Text(
               text = "Kill Application",
