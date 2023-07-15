@@ -16,25 +16,20 @@
 
 package com.pyamsoft.trickle.main
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.pyamsoft.pydroid.ui.theme.Theming
 
 @Composable
-fun SystemBars(
-    theme: Theming.Mode,
-) {
-  val isLightStatusBar =
-      if (theme == Theming.Mode.SYSTEM) !isSystemInDarkTheme() else theme == Theming.Mode.LIGHT
-
+fun SystemBars() {
   val controller = rememberSystemUiController()
+  val darkIcons = MaterialTheme.colors.isLight
   SideEffect {
     controller.setSystemBarsColor(
         color = Color.Transparent,
-        darkIcons = isLightStatusBar,
+        darkIcons = darkIcons,
         isNavigationBarContrastEnforced = false,
     )
   }

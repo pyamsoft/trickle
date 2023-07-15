@@ -6,34 +6,35 @@ import android.os.IBinder
 import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.trickle.ObjectGraph
-import com.pyamsoft.trickle.receiver.ScreenReceiver
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class MonitorService : Service() {
 
-  private var receiver: ScreenReceiver.Unregister? = null
+  @Inject @JvmField internal var runner: ServiceRunner? = null
 
-  @Inject @JvmField internal var notification: ServiceNotification? = null
-  @Inject @JvmField internal var serviceHandler: ServiceHandler? = null
+  private var scope: CoroutineScope? = null
 
-  private fun ensureWatchingScreen() {
-    receiver = receiver ?: ScreenReceiver.register(this)
+  @CheckResult
+  private fun makeScope(): CoroutineScope {
+    return CoroutineScope(
+        context = SupervisorJob() + Dispatchers.Default + CoroutineName(this::class.java.name),
+    )
   }
 
   @CheckResult
-  private fun getTogglePowerSaving(intent: Intent?): Boolean? {
-    // If the intent extra is passed, we can update the preference
-    if (intent == null) {
-      return null
-    }
+  private fun ensureScope(): CoroutineScope {
+    return (scope ?: makeScope()).also { scope = it }
+  }
 
-    if (!intent.hasExtra(ServiceNotification.KEY_TOGGLE_POWER_SAVING)) {
-      return null
-    }
-
-    // If we fail to find it, turn off management
-    return intent.getBooleanExtra(ServiceNotification.KEY_TOGGLE_POWER_SAVING, false)
+  private fun startRunner() {
+    ensureScope().launch(context = Dispatchers.Default) { runner.requireNotNull().start() }
   }
 
   override fun onBind(intent: Intent?): IBinder? {
@@ -43,38 +44,28 @@ class MonitorService : Service() {
   override fun onCreate() {
     super.onCreate()
     ObjectGraph.ApplicationScope.retrieve(this).plusServiceComponent().create().inject(this)
-
-    // Start notification first for android O immediately
-    notification.requireNotNull().createNotification(this)
-
-    // Register for screen events
-    ensureWatchingScreen()
-
-    // Handler
-    serviceHandler.requireNotNull().bind(this)
+    Timber.d("Creating service")
   }
 
+  /**
+   * If the app is in the background, this will not run unless the app sets Battery Optimization off
+   */
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    ensureWatchingScreen()
+    // Each time the service starts/restarts we use the fact that it is tied to the Android OS
+    // lifecycle to restart the launcher which does all the Proxy lifting.
+    startRunner()
 
-    getTogglePowerSaving(intent)?.also { enable ->
-      serviceHandler.requireNotNull().toggle(this, enable)
-    }
-
+    // Just start sticky here
     return START_STICKY
   }
 
   override fun onDestroy() {
     super.onDestroy()
+    Timber.d("Destroying service")
 
-    Timber.d("Destroy service")
+    scope?.cancel()
 
-    notification?.stopNotification(this)
-    serviceHandler?.destroy()
-    receiver?.unregister()
-
-    serviceHandler = null
-    notification = null
-    receiver = null
+    scope = null
+    runner = null
   }
 }

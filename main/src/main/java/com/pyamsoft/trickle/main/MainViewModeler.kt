@@ -1,22 +1,25 @@
 package com.pyamsoft.trickle.main
 
-import android.app.Activity
 import androidx.compose.runtime.saveable.SaveableStateRegistry
 import com.pyamsoft.pydroid.arch.AbstractViewModeler
-import com.pyamsoft.pydroid.ui.theme.Theming
+import com.pyamsoft.trickle.battery.permission.PermissionGuard
+import com.pyamsoft.trickle.core.InAppRatingPreferences
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class MainViewModeler
 @Inject
 internal constructor(
     override val state: MutableMainViewState,
-    private val theming: Theming,
-) : AbstractViewModeler<MainViewState>(state) {
-
-  fun handleSyncDarkTheme(activity: Activity) {
-    val isDark = theming.isDarkTheme(activity)
-    state.theme.value = if (isDark) Theming.Mode.DARK else Theming.Mode.LIGHT
-  }
+    private val inAppRatingPreferences: InAppRatingPreferences,
+    private val permissionGuard: PermissionGuard,
+) : MainViewState by state, AbstractViewModeler<MainViewState>(state) {
 
   override fun registerSaveState(
       registry: SaveableStateRegistry
@@ -24,23 +27,44 @@ internal constructor(
       mutableListOf<SaveableStateRegistry.Entry>().apply {
         val s = state
 
-        registry.registerProvider(KEY_THEME) { s.theme.value.name }.also { add(it) }
         registry.registerProvider(KEY_IS_SETTINGS_OPEN) { s.isSettingsOpen.value }.also { add(it) }
+
+        registry.registerProvider(KEY_PERMISSION) { s.permission.value.name }
       }
 
   override fun consumeRestoredState(registry: SaveableStateRegistry) {
     val s = state
 
     registry
-        .consumeRestored(KEY_THEME)
-        ?.let { it as String }
-        ?.let { Theming.Mode.valueOf(it) }
-        ?.also { s.theme.value = it }
-
-    registry
         .consumeRestored(KEY_IS_SETTINGS_OPEN)
         ?.let { it as Boolean }
         ?.also { s.isSettingsOpen.value = it }
+
+    registry
+        .consumeRestored(KEY_PERMISSION)
+        ?.let { it as String }
+        ?.let { MainViewState.PermissionState.valueOf(it) }
+        ?.also { s.permission.value = it }
+  }
+
+  fun watchForInAppRatingPrompt(
+      scope: CoroutineScope,
+      onShowInAppRating: () -> Unit,
+  ) {
+    inAppRatingPreferences
+        .listenShowInAppRating()
+        .filter { it }
+        .distinctUntilChanged()
+        .also { f ->
+          scope.launch(context = Dispatchers.Default) {
+            f.collect { show ->
+              if (show) {
+                Timber.d("Show in-app rating")
+                withContext(context = Dispatchers.Main) { onShowInAppRating() }
+              }
+            }
+          }
+        }
   }
 
   fun handleOpenSettings() {
@@ -51,9 +75,23 @@ internal constructor(
     state.isSettingsOpen.value = false
   }
 
+  fun handleSync(scope: CoroutineScope) {
+    scope.launch(context = Dispatchers.Default) {
+      // Check if we have permission
+      val hasPermission = permissionGuard.canManageSystemPower()
+      state.permission.value =
+          if (hasPermission) MainViewState.PermissionState.GRANTED
+          else MainViewState.PermissionState.NOT_GRANTED
+    }
+  }
+
+  fun handleAnalyticsMarkOpened() {
+    inAppRatingPreferences.markAppOpened()
+  }
+
   companion object {
 
-    private const val KEY_THEME = "theme"
+    private const val KEY_PERMISSION = "has_permission"
     private const val KEY_IS_SETTINGS_OPEN = "is_settings_open"
   }
 }

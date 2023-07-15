@@ -29,6 +29,8 @@ internal interface MainComponent {
 
   fun inject(activity: MainActivity)
 
+  fun inject(injector: MainInjector)
+
   @Subcomponent.Factory
   interface Factory {
 

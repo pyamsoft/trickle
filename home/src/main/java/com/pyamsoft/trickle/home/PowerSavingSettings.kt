@@ -1,19 +1,43 @@
 package com.pyamsoft.trickle.home
 
-import androidx.compose.animation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.pydroid.theme.warning
+import com.pyamsoft.pydroid.ui.haptics.LocalHapticManager
 import com.pyamsoft.trickle.ui.icons.Label
+
+private enum class PowerContentTypes {
+  MAIN_SWITCH,
+  STAY_ALIVE,
+  SPACER,
+  OPEN_TROUBLESHOOTING,
+  BOTTOM_SPACER
+}
 
 internal fun LazyListScope.renderPowerSavingSettings(
     itemModifier: Modifier = Modifier,
@@ -21,17 +45,17 @@ internal fun LazyListScope.renderPowerSavingSettings(
     state: HomeViewState,
     showNotificationSettings: Boolean,
     isTroubleshooting: Boolean,
-    hasNotificationPermission: Boolean,
     onStartTroubleshooting: () -> Unit,
     onOpenBatterySettings: () -> Unit,
     onTogglePowerSaving: (Boolean) -> Unit,
-    onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
     onDisableBatteryOptimization: () -> Unit,
     onRestartPowerService: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
 ) {
 
-  item {
+  item(
+      contentType = PowerContentTypes.MAIN_SWITCH,
+  ) {
     val isPowerSaving by state.isPowerSaving.collectAsState()
 
     HomeMainSwitch(
@@ -41,44 +65,42 @@ internal fun LazyListScope.renderPowerSavingSettings(
     )
   }
 
-  item {
-    val isPowerSaving by state.isPowerSaving.collectAsState()
-    val isIgnoreInPowerSavingMode by state.isIgnoreInPowerSavingMode.collectAsState()
-
-    HomeOption(
-        modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content),
-        name = "Play Nice",
-        description =
-            "$appName will not change settings if the device is already in power saving mode",
-        enabled = isPowerSaving,
-        checked = isIgnoreInPowerSavingMode,
-        onChange = onToggleIgnoreInPowerSavingMode,
-    )
-  }
-
-  item {
+  item(
+      contentType = PowerContentTypes.STAY_ALIVE,
+  ) {
+    val hapticManager = LocalHapticManager.current
     val isPowerSaving by state.isPowerSaving.collectAsState()
     val isBatteryOptimizationsIgnored by state.isBatteryOptimizationsIgnored.collectAsState()
+
+    val enabled =
+        remember(
+            isPowerSaving,
+            isBatteryOptimizationsIgnored,
+        ) {
+          isPowerSaving && !isBatteryOptimizationsIgnored
+        }
 
     Column(
         modifier = itemModifier.padding(vertical = MaterialTheme.keylines.content),
     ) {
       Label(
-          modifier = Modifier.padding(bottom = MaterialTheme.keylines.baseline),
-          text = "Battery",
+          text = "Operating Settings",
       )
+
       HomeOption(
-          name = "Ignore Battery Optimizations",
-          description =
-              """This allows $appName to run all the time.
-                |
-                |Provides the most reliable experience, and will help you save more battery, despite being "unoptimized".
-                |(recommended)
-            """
-                  .trimMargin(),
-          enabled = isPowerSaving,
+          enabled = enabled,
           checked = isBatteryOptimizationsIgnored,
-          onChange = { onDisableBatteryOptimization() },
+          name = "Always Alive",
+          description =
+              """This will allow the $appName Service to continue running even if the app is closed.
+                 |(recommended)"""
+                  .trimMargin(),
+          onChange = {
+            if (!isBatteryOptimizationsIgnored) {
+              hapticManager?.confirmButtonPress()
+              onDisableBatteryOptimization()
+            }
+          },
       )
     }
   }
@@ -86,16 +108,15 @@ internal fun LazyListScope.renderPowerSavingSettings(
   if (showNotificationSettings) {
     renderNotificationSettings(
         itemModifier = itemModifier,
-        hasPermission = hasNotificationPermission,
+        state = state,
         onRequest = onRequestNotificationPermission,
     )
 
-    item {
+    item(
+        contentType = PowerContentTypes.SPACER,
+    ) {
       Spacer(
-          modifier =
-              Modifier.fillMaxWidth()
-                  .padding(horizontal = MaterialTheme.keylines.content)
-                  .height(MaterialTheme.keylines.content),
+          modifier = Modifier.fillMaxWidth().height(MaterialTheme.keylines.content),
       )
     }
   }
@@ -109,7 +130,9 @@ internal fun LazyListScope.renderPowerSavingSettings(
         onOpenSettings = onOpenBatterySettings,
     )
   } else {
-    item {
+    item(
+        contentType = PowerContentTypes.OPEN_TROUBLESHOOTING,
+    ) {
       Box(
           modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
           contentAlignment = Alignment.Center,
@@ -129,11 +152,21 @@ internal fun LazyListScope.renderPowerSavingSettings(
     }
   }
 
-  item {
+  item(
+      contentType = PowerContentTypes.BOTTOM_SPACER,
+  ) {
     Spacer(
         modifier = itemModifier.height(MaterialTheme.keylines.content),
     )
   }
+}
+
+private enum class TroubleshootingTypes {
+  LABEL,
+  EXPLAIN,
+  BUTTON_PROMPT,
+  BUTTON,
+  SHORTCUT,
 }
 
 private fun LazyListScope.renderTroubleshooting(
@@ -144,14 +177,18 @@ private fun LazyListScope.renderTroubleshooting(
     onOpenSettings: () -> Unit,
 ) {
 
-  item {
+  item(
+      contentType = TroubleshootingTypes.LABEL,
+  ) {
     Label(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
         text = "Troubleshooting",
     )
   }
 
-  item {
+  item(
+      contentType = TroubleshootingTypes.EXPLAIN,
+  ) {
     Text(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.typography),
         text =
@@ -160,7 +197,9 @@ private fun LazyListScope.renderTroubleshooting(
     )
   }
 
-  item {
+  item(
+      contentType = TroubleshootingTypes.BUTTON_PROMPT,
+  ) {
     Text(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.typography),
         text = "Click the button below a couple of times and see if that fixes things",
@@ -174,7 +213,9 @@ private fun LazyListScope.renderTroubleshooting(
     )
   }
 
-  item {
+  item(
+      contentType = TroubleshootingTypes.BUTTON,
+  ) {
     Box(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
         contentAlignment = Alignment.Center,
@@ -189,7 +230,9 @@ private fun LazyListScope.renderTroubleshooting(
     }
   }
 
-  item {
+  item(
+      contentType = TroubleshootingTypes.SHORTCUT,
+  ) {
     val isVisible by state.isPowerSettingsShortcutVisible.collectAsState()
 
     AnimatedVisibility(
@@ -248,8 +291,6 @@ private fun PreviewPowerSavingSettings(
         state = state,
         isTroubleshooting = isTroubleshooting,
         showNotificationSettings = false,
-        hasNotificationPermission = false,
-        onToggleIgnoreInPowerSavingMode = {},
         onTogglePowerSaving = {},
         onOpenBatterySettings = {},
         onRestartPowerService = {},
@@ -265,10 +306,7 @@ private fun PreviewPowerSavingSettings(
 private fun PreviewPowerSavingSettingsNoTrouble() {
   PreviewPowerSavingSettings(
       isTroubleshooting = false,
-      state =
-          MutableHomeViewState().apply {
-            permissionState.value = HomeViewState.PermissionState.GRANTED
-          },
+      state = MutableHomeViewState(),
   )
 }
 
@@ -277,11 +315,7 @@ private fun PreviewPowerSavingSettingsNoTrouble() {
 private fun PreviewPowerSavingSettingsNoShortcut() {
   PreviewPowerSavingSettings(
       isTroubleshooting = true,
-      state =
-          MutableHomeViewState().apply {
-            permissionState.value = HomeViewState.PermissionState.GRANTED
-            isPowerSettingsShortcutVisible.value = false
-          },
+      state = MutableHomeViewState().apply { isPowerSettingsShortcutVisible.value = false },
   )
 }
 
@@ -290,10 +324,6 @@ private fun PreviewPowerSavingSettingsNoShortcut() {
 private fun PreviewPowerSavingSettingsWithShortcut() {
   PreviewPowerSavingSettings(
       isTroubleshooting = true,
-      state =
-          MutableHomeViewState().apply {
-            permissionState.value = HomeViewState.PermissionState.GRANTED
-            isPowerSettingsShortcutVisible.value = true
-          },
+      state = MutableHomeViewState().apply { isPowerSettingsShortcutVisible.value = true },
   )
 }

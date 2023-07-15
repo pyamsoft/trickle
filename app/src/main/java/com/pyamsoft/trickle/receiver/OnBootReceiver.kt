@@ -19,42 +19,56 @@ package com.pyamsoft.trickle.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.trickle.ObjectGraph
+import com.pyamsoft.trickle.battery.PowerPreferences
 import com.pyamsoft.trickle.service.ServiceLauncher
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 internal class OnBootReceiver internal constructor() : BroadcastReceiver() {
 
   @Inject @JvmField internal var launcher: ServiceLauncher? = null
+  @Inject @JvmField internal var preferences: PowerPreferences? = null
 
-  private val scope by lazy(LazyThreadSafetyMode.NONE) { MainScope() }
-  private var currentJob: Job? = null
-
-  private fun inject(context: Context) {
-    if (launcher != null) {
-      Timber.d("Already injected")
-      return
-    }
-
-    ObjectGraph.ApplicationScope.retrieve(context).inject(this)
-  }
+  // Once we are flagged done, don't run this again
+  // Some manufacturers send BOOT_COMPLETED more than once because of course they do.
+  private val done = MutableStateFlow(false)
 
   override fun onReceive(context: Context, intent: Intent) {
     if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-      inject(context)
+      if (done.compareAndSet(expect = false, update = true)) {
+        Timber.d("Boot completed, check for service start!")
 
-      currentJob?.cancel()
-      currentJob =
-          scope.launch(context = Dispatchers.Main) {
-            Timber.d("Start service on boot")
-            launcher.requireNotNull().launch()
+        ObjectGraph.ApplicationScope.retrieve(context).inject(this)
+        val p = preferences
+        if (p == null) {
+          Timber.w("Could not start BootReceiver: preferences NULL after inject")
+          return
+        }
+        val l = launcher
+        if (l == null) {
+          Timber.w("Could not start BootReceiver: launcher NULL after inject")
+          return
+        }
+
+        MainScope().launch(context = Dispatchers.Default) {
+          if (p.observePowerSavingEnabled().first()) {
+            withContext(context = Dispatchers.Main) {
+              Timber.d("Start service on boot")
+              l.start()
+            }
           }
+
+          preferences = null
+          launcher = null
+        }
+      }
     }
   }
 }

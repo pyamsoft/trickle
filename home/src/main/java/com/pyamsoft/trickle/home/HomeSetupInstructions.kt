@@ -3,11 +3,23 @@ package com.pyamsoft.trickle.home
 import android.content.Context
 import androidx.annotation.CheckResult
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.Card
+import androidx.compose.material.ContentAlpha
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -24,15 +36,27 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.pyamsoft.pydroid.theme.ZeroSize
 import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.pydroid.ui.defaults.CardDefaults
+import com.pyamsoft.pydroid.ui.theme.ZeroSize
 import com.pyamsoft.trickle.ui.icons.Devices
 import com.pyamsoft.trickle.ui.icons.PhoneAndroid
 
-val THIS_DEVICE_COLOR = Color(0xFF4CAF50)
-val OTHER_DEVICE_COLOR = Color(0xFF2196F3)
+private enum class InstructionContentTypes {
+  THIS_DEVICE_EXPLAINER,
+  OTHER_DEVICE_EXPLAINER,
+  DOWNLOAD_ADB,
+  ENABLE_DEVELOPER_MODE,
+  ACCEPT_PROMPT,
+  GRANT_PERMISSION,
+  ADB_COPY_COMMAND,
+  RESTART_APP,
+}
+
+private val THIS_DEVICE_COLOR = Color(0xFF4CAF50)
+private val OTHER_DEVICE_COLOR = Color(0xFF2196F3)
 
 @Composable
 private fun ThisDevice(
@@ -288,7 +312,9 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     onCopy: (String) -> Unit,
     onRestartApp: () -> Unit,
 ) {
-  item {
+  item(
+      contentType = InstructionContentTypes.THIS_DEVICE_EXPLAINER,
+  ) {
     ThisInstruction(
         modifier = itemModifier,
         small = true,
@@ -306,7 +332,9 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     }
   }
 
-  item {
+  item(
+      contentType = InstructionContentTypes.OTHER_DEVICE_EXPLAINER,
+  ) {
     OtherInstruction(
         modifier = itemModifier,
         small = true,
@@ -324,7 +352,9 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     }
   }
 
-  item {
+  item(
+      contentType = InstructionContentTypes.DOWNLOAD_ADB,
+  ) {
     OtherInstruction(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
@@ -332,7 +362,9 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     }
   }
 
-  item {
+  item(
+      contentType = InstructionContentTypes.ENABLE_DEVELOPER_MODE,
+  ) {
     ThisInstruction(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
@@ -340,7 +372,9 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     }
   }
 
-  item {
+  item(
+      contentType = InstructionContentTypes.ACCEPT_PROMPT,
+  ) {
     ThisInstruction(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
@@ -364,7 +398,9 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     }
   }
 
-  item {
+  item(
+      contentType = InstructionContentTypes.GRANT_PERMISSION,
+  ) {
     OtherInstruction(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
     ) {
@@ -387,7 +423,9 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     }
   }
 
-  item {
+  item(
+      contentType = InstructionContentTypes.ADB_COPY_COMMAND,
+  ) {
     val command = rememberAdbCommand()
 
     Column(
@@ -429,7 +467,9 @@ internal fun LazyListScope.renderHomeSetupInstructions(
     }
   }
 
-  item {
+  item(
+      contentType = InstructionContentTypes.RESTART_APP,
+  ) {
     Column(
         modifier = itemModifier,
     ) {
@@ -455,5 +495,17 @@ internal fun LazyListScope.renderHomeSetupInstructions(
         }
       }
     }
+  }
+}
+
+@Preview
+@Composable
+private fun PreviewHomeSetupInstructions() {
+  LazyColumn {
+    renderHomeSetupInstructions(
+        appName = "TEST",
+        onCopy = {},
+        onRestartApp = {},
+    )
   }
 }

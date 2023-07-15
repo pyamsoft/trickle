@@ -5,12 +5,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.pydroid.ui.app.rememberDialogProperties
 import com.pyamsoft.pydroid.ui.defaults.DialogDefaults
 import com.pyamsoft.pydroid.ui.settings.SettingsPage
+import com.pyamsoft.trickle.ui.DialogToolbar
 
 @Composable
 fun SettingsDialog(
@@ -18,14 +21,20 @@ fun SettingsDialog(
     onDismiss: () -> Unit,
 ) {
   Dialog(
+      properties = rememberDialogProperties(),
       onDismissRequest = onDismiss,
   ) {
     Column(
         modifier = modifier.padding(MaterialTheme.keylines.content),
     ) {
-      SettingsToolbar(
+      DialogToolbar(
           modifier = Modifier.fillMaxWidth(),
           onClose = onDismiss,
+          title = {
+            Text(
+                text = "Settings",
+            )
+          },
       )
       SettingsPage(
           modifier = Modifier.fillMaxWidth().weight(1F),

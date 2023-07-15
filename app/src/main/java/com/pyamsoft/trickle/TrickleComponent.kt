@@ -22,22 +22,24 @@ import android.app.Service
 import android.content.Context
 import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.bus.EventBus
+import com.pyamsoft.pydroid.bus.internal.DefaultEventBus
+import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.pydroid.notify.NotifyGuard
 import com.pyamsoft.pydroid.notify.NotifyPermission
 import com.pyamsoft.pydroid.ui.theme.Theming
 import com.pyamsoft.pydroid.util.PermissionRequester
-import com.pyamsoft.trickle.home.PermissionRequests
-import com.pyamsoft.trickle.home.PermissionResponse
+import com.pyamsoft.trickle.battery.BatteryAppModule
+import com.pyamsoft.trickle.battery.PowerPreferences
+import com.pyamsoft.trickle.core.InAppRatingPreferences
+import com.pyamsoft.trickle.service.notification.PermissionRequests
+import com.pyamsoft.trickle.service.notification.PermissionResponses
 import com.pyamsoft.trickle.main.MainActivity
 import com.pyamsoft.trickle.main.MainComponent
 import com.pyamsoft.trickle.preference.PreferencesImpl
-import com.pyamsoft.trickle.process.PowerPreferences
-import com.pyamsoft.trickle.process.ProcessModule
 import com.pyamsoft.trickle.receiver.OnBootReceiver
-import com.pyamsoft.trickle.receiver.ScreenReceiver
 import com.pyamsoft.trickle.service.MonitorService
+import com.pyamsoft.trickle.service.ServiceAppModule
 import com.pyamsoft.trickle.service.ServiceComponent
-import com.pyamsoft.trickle.service.ServiceModule
 import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component
@@ -50,14 +52,12 @@ import javax.inject.Singleton
 @Component(
     modules =
         [
-            TrickleComponent.TrickleProvider::class,
-            ProcessModule::class,
-            ServiceModule::class,
+            TrickleComponent.Provider::class,
+            BatteryAppModule::class,
+            ServiceAppModule::class,
         ],
 )
 internal interface TrickleComponent {
-
-  fun inject(receiver: ScreenReceiver)
 
   fun inject(receiver: OnBootReceiver)
 
@@ -70,18 +70,23 @@ internal interface TrickleComponent {
 
     @CheckResult
     fun create(
-        @BindsInstance application: Application,
         @Named("debug") @BindsInstance debug: Boolean,
+        @BindsInstance application: Application,
         @BindsInstance theming: Theming,
+        @BindsInstance enforcer: ThreadEnforcer,
     ): TrickleComponent
   }
 
   @Module
-  abstract class TrickleProvider {
+  abstract class Provider {
 
     @Binds
     @CheckResult
-    internal abstract fun bindPreferences(impl: PreferencesImpl): PowerPreferences
+    internal abstract fun bindPowerPreferences(impl: PreferencesImpl): PowerPreferences
+
+    @Binds
+    @CheckResult
+    internal abstract fun bindInAppRatingPreferences(impl: PreferencesImpl): InAppRatingPreferences
 
     @Module
     companion object {
@@ -129,14 +134,14 @@ internal interface TrickleComponent {
       @JvmStatic
       @Singleton
       internal fun providePermissionRequestBus(): EventBus<PermissionRequests> {
-        return EventBus.create()
+        return DefaultEventBus()
       }
 
       @Provides
       @JvmStatic
       @Singleton
-      internal fun providePermissionResponseBus(): EventBus<PermissionResponse> {
-        return EventBus.create()
+      internal fun providePermissionResponseBus(): EventBus<PermissionResponses> {
+        return DefaultEventBus()
       }
     }
   }

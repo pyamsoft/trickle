@@ -2,42 +2,53 @@ package com.pyamsoft.trickle.home
 
 import androidx.compose.runtime.saveable.SaveableStateRegistry
 import com.pyamsoft.pydroid.arch.AbstractViewModeler
-import com.pyamsoft.trickle.process.PowerPreferences
-import com.pyamsoft.trickle.process.optimize.BatteryOptimizer
-import com.pyamsoft.trickle.process.permission.PermissionChecker
+import com.pyamsoft.pydroid.notify.NotifyGuard
+import com.pyamsoft.trickle.battery.PowerPreferences
+import com.pyamsoft.trickle.battery.PowerSaver
+import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
+import com.pyamsoft.trickle.service.ServiceLauncher
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class HomeViewModeler
 @Inject
 internal constructor(
     override val state: MutableHomeViewState,
     private val preferences: PowerPreferences,
-    private val permissionChecker: PermissionChecker,
     private val batteryOptimizer: BatteryOptimizer,
-) : AbstractViewModeler<HomeViewState>(state) {
+    private val notifyGuard: NotifyGuard,
+    private val launcher: ServiceLauncher,
+    private val powerSaver: PowerSaver,
+) : HomeViewState by state, AbstractViewModeler<HomeViewState>(state) {
 
-  // Internal
-  private var restartClicks: Int = 0
+  private val restartClicks = MutableStateFlow(0)
 
   private data class LoadConfig(
       var isEnabled: Boolean = false,
-      var isIgnore: Boolean = false,
   )
 
   private fun markLoadCompleted(config: LoadConfig) {
-    if (config.isEnabled && config.isIgnore) {
+    if (config.isEnabled) {
       state.loadingState.value = HomeViewState.LoadingState.DONE
     }
   }
 
-  private fun revealSettingsShortcut() {
-    val s = state
-    if (restartClicks > RESTART_CLICK_REQUIRED_COUNT) {
-      s.isPowerSettingsShortcutVisible.value = true
+  private fun launchPowerService(enabled: Boolean) {
+    if (enabled) {
+      launcher.start()
+    } else {
+      launcher.stop()
     }
+  }
+
+  private fun onPowerEnabledChanged(enabled: Boolean) {
+    state.isPowerSaving.value = enabled
+    launchPowerService(enabled)
   }
 
   override fun registerSaveState(
@@ -47,9 +58,7 @@ internal constructor(
         val s = state
 
         registry.registerProvider(KEY_CLICKS) { s.isPowerSettingsShortcutVisible.value }
-        registry.registerProvider(KEY_IGNORE) { s.isIgnoreInPowerSavingMode.value }
         registry.registerProvider(KEY_PREFERENCE) { s.isPowerSaving.value }
-        registry.registerProvider(KEY_PERMISSION) { s.permissionState.value.name }
       }
 
   override fun consumeRestoredState(registry: SaveableStateRegistry) {
@@ -61,26 +70,12 @@ internal constructor(
         ?.also { s.isPowerSettingsShortcutVisible.value = it }
 
     registry
-        .consumeRestored(KEY_IGNORE)
-        ?.let { it as Boolean }
-        ?.also { s.isIgnoreInPowerSavingMode.value = it }
-
-    registry
         .consumeRestored(KEY_PREFERENCE)
         ?.let { it as Boolean }
         ?.also { s.isPowerSaving.value = it }
-
-    registry
-        .consumeRestored(KEY_PERMISSION)
-        ?.let { it as String }
-        ?.let { HomeViewState.PermissionState.valueOf(it) }
-        ?.also { s.permissionState.value = it }
   }
 
-  fun beginWatching(
-      scope: CoroutineScope,
-      onChange: () -> Unit,
-  ) {
+  fun bind(scope: CoroutineScope) {
     val s = state
     if (s.loadingState.value != HomeViewState.LoadingState.NONE) {
       return
@@ -91,61 +86,49 @@ internal constructor(
     s.loadingState.value = HomeViewState.LoadingState.LOADING
     scope.launch(context = Dispatchers.Main) {
       preferences.observePowerSavingEnabled().collect { ps ->
-        state.isPowerSaving.value = ps
+        onPowerEnabledChanged(ps)
         if (s.loadingState.value == HomeViewState.LoadingState.LOADING) {
           config.isEnabled = true
           markLoadCompleted(config)
         }
-
-        onChange()
       }
     }
 
-    scope.launch(context = Dispatchers.Default) {
-      preferences.observeIgnoreInPowerSavingMode().collect { ignore ->
-        state.isIgnoreInPowerSavingMode.value = ignore
-        if (s.loadingState.value == HomeViewState.LoadingState.LOADING) {
-          config.isIgnore = true
-          markLoadCompleted(config)
+    restartClicks.also { f ->
+      scope.launch(context = Dispatchers.Default) {
+        f.collect { clicks ->
+          state.isPowerSettingsShortcutVisible.value = clicks >= RESTART_CLICK_REQUIRED_COUNT
         }
-
-        onChange()
       }
     }
   }
 
-  fun handleSync(
-      scope: CoroutineScope,
-      andThen: () -> Unit,
-  ) {
+  fun handleSync(scope: CoroutineScope) {
     val s = state
-    scope.launch(context = Dispatchers.Main) {
-      s.permissionState.value =
-          if (permissionChecker.hasSecureSettingsPermission()) HomeViewState.PermissionState.GRANTED
-          else HomeViewState.PermissionState.DENIED
-
+    scope.launch(context = Dispatchers.Default) {
       // Battery optimization
       s.isBatteryOptimizationsIgnored.value = batteryOptimizer.isOptimizationsIgnored()
 
-      // Finish
-      revealSettingsShortcut()
-      andThen()
+      // Notifications
+      s.hasNotificationPermission.value = notifyGuard.canPostNotification()
+
+      // Launch the power service
+      launchPowerService(s.isPowerSaving.value)
     }
   }
 
-  fun handleSetPowerSavingEnabled(scope: CoroutineScope, enabled: Boolean) {
+  fun handleSetPowerSavingEnabled(enabled: Boolean) {
     state.isPowerSaving.value = enabled
-    scope.launch(context = Dispatchers.Main) { preferences.setPowerSavingEnabled(enabled) }
+    preferences.setPowerSavingEnabled(enabled)
   }
 
-  fun handleSetIgnoreInPowerSavingMode(scope: CoroutineScope, ignore: Boolean) {
-    state.isIgnoreInPowerSavingMode.value = ignore
-    scope.launch(context = Dispatchers.Main) { preferences.setIgnoreInPowerSavingMode(ignore) }
-  }
-
-  fun handleRestartClicked() {
-    restartClicks += 1
-    revealSettingsShortcut()
+  fun handleRestartClicked(scope: CoroutineScope) {
+    restartClicks.update { it + 1 }
+    scope.launch(context = Dispatchers.Default) {
+      if (powerSaver.resetSystemPowerSavingState()) {
+        Timber.d("Power Setting Reset!")
+      }
+    }
   }
 
   fun handleOpenTroubleshooting() {
@@ -157,8 +140,6 @@ internal constructor(
     private const val RESTART_CLICK_REQUIRED_COUNT = 5
 
     private const val KEY_CLICKS = "restart_clicks"
-    private const val KEY_PERMISSION = "has_permission"
     private const val KEY_PREFERENCE = "preference_enabled"
-    private const val KEY_IGNORE = "ignore_power_saving_mode"
   }
 }

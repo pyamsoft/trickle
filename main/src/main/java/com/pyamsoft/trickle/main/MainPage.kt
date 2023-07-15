@@ -1,5 +1,5 @@
 package com.pyamsoft.trickle.main
 
-sealed class MainPage(val name: String) {
-  object Home : MainPage("Home")
+enum class MainPage(val displayName: String) {
+  HOME("Home")
 }

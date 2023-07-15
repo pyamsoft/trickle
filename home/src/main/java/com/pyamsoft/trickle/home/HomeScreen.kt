@@ -1,35 +1,44 @@
 package com.pyamsoft.trickle.home
 
 import android.os.Build
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.keylines
-import com.pyamsoft.trickle.ui.icons.renderPYDroidExtras
+import com.pyamsoft.trickle.ui.renderPYDroidExtras
+
+private enum class HomeContentTypes {
+  SPACER,
+  LOADING,
+  BOTTOM_SPACER,
+}
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     state: HomeViewState,
     appName: String,
-    hasNotificationPermission: Boolean,
+    hasPermission: Boolean,
     onTogglePowerSaving: (Boolean) -> Unit,
-    onToggleIgnoreInPowerSavingMode: (Boolean) -> Unit,
     onCopy: (String) -> Unit,
     onOpenBatterySettings: () -> Unit,
-    onOpenApplicationSettings: () -> Unit,
     onDisableBatteryOptimization: () -> Unit,
     onRestartPowerService: () -> Unit,
     onRestartApp: () -> Unit,
@@ -38,7 +47,6 @@ fun HomeScreen(
 ) {
   val showNotificationSettings = remember { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU }
 
-  val permissionState by state.permissionState.collectAsState()
   val loadingState by state.loadingState.collectAsState()
   val isTroubleshooting by state.isTroubleshooting.collectAsState()
 
@@ -46,26 +54,13 @@ fun HomeScreen(
       modifier = modifier,
   ) { pv ->
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = MaterialTheme.keylines.content),
+        contentPadding = PaddingValues(horizontal = MaterialTheme.keylines.content),
     ) {
-      item {
-        Spacer(
-            modifier =
-                Modifier.padding(pv).statusBarsPadding().height(MaterialTheme.keylines.content),
-        )
-      }
-
-      item {
-        Header(
-            modifier = Modifier.fillMaxWidth(),
-            appName = appName,
-            onOpenApplicationSettings = onOpenApplicationSettings,
-        )
-      }
-
       renderPYDroidExtras()
 
-      item {
+      item(
+          contentType = HomeContentTypes.SPACER,
+      ) {
         Spacer(
             modifier = Modifier.height(MaterialTheme.keylines.content),
         )
@@ -74,54 +69,45 @@ fun HomeScreen(
       when (loadingState) {
         HomeViewState.LoadingState.NONE,
         HomeViewState.LoadingState.LOADING -> {
-          item {
+          item(
+              contentType = HomeContentTypes.LOADING,
+          ) {
             Loading(
                 modifier = Modifier.fillMaxWidth(),
             )
           }
         }
         HomeViewState.LoadingState.DONE -> {
-          when (permissionState) {
-            HomeViewState.PermissionState.NONE -> {
-              item {
-                Loading(
-                    modifier = Modifier.fillMaxWidth(),
-                )
-              }
-            }
-            HomeViewState.PermissionState.GRANTED -> {
-              renderPowerSavingSettings(
-                  itemModifier = Modifier.fillMaxWidth(),
-                  appName = appName,
-                  state = state,
-                  showNotificationSettings = showNotificationSettings,
-                  isTroubleshooting = isTroubleshooting,
-                  hasNotificationPermission = hasNotificationPermission,
-                  onOpenBatterySettings = onOpenBatterySettings,
-                  onRestartPowerService = onRestartPowerService,
-                  onTogglePowerSaving = onTogglePowerSaving,
-                  onToggleIgnoreInPowerSavingMode = onToggleIgnoreInPowerSavingMode,
-                  onStartTroubleshooting = onOpenTroubleshooting,
-                  onDisableBatteryOptimization = onDisableBatteryOptimization,
-                  onRequestNotificationPermission = onRequestNotificationPermission,
-              )
-            }
-            HomeViewState.PermissionState.DENIED -> {
-              renderHomeSetupInstructions(
-                  itemModifier = Modifier.fillMaxWidth(),
-                  appName = appName,
-                  onCopy = onCopy,
-                  onRestartApp = onRestartApp,
-              )
-            }
+          if (hasPermission) {
+            renderPowerSavingSettings(
+                itemModifier = Modifier.fillMaxWidth(),
+                appName = appName,
+                state = state,
+                showNotificationSettings = showNotificationSettings,
+                isTroubleshooting = isTroubleshooting,
+                onOpenBatterySettings = onOpenBatterySettings,
+                onRestartPowerService = onRestartPowerService,
+                onTogglePowerSaving = onTogglePowerSaving,
+                onStartTroubleshooting = onOpenTroubleshooting,
+                onDisableBatteryOptimization = onDisableBatteryOptimization,
+                onRequestNotificationPermission = onRequestNotificationPermission,
+            )
+          } else {
+            renderHomeSetupInstructions(
+                itemModifier = Modifier.fillMaxWidth(),
+                appName = appName,
+                onCopy = onCopy,
+                onRestartApp = onRestartApp,
+            )
           }
         }
       }
 
-      item {
+      item(
+          contentType = HomeContentTypes.BOTTOM_SPACER,
+      ) {
         Spacer(
-            modifier =
-                Modifier.padding(pv).navigationBarsPadding().height(MaterialTheme.keylines.content),
+            modifier = Modifier.padding(pv).navigationBarsPadding(),
         )
       }
     }
@@ -132,63 +118,31 @@ fun HomeScreen(
 private fun Loading(
     modifier: Modifier = Modifier,
 ) {
+  val size = 64.dp
+
   Box(
       modifier = modifier.padding(MaterialTheme.keylines.content),
       contentAlignment = Alignment.Center,
   ) {
     CircularProgressIndicator(
-        modifier = Modifier.widthIn(min = 64.dp).heightIn(min = 64.dp),
+        modifier =
+            Modifier.sizeIn(
+                minWidth = size,
+                minHeight = size,
+            ),
     )
   }
 }
 
 @Composable
-private fun Header(
-    modifier: Modifier = Modifier,
-    appName: String,
-    onOpenApplicationSettings: () -> Unit,
-) {
-  Box(
-      modifier = modifier,
-      contentAlignment = Alignment.CenterEnd,
-  ) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-      Text(
-          modifier = Modifier.fillMaxWidth(),
-          textAlign = TextAlign.Center,
-          text = appName,
-          style =
-              MaterialTheme.typography.h4.copy(
-                  fontWeight = FontWeight.W700,
-              ),
-      )
-    }
-
-    IconButton(
-        modifier = Modifier.padding(start = MaterialTheme.keylines.content),
-        onClick = onOpenApplicationSettings,
-    ) {
-      Icon(
-          imageVector = Icons.Filled.Settings,
-          contentDescription = "Open Settings",
-      )
-    }
-  }
-}
-
-@Composable
-private fun PreviewHomeScreen(state: HomeViewState) {
+private fun PreviewHomeScreen(state: HomeViewState, hasPermission: Boolean) {
   HomeScreen(
       state = state,
       appName = "TEST",
-      hasNotificationPermission = false,
-      onToggleIgnoreInPowerSavingMode = {},
+      hasPermission = hasPermission,
       onOpenTroubleshooting = {},
       onTogglePowerSaving = {},
       onOpenBatterySettings = {},
-      onOpenApplicationSettings = {},
       onCopy = {},
       onRestartPowerService = {},
       onRestartApp = {},
@@ -201,21 +155,25 @@ private fun PreviewHomeScreen(state: HomeViewState) {
 @Composable
 private fun PreviewHomeScreenNoPermission() {
   PreviewHomeScreen(
-      state =
-          MutableHomeViewState().apply {
-            permissionState.value = HomeViewState.PermissionState.DENIED
-          },
+      hasPermission = false,
+      state = MutableHomeViewState(),
   )
 }
 
 @Preview
 @Composable
-private fun PreviewHomeScreenHasPermission() {
+private fun PreviewHomeScreenHasPermissionNoShortcut() {
   PreviewHomeScreen(
-      state =
-          MutableHomeViewState().apply {
-            permissionState.value = HomeViewState.PermissionState.GRANTED
-            isPowerSettingsShortcutVisible.value = true
-          },
+      hasPermission = true,
+      state = MutableHomeViewState().apply { isPowerSettingsShortcutVisible.value = false },
+  )
+}
+
+@Preview
+@Composable
+private fun PreviewHomeScreenHasPermissionWithShortcut() {
+  PreviewHomeScreen(
+      hasPermission = true,
+      state = MutableHomeViewState().apply { isPowerSettingsShortcutVisible.value = true },
   )
 }

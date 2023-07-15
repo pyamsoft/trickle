@@ -25,18 +25,19 @@ internal class Trickle : Application() {
             termsConditionsUrl = TERMS_CONDITIONS_URL,
             version = BuildConfig.VERSION_CODE,
             logger = createLogger(),
-            theme = TrickleThemeProvider,
         ),
     )
   }
 
   private fun installComponent(moduleProvider: ModuleProvider) {
+    val mods = moduleProvider.get()
     val component =
         DaggerTrickleComponent.factory()
             .create(
-                application = this,
                 debug = isDebugMode(),
-                theming = moduleProvider.get().theming(),
+                application = this,
+                theming = mods.theming(),
+                enforcer = mods.enforcer(),
             )
     ObjectGraph.ApplicationScope.install(this, component)
   }
@@ -56,7 +57,6 @@ internal class Trickle : Application() {
     installLogger()
     val modules = installPYDroid()
     installComponent(modules)
-
     addLibraries()
     ensureBootReceiverEnabled()
   }
@@ -65,11 +65,12 @@ internal class Trickle : Application() {
 
     @JvmStatic
     private fun addLibraries() {
-      // We are using pydroid-notify
-      OssLibraries.usingNotify = true
-
-      // We are using pydroid-autopsy
-      OssLibraries.usingAutopsy = true
+      OssLibraries.apply {
+        usingNotify = true
+        usingAutopsy = true
+        usingArch = true
+        usingUi = true
+      }
 
       OssLibraries.add(
           "Dagger",
@@ -78,9 +79,33 @@ internal class Trickle : Application() {
       )
 
       OssLibraries.add(
-          "Accompanist System UI Controller",
-          "https://google.github.io/accompanist/systemuicontroller/",
-          "System UI Controller provides easy-to-use utilities for updating the System UI bar colors within Jetpack Compose.",
+          "LeakCanary",
+          "https://github.com/square/leakcanary",
+          "A memory leak detection library for Android.",
+      )
+
+      OssLibraries.add(
+          "Timber",
+          "https://github.com/JakeWharton/timber",
+          "A logger with a small, extensible API which provides utility on top of Android's normal Log class.",
+      )
+
+      OssLibraries.add(
+          "KSP",
+          "https://github.com/google/ksp",
+          "Kotlin Symbol Processing API",
+      )
+
+      OssLibraries.add(
+          "AndroidX Appcompat",
+          "https://android.googlesource.com/platform/frameworks/support/+/refs/heads/androidx-main/appcompat/",
+          "AndroidX compatibility library for older versions of Android",
+      )
+
+      OssLibraries.add(
+          "AndroidX Activity Compose",
+          "https://android.googlesource.com/platform/frameworks/support/+/androidx-master-dev/activity/activity-compose",
+          "Jetpack Compose bridge for AndroidX Activity",
       )
     }
 

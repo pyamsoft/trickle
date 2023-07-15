@@ -1,11 +1,17 @@
 package com.pyamsoft.trickle.home
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.Checkbox
+import androidx.compose.material.ContentAlpha
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.pyamsoft.pydroid.ui.widget.ColoredMaterialCheckable
+import com.pyamsoft.pydroid.ui.haptics.LocalHapticManager
 
 @Composable
 internal fun HomeOption(
@@ -16,18 +22,45 @@ internal fun HomeOption(
     checked: Boolean,
     onChange: (Boolean) -> Unit,
 ) {
-  val colors = MaterialTheme.colors
-  val selectedColor = remember(colors) { colors.secondary }
+  val hapticManager = LocalHapticManager.current
 
-  ColoredMaterialCheckable(
+  Column(
       modifier = modifier,
-      isEditable = enabled,
-      condition = checked,
-      title = name,
-      description = description,
-      selectedColor = selectedColor,
-      onClick = { onChange(!checked) },
-  )
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+          modifier = Modifier.weight(1F),
+          text = name,
+          style = MaterialTheme.typography.h6,
+      )
+
+      Checkbox(
+          enabled = enabled,
+          checked = checked,
+          onCheckedChange = { newState ->
+            if (newState) {
+              hapticManager?.toggleOn()
+            } else {
+              hapticManager?.toggleOff()
+            }
+          },
+      )
+    }
+
+    Text(
+        text = description,
+        style =
+            MaterialTheme.typography.caption.copy(
+                color =
+                    MaterialTheme.colors.onBackground.copy(
+                        alpha = ContentAlpha.medium,
+                    ),
+            ),
+    )
+  }
 }
 
 @Composable
