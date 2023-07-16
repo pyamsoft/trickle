@@ -35,6 +35,11 @@ internal constructor(
   private fun markLoadCompleted(config: LoadConfig) {
     if (config.isEnabled) {
       state.loadingState.value = HomeViewState.LoadingState.DONE
+
+      // Launch now that we are loaded
+      // IF we launch before being load complete, then the
+      // value of state.isPowerSaving is inaccurate
+      launchPowerService(state.isPowerSaving.value)
     }
   }
 
@@ -112,8 +117,11 @@ internal constructor(
       // Notifications
       s.hasNotificationPermission.value = notifyGuard.canPostNotification()
 
-      // Launch the power service
-      launchPowerService(s.isPowerSaving.value)
+      // Launch the power service once we are loaded
+      // If we are not loaded, then s.isPowerSaving is inaccurate.
+      if (s.loadingState.value == HomeViewState.LoadingState.DONE) {
+        launchPowerService(s.isPowerSaving.value)
+      }
     }
   }
 
