@@ -115,21 +115,22 @@ internal constructor(
       return powerSavingError("CHANGE: Preference is disabled, cannot act")
     }
 
-    val isBeingOptimized = optimizer.isInPowerSavingMode()
+    if (enable) {
+      // Check charging status first, we may not do anything
+      val chargeStatus = charger.isCharging()
+      if (chargeStatus == BatteryCharge.State.UNKNOWN) {
+        Timber.w("Battery Charge state is UNKNOWN, do not act")
+        return powerSavingError("CHANGE: Battery Charge Status is UNKNOWN, cannot act")
+      }
 
-    // Check charging status first, we may not do anything
-    val chargeStatus = charger.isCharging()
-    return if (chargeStatus == BatteryCharge.State.UNKNOWN) {
-      Timber.w("Battery Charge state is UNKNOWN, do not act")
-      powerSavingError("CHANGE: Battery Charge Status is UNKNOWN, cannot act")
-    } else {
+      val isBeingOptimized = optimizer.isInPowerSavingMode()
       val isCharging = chargeStatus == BatteryCharge.State.CHARGING
-      if (enable)
-          attemptTurnOnPowerSaving(
-              isCharging = isCharging,
-              isBeingOptimized = isBeingOptimized,
-          )
-      else attemptTurnOffPowerSaving(force = force)
+      return attemptTurnOnPowerSaving(
+          isCharging = isCharging,
+          isBeingOptimized = isBeingOptimized,
+      )
+    } else {
+      return attemptTurnOffPowerSaving(force = force)
     }
   }
 
