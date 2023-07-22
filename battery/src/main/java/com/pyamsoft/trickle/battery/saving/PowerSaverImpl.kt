@@ -63,26 +63,29 @@ internal constructor(
       isBeingOptimized: Boolean,
   ): PowerSaver.State {
     if (isCharging) {
-      Timber.w("Cannot turn power saving ON when device is CHARGING")
-      return powerSavingError("ENABLE: Device is Charging, cannot act")
+      Timber.w("ENABLE: Cannot turn power saving ON when device is CHARGING")
+      return powerSavingError("ENABLE: Device is Charging, do not turn ON.")
     }
 
     if (isBeingOptimized) {
-      Timber.w("Cannot turn power saving ON when device is already POWER_SAVING")
-      return powerSavingError("ENABLE: Device is power_saving, cannot act")
+      Timber.w("ENABLE: Cannot turn power saving ON when device is already POWER_SAVING")
+      return powerSavingError("ENABLE: Device is power_saving, do not turn ON")
     }
 
     // If we pass all criteria, then we own the POWER_SAVING system status
     return if (shouldTogglePowerSaving.compareAndSet(expect = false, update = true)) {
       togglePowerSaving(enable = true)
     } else {
-      powerSavingError("ENABLE: We are already managing power, cannot act")
+      powerSavingError("ENABLE: We have already set the toggle flag!")
     }
   }
 
   @CheckResult
-  private fun attemptTurnOffPowerSaving(force: Boolean): PowerSaver.State {
-    val act: Boolean
+  private fun attemptTurnOffPowerSaving(
+      force: Boolean,
+      isCharging: Boolean,
+  ): PowerSaver.State {
+    var act: Boolean
     if (force) {
       Timber.w("DISABLE: Force Power Saving OFF")
       act = true
@@ -92,6 +95,13 @@ internal constructor(
     } else {
       // Only act if we own the POWER_SAVING status
       act = shouldTogglePowerSaving.compareAndSet(expect = true, update = false)
+
+      if (!act) {
+        if (isCharging) {
+          Timber.d("DISABLE: Always turn OFF power saving when device is charging")
+          act = true
+        }
+      }
     }
 
     return if (act) {
@@ -106,31 +116,36 @@ internal constructor(
       enable: Boolean,
   ): PowerSaver.State {
     if (!permissions.canManageSystemPower()) {
-      Timber.w("No power related work without WRITE_SECURE_SETTINGS permission")
+      Timber.w("Cannot change power_saving without WRITE_SECURE_SETTINGS permission")
       return powerSavingError("CHANGE: Missing WRITE_SECURE_SETTINGS permission")
     }
 
     if (!isManageSystemPowerEnabled()) {
-      Timber.w("Cannot turn power saving ON when preference disabled")
-      return powerSavingError("CHANGE: Preference is disabled, cannot act")
+      Timber.w("Cannot change power_saving when preference disabled")
+      return powerSavingError("CHANGE: Preference is disabled.")
     }
 
-    if (enable) {
-      // Check charging status first, we may not do anything
-      val chargeStatus = charger.isCharging()
-      if (chargeStatus == BatteryCharge.State.UNKNOWN) {
-        Timber.w("Battery Charge state is UNKNOWN, do not act")
-        return powerSavingError("CHANGE: Battery Charge Status is UNKNOWN, cannot act")
-      }
+    // Check charging status first, we may not do anything
+    val chargeStatus = charger.isCharging()
+    if (chargeStatus == BatteryCharge.State.UNKNOWN) {
+      Timber.w("Battery Charge state is UNKNOWN, do not act")
+      return powerSavingError("CHANGE: Battery Charge Status is UNKNOWN.")
+    }
+    val isCharging = chargeStatus == BatteryCharge.State.CHARGING
 
+    return if (enable) {
       val isBeingOptimized = optimizer.isInPowerSavingMode()
-      val isCharging = chargeStatus == BatteryCharge.State.CHARGING
-      return attemptTurnOnPowerSaving(
+      Timber.d("Attempt to turn power_saving ON")
+      attemptTurnOnPowerSaving(
           isCharging = isCharging,
           isBeingOptimized = isBeingOptimized,
       )
     } else {
-      return attemptTurnOffPowerSaving(force = force)
+      Timber.d("Attempt to turn power_saving OFF")
+      attemptTurnOffPowerSaving(
+          force = force,
+          isCharging = isCharging,
+      )
     }
   }
 
