@@ -52,6 +52,8 @@ class MainActivity : AppCompatActivity() {
 
                   override val changelog = buildChangeLog {
                     feature("Preliminary Android 14 (U) Support")
+                    feature("Add simple haptic feedback on actions")
+                    bugfix("Bring the phone out of power saving mode when it is charging.")
                     change(
                         "Reduce battery usage by no longer using a Foreground Service. To have the power saving service run all the time like it used to, enable the \"Always Alive\" option.")
                   }
