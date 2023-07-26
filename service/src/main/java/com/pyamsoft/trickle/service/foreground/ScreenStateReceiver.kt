@@ -7,7 +7,6 @@ import android.content.IntentFilter
 import androidx.core.content.ContextCompat
 import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.trickle.battery.PowerSaver
-import com.pyamsoft.trickle.core.suspendUntilCancel
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineName
@@ -15,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,8 +64,8 @@ internal constructor(
               )
             }
 
-            // Hold the coroutine "forever" until it is cancelled
-            suspendUntilCancel()
+            // And suspend until we are done
+            awaitCancellation()
           }
         } finally {
           withContext(context = NonCancellable) {

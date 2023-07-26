@@ -5,13 +5,13 @@ import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.pydroid.notify.Notifier
 import com.pyamsoft.pydroid.notify.NotifyChannelInfo
 import com.pyamsoft.pydroid.notify.toNotifyId
-import com.pyamsoft.trickle.core.suspendUntilCancel
 import com.pyamsoft.trickle.service.ServiceInternalApi
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -73,7 +73,7 @@ internal constructor(
               notify()
 
               // And suspend until we are done
-              suspendUntilCancel()
+              awaitCancellation()
             }
           } finally {
             withContext(context = NonCancellable) {
