@@ -19,6 +19,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -36,7 +38,7 @@ internal constructor(
         context = SupervisorJob() + Dispatchers.Default + CoroutineName(this::class.java.name),
     )
   }
-
+  private val mutex = Mutex()
   private val registered = MutableStateFlow(false)
 
   private fun unregister() {
@@ -80,24 +82,32 @@ internal constructor(
 
   private suspend fun handleScreenOff() =
       withContext(context = Dispatchers.Default + NonCancellable) {
-        // NonCancellable so we cannot have this operation stop partially done
-        Timber.d("SCREEN_OFF: Enable power_saving")
+        // Hold a mutex to make sure we don't have parallel operations
+        // when dealing with system Power settings
+        mutex.withLock {
+          // NonCancellable so we cannot have this operation stop partially done
+          Timber.d("SCREEN_OFF: Enable power_saving")
 
-        // Delay a bit so the system can catch up
-        delay(300L)
+          // Delay a bit so the system can catch up
+          delay(300L)
 
-        saver.setSystemPowerSaving(enable = true)
+          saver.setSystemPowerSaving(enable = true)
+        }
       }
 
   private suspend fun handleScreenOn() =
       withContext(context = Dispatchers.Default + NonCancellable) {
-        // NonCancellable so we cannot have this operation stop partially done
-        Timber.d("SCREEN_ON: Disable power_saving")
+        // Hold a mutex to make sure we don't have parallel operations
+        // when dealing with system Power settings
+        mutex.withLock {
+          // NonCancellable so we cannot have this operation stop partially done
+          Timber.d("SCREEN_ON: Disable power_saving")
 
-        // Delay a bit so the system can catch up
-        delay(300L)
+          // Delay a bit so the system can catch up
+          delay(300L)
 
-        saver.setSystemPowerSaving(enable = false)
+          saver.setSystemPowerSaving(enable = false)
+        }
       }
 
   override fun onReceive(context: Context, intent: Intent) {
