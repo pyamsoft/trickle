@@ -90,18 +90,15 @@ internal constructor(
       force: Boolean,
       isCharging: Boolean,
   ): PowerSaver.State {
-    var act: Boolean
-    if (force) {
-      Timber.w("DISABLE: Force Power Saving OFF")
-      act = true
+    // Only act if we own the POWER_SAVING status
+    var act = shouldTogglePowerSaving.compareAndSet(expect = true, update = false)
 
-      // Reset our internal flag
-      shouldTogglePowerSaving.value = false
-    } else {
-      // Only act if we own the POWER_SAVING status
-      act = shouldTogglePowerSaving.compareAndSet(expect = true, update = false)
-
-      if (!act) {
+    // If we were not flagged, but other special conditions exist
+    if (!act) {
+      if (force) {
+        Timber.w("DISABLE: Force Power Saving OFF")
+        act = true
+      } else {
         if (isCharging) {
           Timber.d("DISABLE: Always turn OFF power saving when device is charging")
           act = true
