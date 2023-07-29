@@ -33,8 +33,6 @@ fun Application.installLogger(
     scope: CoroutineScope,
     inAppDebugStatus: InAppDebugStatus,
 ) {
-  val self = this
-
   if (isDebugMode()) {
     Timber.plant(
         object : Timber.DebugTree() {
