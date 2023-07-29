@@ -62,6 +62,11 @@ internal constructor(
       isCharging: Boolean,
       isBeingOptimized: Boolean,
   ): PowerSaver.State {
+    // Always set the "owner" flag back to false
+    // We don't care about what any previous states were, we are only about the "last" screen
+    // off before the first screen on.
+    shouldTogglePowerSaving.value = false
+
     if (isCharging) {
       Timber.w("ENABLE: Cannot turn power saving ON when device is CHARGING")
       return powerSavingError("ENABLE: Device is Charging, do not turn ON.")
