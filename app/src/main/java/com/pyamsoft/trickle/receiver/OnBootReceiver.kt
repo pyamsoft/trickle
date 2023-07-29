@@ -21,6 +21,7 @@ import android.content.Context
 import android.content.Intent
 import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.battery.PowerPreferences
+import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.ServiceLauncher
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +30,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 internal class OnBootReceiver internal constructor() : BroadcastReceiver() {
 
@@ -43,24 +43,24 @@ internal class OnBootReceiver internal constructor() : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
     if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
       if (done.compareAndSet(expect = false, update = true)) {
-        Timber.d("Boot completed, check for service start!")
+        Timber.d { "Boot completed, check for service start!" }
 
         ObjectGraph.ApplicationScope.retrieve(context).inject(this)
         val p = preferences
         if (p == null) {
-          Timber.w("Could not start BootReceiver: preferences NULL after inject")
+          Timber.w { "Could not start BootReceiver: preferences NULL after inject" }
           return
         }
         val l = launcher
         if (l == null) {
-          Timber.w("Could not start BootReceiver: launcher NULL after inject")
+          Timber.w { "Could not start BootReceiver: launcher NULL after inject" }
           return
         }
 
         MainScope().launch(context = Dispatchers.Default) {
           if (p.observePowerSavingEnabled().first()) {
             withContext(context = Dispatchers.Main) {
-              Timber.d("Start service on boot")
+              Timber.d { "Start service on boot" }
               l.start()
             }
           }

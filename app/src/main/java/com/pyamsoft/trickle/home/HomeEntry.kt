@@ -21,12 +21,12 @@ import com.pyamsoft.pydroid.ui.inject.rememberComposableInjector
 import com.pyamsoft.pydroid.ui.util.LifecycleEventEffect
 import com.pyamsoft.pydroid.ui.util.rememberNotNull
 import com.pyamsoft.trickle.ObjectGraph
+import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.notification.PermissionRequests
 import javax.inject.Inject
 import kotlin.system.exitProcess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 internal class HomeInjector : ComposableInjector() {
 
@@ -101,7 +101,7 @@ fun HomeEntry(
     if (!safeOpenSettingsIntent(a, Settings.ACTION_BATTERY_SAVER_SETTINGS)) {
       if (!safeOpenSettingsIntent(a, Intent.ACTION_POWER_USAGE_SUMMARY)) {
         if (!safeOpenSettingsIntent(a, Settings.ACTION_SETTINGS)) {
-          Timber.w("Could not open any settings pages (battery, power-usage, settings)")
+          Timber.w { "Could not open any settings pages (battery, power-usage, settings)" }
         }
       }
     }
@@ -110,7 +110,7 @@ fun HomeEntry(
   val handleDisableBatteryOptimization by rememberUpdatedState {
     val a = activity.requireNotNull()
     if (!safeOpenSettingsIntent(a, Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) {
-      Timber.w("Failed to open Battery optimization settings")
+      Timber.w { "Failed to open Battery optimization settings" }
     }
   }
 
@@ -134,7 +134,7 @@ fun HomeEntry(
       onOpenBatterySettings = { handleOpenBatterySettings() },
       onRestartPowerService = { viewModel.handleRestartClicked(scope = scope) },
       onRestartApp = {
-        Timber.d("APP BEING KILLED FOR ADB RESTART")
+        Timber.d { "APP BEING KILLED FOR ADB RESTART" }
         exitProcess(0)
       },
       onTogglePowerSaving = { viewModel.handleSetPowerSavingEnabled(it) },

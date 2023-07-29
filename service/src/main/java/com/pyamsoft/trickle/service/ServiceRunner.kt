@@ -16,6 +16,7 @@
 
 package com.pyamsoft.trickle.service
 
+import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.foreground.ScreenReceiver
 import com.pyamsoft.trickle.service.notification.NotificationLauncher
 import javax.inject.Inject
@@ -27,7 +28,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 @Singleton
 class ServiceRunner
@@ -53,12 +53,12 @@ internal constructor(
       withContext(context = Dispatchers.Default) {
         if (runningState.compareAndSet(expect = false, update = true)) {
           try {
-            Timber.d("Starting runner!")
+            Timber.d { "Starting runner!" }
             coroutineScope { startPowerService() }
           } finally {
             withContext(context = NonCancellable) {
               if (runningState.compareAndSet(expect = true, update = false)) {
-                Timber.d("Stopping runner!")
+                Timber.d { "Stopping runner!" }
               }
             }
           }

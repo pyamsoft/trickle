@@ -18,11 +18,11 @@ import com.pyamsoft.pydroid.notify.NotifyChannelInfo
 import com.pyamsoft.pydroid.notify.NotifyData
 import com.pyamsoft.pydroid.notify.NotifyDispatcher
 import com.pyamsoft.pydroid.notify.NotifyId
+import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.R
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
-import timber.log.Timber
 
 @Singleton
 internal class ServiceDispatcher
@@ -55,7 +55,7 @@ internal constructor(
                 enableVibration(true)
               }
 
-      Timber.d("Create notification channel and group: ${channelInfo.id} ${channelInfo.title}")
+      Timber.d { "Create notification channel and group: ${channelInfo.id} ${channelInfo.title}" }
       channelCreator.apply {
         // Delete the group if it already exists with a bad group ID
         // Group ID and channel ID cannot match

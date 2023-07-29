@@ -9,6 +9,7 @@ import com.pyamsoft.trickle.battery.PowerSaver
 import com.pyamsoft.trickle.battery.charging.BatteryCharge
 import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.battery.permission.PermissionGuard
+import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,6 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 @Singleton
 internal class PowerSaverImpl
@@ -39,15 +39,15 @@ internal constructor(
     val value = if (enable) 1 else 0
 
     return try {
-      Timber.d("POWER_SAVING: Settings.Global.low_power=${value}")
+      Timber.d { "POWER_SAVING: Settings.Global.low_power=${value}" }
       if (Settings.Global.putInt(resolver, "low_power", value)) {
         if (enable) PowerSaver.State.Enabled else PowerSaver.State.Disabled
       } else {
-        Timber.w("POWER_SAVING: Failed to write Settings.Global.low_power $value")
+        Timber.w { "POWER_SAVING: Failed to write Settings.Global.low_power $value" }
         powerSavingError("POWER_SAVING: Failed to write Settings.Global.low_power")
       }
     } catch (e: Throwable) {
-      Timber.e(e, "Error writing settings global low_power $value")
+      Timber.e(e) { "Error writing settings global low_power $value" }
       PowerSaver.State.Failure(e)
     }
   }
@@ -68,12 +68,12 @@ internal constructor(
     shouldTogglePowerSaving.value = false
 
     if (isCharging) {
-      Timber.w("ENABLE: Cannot turn power saving ON when device is CHARGING")
+      Timber.w { "ENABLE: Cannot turn power saving ON when device is CHARGING" }
       return powerSavingError("ENABLE: Device is Charging, do not turn ON.")
     }
 
     if (isBeingOptimized) {
-      Timber.w("ENABLE: Cannot turn power saving ON when device is already POWER_SAVING")
+      Timber.w { "ENABLE: Cannot turn power saving ON when device is already POWER_SAVING" }
       return powerSavingError("ENABLE: Device is power_saving, do not turn ON")
     }
 
@@ -96,11 +96,11 @@ internal constructor(
     // If we were not flagged, but other special conditions exist
     if (!act) {
       if (force) {
-        Timber.w("DISABLE: Force Power Saving OFF")
+        Timber.w { "DISABLE: Force Power Saving OFF" }
         act = true
       } else {
         if (isCharging) {
-          Timber.d("DISABLE: Always turn OFF power saving when device is charging")
+          Timber.d { "DISABLE: Always turn OFF power saving when device is charging" }
           act = true
         }
       }
@@ -118,32 +118,32 @@ internal constructor(
       enable: Boolean,
   ): PowerSaver.State {
     if (!permissions.canManageSystemPower()) {
-      Timber.w("Cannot change power_saving without WRITE_SECURE_SETTINGS permission")
+      Timber.w { "Cannot change power_saving without WRITE_SECURE_SETTINGS permission" }
       return powerSavingError("CHANGE: Missing WRITE_SECURE_SETTINGS permission")
     }
 
     if (!isManageSystemPowerEnabled()) {
-      Timber.w("Cannot change power_saving when preference disabled")
+      Timber.w { "Cannot change power_saving when preference disabled" }
       return powerSavingError("CHANGE: Preference is disabled.")
     }
 
     // Check charging status first, we may not do anything
     val chargeStatus = charger.isCharging()
     if (chargeStatus == BatteryCharge.State.UNKNOWN) {
-      Timber.w("Battery Charge state is UNKNOWN, do not act")
+      Timber.w { "Battery Charge state is UNKNOWN, do not act" }
       return powerSavingError("CHANGE: Battery Charge Status is UNKNOWN.")
     }
     val isCharging = chargeStatus == BatteryCharge.State.CHARGING
 
     return if (enable) {
       val isBeingOptimized = optimizer.isInPowerSavingMode()
-      Timber.d("Attempt to turn power_saving ON")
+      Timber.d { "Attempt to turn power_saving ON" }
       attemptTurnOnPowerSaving(
           isCharging = isCharging,
           isBeingOptimized = isBeingOptimized,
       )
     } else {
-      Timber.d("Attempt to turn power_saving OFF")
+      Timber.d { "Attempt to turn power_saving OFF" }
       attemptTurnOffPowerSaving(
           force = force,
           isCharging = isCharging,

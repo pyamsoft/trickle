@@ -6,6 +6,7 @@ import android.os.IBinder
 import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.trickle.ObjectGraph
+import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -13,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class MonitorService : Service() {
 
@@ -44,7 +44,7 @@ class MonitorService : Service() {
   override fun onCreate() {
     super.onCreate()
     ObjectGraph.ApplicationScope.retrieve(this).plusServiceComponent().create().inject(this)
-    Timber.d("Creating service")
+    Timber.d { "Creating service" }
   }
 
   /**
@@ -61,7 +61,7 @@ class MonitorService : Service() {
 
   override fun onDestroy() {
     super.onDestroy()
-    Timber.d("Destroying service")
+    Timber.d { "Destroying service" }
 
     scope?.cancel()
 

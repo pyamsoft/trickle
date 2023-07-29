@@ -5,6 +5,7 @@ import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.pydroid.notify.Notifier
 import com.pyamsoft.pydroid.notify.NotifyChannelInfo
 import com.pyamsoft.pydroid.notify.toNotifyId
+import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.ServiceInternalApi
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,7 +17,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 @Singleton
 internal class NotificationLauncherImpl
@@ -32,7 +32,7 @@ internal constructor(
   private fun stop() {
     enforcer.assertOnMainThread()
 
-    Timber.d("Stop foreground notification")
+    Timber.d { "Stop foreground notification" }
     notifier.cancel(NOTIFICATION_ID)
   }
 
@@ -60,7 +60,7 @@ internal constructor(
                 channelInfo = CHANNEL_INFO,
                 notification = NotificationData,
             )
-            .also { Timber.d("Started foreground notification: $it") }
+            .also { Timber.d { "Started foreground notification: $it" } }
       }
 
   override suspend fun start() =

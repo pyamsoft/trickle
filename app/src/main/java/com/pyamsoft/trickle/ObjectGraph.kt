@@ -8,8 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.util.doOnDestroy
+import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.main.MainComponent
-import timber.log.Timber
 
 internal object ObjectGraph {
 
@@ -22,7 +22,7 @@ internal object ObjectGraph {
         component: TrickleComponent,
     ) {
       trackingMap[application] = component
-      Timber.d("Track ApplicationScoped install: $application $component")
+      Timber.d { "Track ApplicationScoped install: $application $component" }
     }
 
     @CheckResult
@@ -57,10 +57,10 @@ internal object ObjectGraph {
         component: MainComponent,
     ) {
       trackingMap[activity] = component
-      Timber.d("Track ActivityScoped install: $activity $component")
+      Timber.d { "Track ActivityScoped install: $activity $component" }
 
       activity.doOnDestroy {
-        Timber.d("Remove ActivityScoped graph onDestroy")
+        Timber.d { "Remove ActivityScoped graph onDestroy" }
         trackingMap.remove(activity)
       }
     }

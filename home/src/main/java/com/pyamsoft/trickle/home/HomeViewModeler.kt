@@ -6,6 +6,7 @@ import com.pyamsoft.pydroid.notify.NotifyGuard
 import com.pyamsoft.trickle.battery.PowerPreferences
 import com.pyamsoft.trickle.battery.PowerSaver
 import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
+import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.ServiceLauncher
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -13,7 +14,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class HomeViewModeler
 @Inject
@@ -134,7 +134,7 @@ internal constructor(
     restartClicks.update { it + 1 }
     scope.launch(context = Dispatchers.Default) {
       if (powerSaver.resetSystemPowerSavingState()) {
-        Timber.d("Power Setting Reset!")
+        Timber.d { "Power Setting Reset!" }
       }
     }
   }

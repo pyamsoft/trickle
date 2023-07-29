@@ -10,11 +10,15 @@ import com.pyamsoft.pydroid.ui.PYDroid
 import com.pyamsoft.pydroid.ui.installPYDroid
 import com.pyamsoft.pydroid.util.isDebugMode
 import com.pyamsoft.trickle.receiver.OnBootReceiver
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 internal class Trickle : Application() {
 
   @CheckResult
-  private fun installPYDroid(): ModuleProvider {
+  private fun initPYDroid(): ModuleProvider {
     val url = "https://github.com/pyamsoft/trickle"
 
     return installPYDroid(
@@ -54,8 +58,17 @@ internal class Trickle : Application() {
 
   override fun onCreate() {
     super.onCreate()
-    installLogger()
-    val modules = installPYDroid()
+    val modules = initPYDroid()
+
+    val scope =
+        CoroutineScope(
+            context = SupervisorJob() + Dispatchers.Default + CoroutineName(this::class.java.name),
+        )
+    installLogger(
+        scope = scope,
+        inAppDebugStatus = modules.get().inAppDebugStatus(),
+    )
+
     installComponent(modules)
     addLibraries()
     ensureBootReceiverEnabled()

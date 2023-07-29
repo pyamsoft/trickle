@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import androidx.core.content.ContextCompat
 import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.trickle.battery.PowerSaver
+import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineName
@@ -22,7 +23,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 @Singleton
 internal class ScreenStateReceiver
@@ -44,7 +44,7 @@ internal constructor(
   private fun unregister() {
     enforcer.assertOnMainThread()
 
-    Timber.d("Unregister Wifi Receiver")
+    Timber.d { "Unregister Wifi Receiver" }
     context.unregisterReceiver(this)
   }
 
@@ -57,7 +57,7 @@ internal constructor(
           // Hold this here until the coroutine is cancelled
           coroutineScope {
             withContext(context = Dispatchers.Main) {
-              Timber.d("Register Wifi Receiver")
+              Timber.d { "Register Wifi Receiver" }
               ContextCompat.registerReceiver(
                   context,
                   self,
@@ -86,7 +86,7 @@ internal constructor(
         // when dealing with system Power settings
         mutex.withLock {
           // NonCancellable so we cannot have this operation stop partially done
-          Timber.d("SCREEN_OFF: Enable power_saving")
+          Timber.d { "SCREEN_OFF: Enable power_saving" }
 
           // Delay a bit so the system can catch up
           delay(300L)
@@ -101,7 +101,7 @@ internal constructor(
         // when dealing with system Power settings
         mutex.withLock {
           // NonCancellable so we cannot have this operation stop partially done
-          Timber.d("SCREEN_ON: Disable power_saving")
+          Timber.d { "SCREEN_ON: Disable power_saving" }
 
           // Delay a bit so the system can catch up
           delay(300L)
@@ -120,7 +120,7 @@ internal constructor(
           Intent.ACTION_SCREEN_OFF -> handleScreenOff()
           Intent.ACTION_SCREEN_ON -> handleScreenOn()
           else -> {
-            Timber.w("Unhandled intent action: $action")
+            Timber.w { "Unhandled intent action: $action" }
           }
         }
       } finally {

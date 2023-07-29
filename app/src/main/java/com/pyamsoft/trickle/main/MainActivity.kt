@@ -22,13 +22,13 @@ import com.pyamsoft.pydroid.util.stableLayoutHideNavigation
 import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
+import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.notification.PermissionRequests
 import com.pyamsoft.trickle.service.notification.PermissionResponses
 import com.pyamsoft.trickle.ui.InstallPYDroidExtras
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
@@ -79,14 +79,14 @@ class MainActivity : AppCompatActivity() {
     notificationRequester =
         notificationPermissionRequester.requireNotNull().registerRequester(this) { granted ->
           if (granted) {
-            Timber.d("Notification permission granted")
+            Timber.d { "Notification permission granted" }
 
             // Broadcast in the background
             lifecycleScope.launch(context = Dispatchers.Default) {
               permissionResponseBus.requireNotNull().emit(PermissionResponses.Notification)
             }
           } else {
-            Timber.w("Notification permission not granted")
+            Timber.w { "Notification permission not granted" }
           }
         }
   }

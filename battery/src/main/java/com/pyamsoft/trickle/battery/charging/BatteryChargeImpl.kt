@@ -8,9 +8,9 @@ import androidx.annotation.CheckResult
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.pyamsoft.pydroid.core.requireNotNull
+import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 @Singleton
 internal class BatteryChargeImpl
@@ -43,7 +43,7 @@ internal constructor(
         )
 
     if (statusIntent == null) {
-      Timber.w("Battery Status Intent was null - we don't know the charging state")
+      Timber.w { "Battery Status Intent was null - we don't know the charging state" }
       return BatteryCharge.State.UNKNOWN
     }
 

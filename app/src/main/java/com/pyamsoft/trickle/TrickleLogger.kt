@@ -21,9 +21,13 @@ import androidx.annotation.CheckResult
 import com.pyamsoft.pydroid.core.PYDroidLogger
 import com.pyamsoft.pydroid.ui.debug.InAppDebugLogger.Companion.createInAppDebugLogger
 import com.pyamsoft.pydroid.util.isDebugMode
+import kotlinx.coroutines.CoroutineScope
 import timber.log.Timber
 
-fun Application.installLogger() {
+fun Application.installLogger(
+    scope: CoroutineScope,
+    inAppDebugStatus: InAppDebugStatus,
+) {
   val self = this
 
   if (isDebugMode()) {
@@ -36,17 +40,45 @@ fun Application.installLogger() {
     )
   }
 
-  // For optional in-app debug
-  Timber.plant(
-      object : Timber.Tree() {
+    observeInAppDebugLogger(
+        scope = scope,
+        inAppDebugStatus = inAppDebugStatus,
+    )
+}
 
-        private val logger = self.createInAppDebugLogger()
+private fun Application.observeInAppDebugLogger(
+    scope: CoroutineScope,
+    inAppDebugStatus: InAppDebugStatus,
+) {
+    val self = this
 
-        override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-          logger.log(priority, tag, message, t)
+    val tree =
+        object : Timber.Tree() {
+
+            private val logger by lazy { self.createInAppDebugLogger() }
+
+            override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                logger.log(priority, tag, message, t)
+            }
         }
-      },
-  )
+
+    val isPlanted = MutableStateFlow(false)
+    inAppDebugStatus.listenForInAppDebuggingEnabled().also { f ->
+        scope.launch(context = Dispatchers.Default) {
+            f.collect { enabled ->
+                if (enabled) {
+                    if (isPlanted.compareAndSet(expect = false, update = true)) {
+                        withContext(context = Dispatchers.Main) { Timber.plant(tree) }
+                    }
+                } else {
+                    if (isPlanted.compareAndSet(expect = true, update = false)) {
+                        withContext(context = Dispatchers.Main) { Timber.uproot(tree) }
+                    }
+                }
+            }
+        }
+    }
+}
 }
 
 @CheckResult

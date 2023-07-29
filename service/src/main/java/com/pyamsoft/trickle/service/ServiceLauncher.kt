@@ -4,9 +4,9 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import com.pyamsoft.trickle.battery.permission.PermissionGuard
+import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 @Singleton
 class ServiceLauncher
@@ -20,12 +20,12 @@ internal constructor(
   private val service by lazy(LazyThreadSafetyMode.NONE) { Intent(context, serviceClass) }
 
   private fun startService() {
-    Timber.d("Starting MonitoringService")
+    Timber.d { "Starting MonitoringService" }
     context.startService(service)
   }
 
   private fun stopService() {
-    Timber.d("Stopping MonitoringService")
+    Timber.d { "Stopping MonitoringService" }
     context.stopService(service)
   }
 
@@ -33,7 +33,8 @@ internal constructor(
     if (permission.canManageSystemPower()) {
       startService()
     } else {
-      Timber.w("Cannot start MonitoringService - missing Permission")
+      Timber.w { "Cannot start MonitoringService - missing Permission" }
+      stopService()
     }
   }
 

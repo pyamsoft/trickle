@@ -11,6 +11,7 @@ import com.pyamsoft.pydroid.util.preferenceIntFlow
 import com.pyamsoft.trickle.BuildConfig
 import com.pyamsoft.trickle.battery.PowerPreferences
 import com.pyamsoft.trickle.core.InAppRatingPreferences
+import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineName
@@ -21,7 +22,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @Singleton
 internal class PreferencesImpl
@@ -72,15 +72,16 @@ internal constructor(
           ) { appOpened, lastVersionShown ->
             enforcer.assertOffMainThread()
 
-            Timber.d(
-                "In app rating check: ${mapOf(
+            Timber.d {
+              "In app rating check: ${mapOf(
           "lastVersion" to lastVersionShown,
           "isAlreadyShown" to lastVersionShown.isInAppRatingAlreadyShown(),
           "appOpened" to appOpened,
-        )}")
+        )}"
+            }
 
             if (lastVersionShown.isInAppRatingAlreadyShown()) {
-              Timber.w("Already shown in-app rating for version: $lastVersionShown")
+              Timber.w { "Already shown in-app rating for version: $lastVersionShown" }
               emit(false)
             } else {
               val show = appOpened >= 5
