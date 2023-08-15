@@ -31,8 +31,6 @@ import com.pyamsoft.pydroid.util.PermissionRequester
 import com.pyamsoft.trickle.battery.BatteryAppModule
 import com.pyamsoft.trickle.battery.PowerPreferences
 import com.pyamsoft.trickle.core.InAppRatingPreferences
-import com.pyamsoft.trickle.service.notification.PermissionRequests
-import com.pyamsoft.trickle.service.notification.PermissionResponses
 import com.pyamsoft.trickle.main.MainActivity
 import com.pyamsoft.trickle.main.MainComponent
 import com.pyamsoft.trickle.preference.PreferencesImpl
@@ -40,6 +38,8 @@ import com.pyamsoft.trickle.receiver.OnBootReceiver
 import com.pyamsoft.trickle.service.MonitorService
 import com.pyamsoft.trickle.service.ServiceAppModule
 import com.pyamsoft.trickle.service.ServiceComponent
+import com.pyamsoft.trickle.service.notification.PermissionRequests
+import com.pyamsoft.trickle.service.notification.PermissionResponses
 import dagger.Binds
 import dagger.BindsInstance
 import dagger.Component

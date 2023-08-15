@@ -73,6 +73,7 @@ class MainActivity : AppCompatActivity() {
       }
     }
   }
+
   private fun registerToSendPermissionResults() {
     notificationRequester?.unregister()
     notificationRequester =

@@ -10,7 +10,9 @@ interface PowerSaver {
 
   sealed interface State {
     object Enabled : State
+
     object Disabled : State
+
     data class Failure(val throwable: Throwable) : State
   }
 }

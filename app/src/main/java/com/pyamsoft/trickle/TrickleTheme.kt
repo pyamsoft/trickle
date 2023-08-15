@@ -19,6 +19,7 @@ package com.pyamsoft.trickle
 import android.app.Activity
 import androidx.activity.ComponentActivity
 import androidx.annotation.CheckResult
+import androidx.appcompat.R
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Colors
@@ -34,12 +35,10 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.PYDroidTheme
 import com.pyamsoft.pydroid.theme.attributesFromCurrentTheme
-import com.pyamsoft.pydroid.ui.theme.Theming
-import androidx.appcompat.R
 import com.pyamsoft.pydroid.ui.app.LocalActivity
 import com.pyamsoft.pydroid.ui.haptics.LocalHapticManager
 import com.pyamsoft.pydroid.ui.haptics.rememberHapticManager
-
+import com.pyamsoft.pydroid.ui.theme.Theming
 
 @Composable
 @CheckResult
@@ -47,55 +46,55 @@ private fun themeColors(
     activity: Activity,
     isDarkMode: Boolean,
 ): Colors {
-    val colors =
-        remember(isDarkMode) {
-            activity.attributesFromCurrentTheme(
-                R.attr.colorPrimary,
-                R.attr.colorAccent,
-            )
-        }
-    val primary = colorResource(colors[0])
-    val secondary = colorResource(colors[1])
-    val white = colorResource(android.R.color.white)
+  val colors =
+      remember(isDarkMode) {
+        activity.attributesFromCurrentTheme(
+            R.attr.colorPrimary,
+            R.attr.colorAccent,
+        )
+      }
+  val primary = colorResource(colors[0])
+  val secondary = colorResource(colors[1])
+  val white = colorResource(android.R.color.white)
 
-    return remember(
-        isDarkMode,
-        primary,
-        secondary,
-        white,
-    ) {
-        if (isDarkMode)
-            darkColors(
-                primary = primary,
-                onPrimary = white,
-                secondary = secondary,
-                onSecondary = white,
-                // Must be specified for things like Switch color
-                primaryVariant = primary,
-                secondaryVariant = secondary,
-            )
-        else
-            lightColors(
-                primary = primary,
-                onPrimary = white,
-                secondary = secondary,
-                onSecondary = white,
-                // Must be specified for things like Switch color
-                primaryVariant = primary,
-                secondaryVariant = secondary,
-            )
-    }
+  return remember(
+      isDarkMode,
+      primary,
+      secondary,
+      white,
+  ) {
+    if (isDarkMode)
+        darkColors(
+            primary = primary,
+            onPrimary = white,
+            secondary = secondary,
+            onSecondary = white,
+            // Must be specified for things like Switch color
+            primaryVariant = primary,
+            secondaryVariant = secondary,
+        )
+    else
+        lightColors(
+            primary = primary,
+            onPrimary = white,
+            secondary = secondary,
+            onSecondary = white,
+            // Must be specified for things like Switch color
+            primaryVariant = primary,
+            secondaryVariant = secondary,
+        )
+  }
 }
 
 @Composable
 @CheckResult
 private fun themeShapes(): Shapes {
-    return remember {
-        Shapes(
-            // Don't use MaterialTheme here since we are defining the theme
-            medium = RoundedCornerShape(16.dp),
-        )
-    }
+  return remember {
+    Shapes(
+        // Don't use MaterialTheme here since we are defining the theme
+        medium = RoundedCornerShape(16.dp),
+    )
+  }
 }
 
 @Composable
@@ -103,44 +102,44 @@ fun ComponentActivity.TrickleTheme(
     theme: Theming.Mode,
     content: @Composable () -> Unit,
 ) {
-    val self = this
+  val self = this
 
-    val isDarkMode = theme.getSystemDarkMode()
-    val hapticManager = rememberHapticManager()
+  val isDarkMode = theme.getSystemDarkMode()
+  val hapticManager = rememberHapticManager()
 
-    PYDroidTheme(
-        colors = themeColors(self, isDarkMode),
-        shapes = themeShapes(),
-    ) {
-        CompositionLocalProvider(
-            // We update the LocalContentColor to match our onBackground. This allows the default
-            // content color to be more appropriate to the theme background
-            LocalContentColor provides MaterialTheme.colors.onBackground,
+  PYDroidTheme(
+      colors = themeColors(self, isDarkMode),
+      shapes = themeShapes(),
+  ) {
+    CompositionLocalProvider(
+        // We update the LocalContentColor to match our onBackground. This allows the default
+        // content color to be more appropriate to the theme background
+        LocalContentColor provides MaterialTheme.colors.onBackground,
 
-            // We provide the local haptic manager since PYDroid makes it optional
-            LocalHapticManager provides hapticManager,
+        // We provide the local haptic manager since PYDroid makes it optional
+        LocalHapticManager provides hapticManager,
 
-            // We provide the local Activity for performance optimization
-            LocalActivity provides self,
+        // We provide the local Activity for performance optimization
+        LocalActivity provides self,
 
-            // And the content, finally
-            content = content,
-        )
-    }
+        // And the content, finally
+        content = content,
+    )
+  }
 }
 
 @Composable
 @CheckResult
 fun Theming.Mode.getSystemDarkMode(): Boolean {
-    val self = this
-    val isDarkMode =
-        remember(self) {
-            when (self) {
-                Theming.Mode.LIGHT -> false
-                Theming.Mode.DARK -> true
-                Theming.Mode.SYSTEM -> null
-            }
+  val self = this
+  val isDarkMode =
+      remember(self) {
+        when (self) {
+          Theming.Mode.LIGHT -> false
+          Theming.Mode.DARK -> true
+          Theming.Mode.SYSTEM -> null
         }
+      }
 
-    return isDarkMode ?: isSystemInDarkTheme()
+  return isDarkMode ?: isSystemInDarkTheme()
 }
