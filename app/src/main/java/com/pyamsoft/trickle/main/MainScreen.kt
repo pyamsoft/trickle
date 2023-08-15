@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.pydroid.ui.haptics.LocalHapticManager
 import com.pyamsoft.trickle.home.HomeEntry
-import com.pyamsoft.trickle.settings.SettingsDialog
 
 @Composable
 internal fun MainScreen(
@@ -37,10 +36,8 @@ internal fun MainScreen(
     appName: String,
     state: MainViewState,
     onOpenSettings: () -> Unit,
-    onCloseSettings: () -> Unit,
 ) {
   val permission by state.permission.collectAsState()
-  val isSettingsOpen by state.isSettingsOpen.collectAsState()
 
   Scaffold(
       modifier = modifier.fillMaxSize(),
@@ -72,12 +69,6 @@ internal fun MainScreen(
         }
       }
     }
-  }
-
-  if (isSettingsOpen) {
-    SettingsDialog(
-        onDismiss = onCloseSettings,
-    )
   }
 }
 
@@ -149,6 +140,5 @@ private fun PreviewMainScreen() {
       appName = "TEST",
       state = MutableMainViewState(),
       onOpenSettings = {},
-      onCloseSettings = {},
   )
 }

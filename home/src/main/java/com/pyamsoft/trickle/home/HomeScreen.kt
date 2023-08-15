@@ -9,10 +9,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.trickle.ui.LANDSCAPE_MAX_WIDTH
 import com.pyamsoft.trickle.ui.renderPYDroidExtras
 
 private enum class HomeContentTypes {
@@ -50,66 +51,66 @@ fun HomeScreen(
   val loadingState by state.loadingState.collectAsState()
   val isTroubleshooting by state.isTroubleshooting.collectAsState()
 
-  Scaffold(
+  LazyColumn(
       modifier = modifier,
-  ) { pv ->
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = MaterialTheme.keylines.content),
+      contentPadding = PaddingValues(horizontal = MaterialTheme.keylines.content),
+      horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    renderPYDroidExtras(
+        modifier = Modifier.widthIn(max = LANDSCAPE_MAX_WIDTH),
+    )
+
+    item(
+        contentType = HomeContentTypes.SPACER,
     ) {
-      renderPYDroidExtras()
+      Spacer(
+          modifier = Modifier.height(MaterialTheme.keylines.content),
+      )
+    }
 
-      item(
-          contentType = HomeContentTypes.SPACER,
-      ) {
-        Spacer(
-            modifier = Modifier.height(MaterialTheme.keylines.content),
-        )
-      }
-
-      when (loadingState) {
-        HomeViewState.LoadingState.NONE,
-        HomeViewState.LoadingState.LOADING -> {
-          item(
-              contentType = HomeContentTypes.LOADING,
-          ) {
-            Loading(
-                modifier = Modifier.fillMaxWidth(),
-            )
-          }
-        }
-        HomeViewState.LoadingState.DONE -> {
-          if (hasPermission) {
-            renderPowerSavingSettings(
-                itemModifier = Modifier.fillMaxWidth(),
-                appName = appName,
-                state = state,
-                showNotificationSettings = showNotificationSettings,
-                isTroubleshooting = isTroubleshooting,
-                onOpenBatterySettings = onOpenBatterySettings,
-                onRestartPowerService = onRestartPowerService,
-                onTogglePowerSaving = onTogglePowerSaving,
-                onStartTroubleshooting = onOpenTroubleshooting,
-                onDisableBatteryOptimization = onDisableBatteryOptimization,
-                onRequestNotificationPermission = onRequestNotificationPermission,
-            )
-          } else {
-            renderHomeSetupInstructions(
-                itemModifier = Modifier.fillMaxWidth(),
-                appName = appName,
-                onCopy = onCopy,
-                onRestartApp = onRestartApp,
-            )
-          }
+    when (loadingState) {
+      HomeViewState.LoadingState.NONE,
+      HomeViewState.LoadingState.LOADING -> {
+        item(
+            contentType = HomeContentTypes.LOADING,
+        ) {
+          Loading(
+              modifier = Modifier.fillMaxWidth(),
+          )
         }
       }
-
-      item(
-          contentType = HomeContentTypes.BOTTOM_SPACER,
-      ) {
-        Spacer(
-            modifier = Modifier.padding(pv).navigationBarsPadding(),
-        )
+      HomeViewState.LoadingState.DONE -> {
+        if (hasPermission) {
+          renderPowerSavingSettings(
+              itemModifier = Modifier.widthIn(max = LANDSCAPE_MAX_WIDTH),
+              appName = appName,
+              state = state,
+              showNotificationSettings = showNotificationSettings,
+              isTroubleshooting = isTroubleshooting,
+              onOpenBatterySettings = onOpenBatterySettings,
+              onRestartPowerService = onRestartPowerService,
+              onTogglePowerSaving = onTogglePowerSaving,
+              onStartTroubleshooting = onOpenTroubleshooting,
+              onDisableBatteryOptimization = onDisableBatteryOptimization,
+              onRequestNotificationPermission = onRequestNotificationPermission,
+          )
+        } else {
+          renderHomeSetupInstructions(
+              itemModifier = Modifier.widthIn(max = LANDSCAPE_MAX_WIDTH),
+              appName = appName,
+              onCopy = onCopy,
+              onRestartApp = onRestartApp,
+          )
+        }
       }
+    }
+
+    item(
+        contentType = HomeContentTypes.BOTTOM_SPACER,
+    ) {
+      Spacer(
+          modifier = Modifier.navigationBarsPadding(),
+      )
     }
   }
 }
