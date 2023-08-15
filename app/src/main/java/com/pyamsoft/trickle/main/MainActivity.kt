@@ -53,8 +53,7 @@ class MainActivity : AppCompatActivity() {
                   override val applicationIcon = R.mipmap.ic_launcher
 
                   override val changelog = buildChangeLog {
-                    bugfix("Reduce time taken for on-device logging")
-                    bugfix("Properly capture and reset power saving status")
+                    change("More compact and readable screen usage in landscape mode")
                   }
                 },
         )
