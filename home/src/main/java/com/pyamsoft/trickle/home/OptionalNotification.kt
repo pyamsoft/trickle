@@ -3,7 +3,7 @@ package com.pyamsoft.trickle.home
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.MaterialTheme
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.pyamsoft.pydroid.theme.keylines
@@ -31,7 +31,7 @@ internal fun LazyListScope.renderNotificationSettings(
   item(
       contentType = NotificationTypes.OPTION,
   ) {
-    val hasPermission by state.hasNotificationPermission.collectAsState()
+    val hasPermission by state.hasNotificationPermission.collectAsStateWithLifecycle()
 
     HomeOption(
         modifier = itemModifier,

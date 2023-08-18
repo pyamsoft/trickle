@@ -17,7 +17,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -37,7 +37,7 @@ internal fun MainScreen(
     state: MainViewState,
     onOpenSettings: () -> Unit,
 ) {
-  val permission by state.permission.collectAsState()
+  val permission by state.permission.collectAsStateWithLifecycle()
 
   Scaffold(
       modifier = modifier.fillMaxSize(),

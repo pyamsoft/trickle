@@ -20,7 +20,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -56,7 +56,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
   item(
       contentType = PowerContentTypes.MAIN_SWITCH,
   ) {
-    val isPowerSaving by state.isPowerSaving.collectAsState()
+    val isPowerSaving by state.isPowerSaving.collectAsStateWithLifecycle()
 
     HomeMainSwitch(
         modifier = itemModifier.padding(bottom = MaterialTheme.keylines.content * 2),
@@ -69,8 +69,8 @@ internal fun LazyListScope.renderPowerSavingSettings(
       contentType = PowerContentTypes.STAY_ALIVE,
   ) {
     val hapticManager = LocalHapticManager.current
-    val isPowerSaving by state.isPowerSaving.collectAsState()
-    val isBatteryOptimizationsIgnored by state.isBatteryOptimizationsIgnored.collectAsState()
+    val isPowerSaving by state.isPowerSaving.collectAsStateWithLifecycle()
+    val isBatteryOptimizationsIgnored by state.isBatteryOptimizationsIgnored.collectAsStateWithLifecycle()
 
     val enabled =
         remember(
@@ -233,7 +233,7 @@ private fun LazyListScope.renderTroubleshooting(
   item(
       contentType = TroubleshootingTypes.SHORTCUT,
   ) {
-    val isVisible by state.isPowerSettingsShortcutVisible.collectAsState()
+    val isVisible by state.isPowerSettingsShortcutVisible.collectAsStateWithLifecycle()
 
     AnimatedVisibility(
         visible = isVisible,

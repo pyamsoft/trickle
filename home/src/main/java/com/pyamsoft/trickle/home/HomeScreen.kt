@@ -14,7 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -48,8 +48,8 @@ fun HomeScreen(
 ) {
   val showNotificationSettings = remember { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU }
 
-  val loadingState by state.loadingState.collectAsState()
-  val isTroubleshooting by state.isTroubleshooting.collectAsState()
+  val loadingState by state.loadingState.collectAsStateWithLifecycle()
+  val isTroubleshooting by state.isTroubleshooting.collectAsStateWithLifecycle()
 
   LazyColumn(
       modifier = modifier,

@@ -53,6 +53,8 @@ dependencies {
 
   kapt("com.google.dagger:dagger-compiler:${rootProject.extra["dagger"]}")
 
+  api("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
+
   // Compose
   api("androidx.compose.ui:ui:${rootProject.extra["compose"]}")
   api("androidx.compose.animation:animation:${rootProject.extra["compose"]}")

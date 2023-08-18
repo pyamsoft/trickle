@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -89,7 +89,7 @@ fun MainEntry(
       onOpenSettings = { viewModel.handleOpenSettings() },
   )
 
-  val isSettingsOpen by viewModel.isSettingsOpen.collectAsState()
+  val isSettingsOpen by viewModel.isSettingsOpen.collectAsStateWithLifecycle()
   if (isSettingsOpen) {
     SettingsDialog(
         modifier =
