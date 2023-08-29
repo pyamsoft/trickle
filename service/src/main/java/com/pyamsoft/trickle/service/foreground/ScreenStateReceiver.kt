@@ -81,32 +81,36 @@ internal constructor(
   }
 
   private suspend fun handleScreenOff() =
-      withContext(context = Dispatchers.Default + NonCancellable) {
-        // Hold a mutex to make sure we don't have parallel operations
-        // when dealing with system Power settings
-        mutex.withLock {
-          // NonCancellable so we cannot have this operation stop partially done
-          Timber.d { "SCREEN_OFF: Enable power_saving" }
+      withContext(context = Dispatchers.Default) {
+        // NonCancellable so we cannot have this operation stop partially done
+        withContext(context = NonCancellable) {
+          mutex.withLock {
+            // Hold a mutex to make sure we don't have parallel operations
+            // when dealing with system Power settings
+            Timber.d { "SCREEN_OFF: Enable power_saving" }
 
-          // Delay a bit so the system can catch up
-          delay(300L)
+            // Delay a bit so the system can catch up
+            delay(300L)
 
-          saver.setSystemPowerSaving(enable = true)
+            saver.setSystemPowerSaving(enable = true)
+          }
         }
       }
 
   private suspend fun handleScreenOn() =
-      withContext(context = Dispatchers.Default + NonCancellable) {
-        // Hold a mutex to make sure we don't have parallel operations
-        // when dealing with system Power settings
-        mutex.withLock {
-          // NonCancellable so we cannot have this operation stop partially done
-          Timber.d { "SCREEN_ON: Disable power_saving" }
+      withContext(context = Dispatchers.Default) {
+        // NonCancellable so we cannot have this operation stop partially done
+        withContext(context = NonCancellable) {
+          mutex.withLock {
+            // Hold a mutex to make sure we don't have parallel operations
+            // when dealing with system Power settings
+            Timber.d { "SCREEN_ON: Disable power_saving" }
 
-          // Delay a bit so the system can catch up
-          delay(300L)
+            // Delay a bit so the system can catch up
+            delay(300L)
 
-          saver.setSystemPowerSaving(enable = false)
+            saver.setSystemPowerSaving(enable = false)
+          }
         }
       }
 

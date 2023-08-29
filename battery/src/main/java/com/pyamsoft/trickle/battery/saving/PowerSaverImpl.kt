@@ -152,29 +152,33 @@ internal constructor(
   }
 
   override suspend fun setSystemPowerSaving(enable: Boolean): PowerSaver.State =
-      withContext(
-          // Since this is dealing with a Android OS system state, we ensure this operation can
-          // never be cancelled until it is completed
-          context = Dispatchers.Default + NonCancellable) {
-            changeSystemPowerSaving(
-                force = false,
-                enable = enable,
-            )
-          }
+      withContext(context = Dispatchers.Default) {
+        // Since this is dealing with a Android OS system state, we ensure this operation can
+        // never be cancelled until it is completed
+        val state =
+            withContext(context = NonCancellable) {
+              changeSystemPowerSaving(
+                  force = false,
+                  enable = enable,
+              )
+            }
+
+        return@withContext state
+      }
 
   override suspend fun resetSystemPowerSavingState(): Boolean =
-      withContext(
-          // Since this is dealing with a Android OS system state, we ensure this operation can
-          // never be cancelled until it is completed
-          context = Dispatchers.Default + NonCancellable) {
-            // Force power saving OFF
-            val state =
-                changeSystemPowerSaving(
-                    force = true,
-                    enable = false,
-                )
-            return@withContext state == PowerSaver.State.Disabled
-          }
+      withContext(context = Dispatchers.Default) {
+        // Since this is dealing with a Android OS system state, we ensure this operation can
+        // never be cancelled until it is completed
+        val state =
+            withContext(context = NonCancellable) {
+              changeSystemPowerSaving(
+                  force = true,
+                  enable = false,
+              )
+            }
+        return@withContext state == PowerSaver.State.Disabled
+      }
 
   companion object {
 
