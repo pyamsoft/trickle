@@ -56,10 +56,10 @@ android {
       storePassword = "android"
     }
     create("release") {
-      storeFile = file(project.findProperty("BUNDLE_STORE_FILE")?.toString() ?: "CANNOT BUILD")
-      keyAlias = project.findProperty("BUNDLE_KEY_ALIAS")?.toString() ?: "CANNOT BUILD"
-      keyPassword = project.findProperty("BUNDLE_KEY_PASSWD")?.toString() ?: "CANNOT BUILD"
-      storePassword = project.findProperty("BUNDLE_STORE_PASSWD")?.toString() ?: "CANNOT BUILD"
+      storeFile = file("debug.keystore")
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
+      storePassword = "android"
     }
   }
 
