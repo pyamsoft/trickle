@@ -53,7 +53,7 @@ class MainActivity : AppCompatActivity() {
                   override val applicationIcon = R.mipmap.ic_launcher
 
                   override val changelog = buildChangeLog {
-                    change("More compact and readable screen usage in landscape mode")
+                    change("Tip Jar popup is less frequent")
                   }
                 },
         )

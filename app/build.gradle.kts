@@ -27,8 +27,8 @@ android {
   defaultConfig {
     applicationId = "com.pyamsoft.trickle"
 
-    versionCode = 26
-    versionName = "20230828-1"
+    versionCode = 27
+    versionName = "20230930-1"
 
     minSdk = rootProject.extra["minSdk"] as Int
     targetSdk = rootProject.extra["targetSdk"] as Int
