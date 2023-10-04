@@ -78,9 +78,17 @@ private fun MountHooks(
 
   SaveStateDisposableEffect(viewModeler)
 
-  LaunchedEffect(viewModeler) { viewModeler.bind(scope = this) }
+  LaunchedEffect(
+      viewModeler,
+  ) {
+    viewModeler.bind(scope = this)
+  }
 
-  LifecycleEventEffect(event = Lifecycle.Event.ON_RESUME) { viewModeler.handleSync(scope = scope) }
+  LifecycleEventEffect(
+      event = Lifecycle.Event.ON_RESUME,
+  ) {
+    viewModeler.handleSync(scope = scope)
+  }
 }
 
 @Composable
