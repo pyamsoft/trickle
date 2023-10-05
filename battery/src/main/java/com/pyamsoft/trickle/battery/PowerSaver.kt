@@ -9,9 +9,9 @@ interface PowerSaver {
   @CheckResult suspend fun resetSystemPowerSavingState(): Boolean
 
   sealed interface State {
-    object Enabled : State
+    data object Enabled : State
 
-    object Disabled : State
+    data object Disabled : State
 
     data class Failure(val throwable: Throwable) : State
   }
