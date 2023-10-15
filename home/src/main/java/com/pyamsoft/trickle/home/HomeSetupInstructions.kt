@@ -41,7 +41,7 @@ import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.pydroid.ui.defaults.CardDefaults
 import com.pyamsoft.pydroid.ui.haptics.LocalHapticManager
 import com.pyamsoft.pydroid.ui.theme.ZeroSize
-import com.pyamsoft.pydroid.ui.uri.LocalExternalUriHandler
+import com.pyamsoft.pydroid.ui.uri.rememberUriHandler
 import com.pyamsoft.trickle.ui.icons.Devices
 import com.pyamsoft.trickle.ui.icons.PhoneAndroid
 
@@ -216,7 +216,7 @@ private fun DownloadAdb(
       }
     }
 
-    val uriHandler = LocalExternalUriHandler.current
+    val uriHandler = rememberUriHandler()
     ClickableText(
         text = text,
         style = MaterialTheme.typography.body1,
@@ -278,7 +278,7 @@ private fun EnableDeveloperSettings(
       }
     }
 
-    val uriHandler = LocalExternalUriHandler.current
+    val uriHandler = rememberUriHandler()
     ClickableText(
         text = text,
         style = MaterialTheme.typography.body1,
