@@ -44,7 +44,7 @@ internal constructor(
   private fun unregister() {
     enforcer.assertOnMainThread()
 
-    Timber.d { "Unregister Wifi Receiver" }
+    Timber.d { "Unregister Screen Receiver" }
     context.unregisterReceiver(this)
   }
 
@@ -57,7 +57,7 @@ internal constructor(
           // Hold this here until the coroutine is cancelled
           coroutineScope {
             withContext(context = Dispatchers.Main) {
-              Timber.d { "Register Wifi Receiver" }
+              Timber.d { "Register Screen Receiver" }
               ContextCompat.registerReceiver(
                   context,
                   self,
