@@ -3,7 +3,6 @@ package com.pyamsoft.trickle.battery
 import androidx.annotation.CheckResult
 import com.pyamsoft.trickle.battery.charging.BatteryCharge
 import com.pyamsoft.trickle.battery.charging.BatteryChargeImpl
-import com.pyamsoft.trickle.battery.doze.ForceDozeSaver
 import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.battery.optimize.BatteryOptimizerImpl
 import com.pyamsoft.trickle.battery.permission.PermissionGuard
@@ -32,11 +31,6 @@ abstract class BatteryAppModule {
   @IntoSet
   @CheckResult
   internal abstract fun bindSystemLowPowerSaver(impl: SystemLowPowerSaver): PowerSaver
-
-  @Binds
-  @IntoSet
-  @CheckResult
-  internal abstract fun bindForceDozePowerSaver(impl: ForceDozeSaver): PowerSaver
 
   @Binds
   @CheckResult
