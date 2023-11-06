@@ -11,18 +11,16 @@ internal constructor(
     private val savers: MutableSet<@JvmSuppressWildcards PowerSaver>,
 ) : PowerSaverManager {
 
-  override suspend fun runPowerSavers(enable: Boolean) {
+  override suspend fun savePower(enable: Boolean) {
     savers.forEach { saver ->
-      val result = saver.setSystemPowerSaving(enable = enable)
+      val result = saver.savePower(enable = enable)
       Timber.d { "${saver.name} RESULT: $result" }
     }
   }
 
-  override suspend fun resetSystemPowerSavingState(): Boolean {
+  override suspend fun reset(): Boolean {
     return savers
-        .map { saver ->
-          saver.resetSystemPowerSavingState().also { Timber.d { "${saver.name} RESET: $it" } }
-        }
+        .map { saver -> saver.reset().also { Timber.d { "${saver.name} RESET: $it" } } }
         .any { it }
   }
 }

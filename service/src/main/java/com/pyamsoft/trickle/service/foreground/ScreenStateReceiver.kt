@@ -92,7 +92,7 @@ internal constructor(
             // Delay a bit so the system can catch up
             delay(300L)
 
-            saverManager.runPowerSavers(enable = true)
+            saverManager.savePower(enable = true)
           }
         }
       }
@@ -109,7 +109,7 @@ internal constructor(
             // Delay a bit so the system can catch up
             delay(300L)
 
-            saverManager.runPowerSavers(enable = false)
+            saverManager.savePower(enable = false)
           }
         }
       }

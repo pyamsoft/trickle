@@ -1,4 +1,4 @@
-package com.pyamsoft.trickle.battery.saving
+package com.pyamsoft.trickle.battery.saver
 
 import android.content.Context
 import android.provider.Settings
@@ -61,7 +61,7 @@ internal constructor(
     return preferences.observePowerSavingEnabled().first()
   }
 
-  override suspend fun attemptTurnOnSaver(isCharging: Boolean): PowerSaver.State {
+  override suspend fun saveOn(isCharging: Boolean): PowerSaver.State {
     val isBeingOptimized = optimizer.isInPowerSavingMode()
     // Always set the "owner" flag back to false
     // We don't care about what any previous states were, we are only about the "last" screen
@@ -86,7 +86,7 @@ internal constructor(
     }
   }
 
-  override suspend fun attemptTurnOffSaver(
+  override suspend fun saveOff(
       force: Boolean,
       isCharging: Boolean,
   ): PowerSaver.State {

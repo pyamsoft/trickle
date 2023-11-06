@@ -133,7 +133,7 @@ internal constructor(
   fun handleRestartClicked(scope: CoroutineScope) {
     restartClicks.update { it + 1 }
     scope.launch(context = Dispatchers.Default) {
-      if (saverManager.resetSystemPowerSavingState()) {
+      if (saverManager.reset()) {
         Timber.d { "Power Setting Reset!" }
       }
     }

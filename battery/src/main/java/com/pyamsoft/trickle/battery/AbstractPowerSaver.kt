@@ -12,7 +12,8 @@ protected constructor(
     private val charger: BatteryCharge,
 ) : PowerSaver {
 
-  private suspend fun changeSystemPowerSaving(
+  @CheckResult
+  private suspend fun runPowerSaver(
       force: Boolean,
       enable: Boolean,
   ): PowerSaver.State {
@@ -35,11 +36,11 @@ protected constructor(
     val isCharging = chargeStatus == BatteryCharge.State.CHARGING
 
     return if (enable) {
-      attemptTurnOnSaver(
+      saveOn(
           isCharging = isCharging,
       )
     } else {
-      attemptTurnOffSaver(
+      saveOff(
           force = force,
           isCharging = isCharging,
       )
@@ -51,13 +52,13 @@ protected constructor(
     return PowerSaver.State.Failure(RuntimeException(message))
   }
 
-  final override suspend fun setSystemPowerSaving(enable: Boolean): PowerSaver.State =
+  final override suspend fun savePower(enable: Boolean): PowerSaver.State =
       withContext(context = Dispatchers.Default) {
         // Since this is dealing with a Android OS system state, we ensure this operation can
         // never be cancelled until it is completed
         val state =
             withContext(context = NonCancellable) {
-              changeSystemPowerSaving(
+              runPowerSaver(
                   force = false,
                   enable = enable,
               )
@@ -66,13 +67,13 @@ protected constructor(
         return@withContext state
       }
 
-  final override suspend fun resetSystemPowerSavingState(): Boolean =
+  final override suspend fun reset(): Boolean =
       withContext(context = Dispatchers.Default) {
         // Since this is dealing with a Android OS system state, we ensure this operation can
         // never be cancelled until it is completed
         val state =
             withContext(context = NonCancellable) {
-              changeSystemPowerSaving(
+              runPowerSaver(
                   force = true,
                   enable = false,
               )
@@ -84,11 +85,10 @@ protected constructor(
 
   @CheckResult protected abstract suspend fun isEnabled(): Boolean
 
-  @CheckResult
-  protected abstract suspend fun attemptTurnOnSaver(isCharging: Boolean): PowerSaver.State
+  @CheckResult protected abstract suspend fun saveOn(isCharging: Boolean): PowerSaver.State
 
   @CheckResult
-  protected abstract suspend fun attemptTurnOffSaver(
+  protected abstract suspend fun saveOff(
       force: Boolean,
       isCharging: Boolean,
   ): PowerSaver.State
