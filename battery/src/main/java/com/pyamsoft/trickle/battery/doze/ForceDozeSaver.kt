@@ -19,7 +19,7 @@ private const val DOZE_ON =
     "inactive_to=600000,light_after_inactive_to=300000,idle_after_inactive_to=5100,sensing_to=5100,locating_to=5100,location_accuracy=10000"
 
 @Singleton
-internal class ForceDozeImpl
+internal class ForceDozeSaver
 @Inject
 internal constructor(
     private val context: Context,
@@ -40,15 +40,15 @@ internal constructor(
   private fun toggleForceDoze(enable: Boolean): PowerSaver.State {
     val value = if (enable) DOZE_ON else null
     return try {
-      Timber.d { "DOZE: Settings.Global.device_idl_constants=${value}" }
+      Timber.d { "$name: Settings.Global.device_idl_constants=${value}" }
       if (Settings.Global.putString(resolver, "device_idle_constants", value)) {
         if (enable) PowerSaver.State.Enabled else PowerSaver.State.Disabled
       } else {
-        Timber.w { "DOZE: Failed to write Settings.Global.device_idle_constants $value" }
-        powerSavingError("POWER_SAVING: Failed to write Settings.Global.device_idle_constants")
+        Timber.w { "$name: Failed to write Settings.Global.device_idle_constants $value" }
+        powerSavingError("$name: Failed to write Settings.Global.device_idle_constants")
       }
     } catch (e: Throwable) {
-      Timber.e(e) { "DOZE: Error writing settings global device_idle_constants $value" }
+      Timber.e(e) { "$name: Error writing settings global device_idle_constants $value" }
       PowerSaver.State.Failure(e)
     }
   }
@@ -70,15 +70,15 @@ internal constructor(
     shouldToggleDoze.value = false
 
     if (isCharging) {
-      Timber.w { "DOZE ENABLE: Cannot turn doze ON when device is CHARGING" }
-      return powerSavingError("DOZE ENABLE: Device is Charging, do not turn ON.")
+      Timber.w { "$name ENABLE: Cannot turn doze ON when device is CHARGING" }
+      return powerSavingError("$name ENABLE: Device is Charging, do not turn ON.")
     }
 
     // If we pass all criteria, then we own the POWER_SAVING system status
     return if (shouldToggleDoze.compareAndSet(expect = false, update = true)) {
       toggleForceDoze(enable = true)
     } else {
-      powerSavingError("DOZE ENABLE: We have already set the toggle flag!")
+      powerSavingError("$name ENABLE: We have already set the toggle flag!")
     }
   }
 
@@ -92,11 +92,11 @@ internal constructor(
     // If we were not flagged, but other special conditions exist
     if (!act) {
       if (force) {
-        Timber.w { "DOZE DISABLE: Force DOZE OFF" }
+        Timber.w { "$name DISABLE: Force DOZE OFF" }
         act = true
       } else {
         if (isCharging) {
-          Timber.d { "DOZE DISABLE: Always turn OFF DOZE when device is charging" }
+          Timber.d { "$name DISABLE: Always turn OFF DOZE when device is charging" }
           act = true
         }
       }
@@ -105,7 +105,9 @@ internal constructor(
     return if (act) {
       toggleForceDoze(enable = false)
     } else {
-      powerSavingError("DOZE DISABLE: We are not managing power, cannot act")
+      powerSavingError("$name DISABLE: We are not managing power, cannot act")
     }
   }
+
+  override val name = "FORCE_DOZE"
 }

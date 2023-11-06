@@ -5,6 +5,7 @@ import com.pyamsoft.pydroid.arch.AbstractViewModeler
 import com.pyamsoft.pydroid.notify.NotifyGuard
 import com.pyamsoft.trickle.battery.PowerPreferences
 import com.pyamsoft.trickle.battery.PowerSaver
+import com.pyamsoft.trickle.battery.PowerSaverManager
 import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.ServiceLauncher
@@ -23,7 +24,7 @@ internal constructor(
     private val batteryOptimizer: BatteryOptimizer,
     private val notifyGuard: NotifyGuard,
     private val launcher: ServiceLauncher,
-    private val powerSaver: PowerSaver,
+    private val saverManager: PowerSaverManager,
 ) : HomeViewState by state, AbstractViewModeler<HomeViewState>(state) {
 
   private val restartClicks = MutableStateFlow(0)
@@ -133,7 +134,7 @@ internal constructor(
   fun handleRestartClicked(scope: CoroutineScope) {
     restartClicks.update { it + 1 }
     scope.launch(context = Dispatchers.Default) {
-      if (powerSaver.resetSystemPowerSavingState()) {
+      if (saverManager.resetSystemPowerSavingState()) {
         Timber.d { "Power Setting Reset!" }
       }
     }

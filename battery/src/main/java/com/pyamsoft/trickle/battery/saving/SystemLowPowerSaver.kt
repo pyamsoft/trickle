@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 
 @Singleton
-internal class PowerSaverImpl
+internal class SystemLowPowerSaver
 @Inject
 internal constructor(
     private val context: Context,
@@ -40,15 +40,15 @@ internal constructor(
     val value = if (enable) 1 else 0
 
     return try {
-      Timber.d { "POWER_SAVING: Settings.Global.low_power=${value}" }
+      Timber.d { "$name: Settings.Global.low_power=${value}" }
       if (Settings.Global.putInt(resolver, "low_power", value)) {
         if (enable) PowerSaver.State.Enabled else PowerSaver.State.Disabled
       } else {
-        Timber.w { "POWER_SAVING: Failed to write Settings.Global.low_power $value" }
-        powerSavingError("POWER_SAVING: Failed to write Settings.Global.low_power")
+        Timber.w { "$name: Failed to write Settings.Global.low_power $value" }
+        powerSavingError("$name: Failed to write Settings.Global.low_power")
       }
     } catch (e: Throwable) {
-      Timber.e(e) { "POWER_SAVING: Error writing settings global low_power $value" }
+      Timber.e(e) { "$name: Error writing settings global low_power $value" }
       PowerSaver.State.Failure(e)
     }
   }
@@ -69,22 +69,20 @@ internal constructor(
     shouldTogglePowerSaving.value = false
 
     if (isCharging) {
-      Timber.w { "POWER_SAVING ENABLE: Cannot turn power saving ON when device is CHARGING" }
-      return powerSavingError("POWER_SAVING ENABLE: Device is Charging, do not turn ON.")
+      Timber.w { "$name ENABLE: Cannot turn power saving ON when device is CHARGING" }
+      return powerSavingError("$name ENABLE: Device is Charging, do not turn ON.")
     }
 
     if (isBeingOptimized) {
-      Timber.w {
-        "POWER_SAVING ENABLE: Cannot turn power saving ON when device is already POWER_SAVING"
-      }
-      return powerSavingError("POWER_SAVING ENABLE: Device is power_saving, do not turn ON")
+      Timber.w { "$name ENABLE: Cannot turn power saving ON when device is already POWER_SAVING" }
+      return powerSavingError("$name ENABLE: Device is power_saving, do not turn ON")
     }
 
     // If we pass all criteria, then we own the POWER_SAVING system status
     return if (shouldTogglePowerSaving.compareAndSet(expect = false, update = true)) {
       togglePowerSaving(enable = true)
     } else {
-      powerSavingError("POWER_SAVING ENABLE: We have already set the toggle flag!")
+      powerSavingError("$name ENABLE: We have already set the toggle flag!")
     }
   }
 
@@ -98,11 +96,11 @@ internal constructor(
     // If we were not flagged, but other special conditions exist
     if (!act) {
       if (force) {
-        Timber.w { "POWER_SAVING DISABLE: Force Power Saving OFF" }
+        Timber.w { "$name DISABLE: Force Power Saving OFF" }
         act = true
       } else {
         if (isCharging) {
-          Timber.d { "POWER_SAVING DISABLE: Always turn OFF power saving when device is charging" }
+          Timber.d { "$name DISABLE: Always turn OFF power saving when device is charging" }
           act = true
         }
       }
@@ -111,7 +109,9 @@ internal constructor(
     return if (act) {
       togglePowerSaving(enable = false)
     } else {
-      powerSavingError("POWER_SAVING DISABLE: We are not managing power, cannot act")
+      powerSavingError("$name DISABLE: We are not managing power, cannot act")
     }
   }
+
+  override val name = "LOW_POWER_MODE"
 }

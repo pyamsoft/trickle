@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import androidx.core.content.ContextCompat
 import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.trickle.battery.PowerSaver
+import com.pyamsoft.trickle.battery.PowerSaverManager
 import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,7 +31,7 @@ internal class ScreenStateReceiver
 internal constructor(
     private val context: Context,
     private val enforcer: ThreadEnforcer,
-    private val saver: PowerSaver,
+    private val saverManager: PowerSaverManager,
 ) : BroadcastReceiver(), ScreenReceiver {
 
   private val receiverScope by lazy {
@@ -92,7 +93,7 @@ internal constructor(
             // Delay a bit so the system can catch up
             delay(300L)
 
-            saver.setSystemPowerSaving(enable = true)
+            saverManager.runPowerSavers(enable = true)
           }
         }
       }
@@ -109,7 +110,7 @@ internal constructor(
             // Delay a bit so the system can catch up
             delay(300L)
 
-            saver.setSystemPowerSaving(enable = false)
+            saverManager.runPowerSavers(enable = false)
           }
         }
       }

@@ -17,20 +17,20 @@ protected constructor(
       enable: Boolean,
   ): PowerSaver.State {
     if (!hasPermission()) {
-      Timber.w { "Cannot change without permission" }
-      return powerSavingError("CHANGE: Missing permission")
+      Timber.w { "$name Cannot change without permission" }
+      return powerSavingError("$name CHANGE: Missing permission")
     }
 
     if (!isEnabled()) {
-      Timber.w { "Cannot change when preference disabled" }
-      return powerSavingError("CHANGE: Preference is disabled.")
+      Timber.w { "$name Cannot change when preference disabled" }
+      return powerSavingError("$name CHANGE: Preference is disabled.")
     }
 
     // Check charging status first, we may not do anything
     val chargeStatus = charger.isCharging()
     if (chargeStatus == BatteryCharge.State.UNKNOWN) {
-      Timber.w { "Battery Charge state is UNKNOWN, do not act" }
-      return powerSavingError("CHANGE: Battery Charge Status is UNKNOWN.")
+      Timber.w { "$name Battery Charge state is UNKNOWN, do not act" }
+      return powerSavingError("$name CHANGE: Battery Charge Status is UNKNOWN.")
     }
     val isCharging = chargeStatus == BatteryCharge.State.CHARGING
 

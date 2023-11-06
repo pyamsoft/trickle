@@ -4,6 +4,8 @@ import androidx.annotation.CheckResult
 
 interface PowerSaver {
 
+  @get:CheckResult val name: String
+
   @CheckResult suspend fun setSystemPowerSaving(enable: Boolean): State
 
   @CheckResult suspend fun resetSystemPowerSavingState(): Boolean
