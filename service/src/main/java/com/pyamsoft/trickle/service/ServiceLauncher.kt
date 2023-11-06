@@ -30,7 +30,7 @@ internal constructor(
   }
 
   fun start() {
-    if (permission.canManageSystemPower()) {
+    if (permission.canWriteSystemSettings()) {
       startService()
     } else {
       Timber.w { "Cannot start MonitoringService - missing Permission" }

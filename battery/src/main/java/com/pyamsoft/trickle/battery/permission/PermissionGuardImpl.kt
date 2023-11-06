@@ -20,14 +20,12 @@ internal constructor(
         PackageManager.PERMISSION_GRANTED
   }
 
-  override val requiredPermissions = ALWAYS_PERMISSIONS
-
-  override fun canManageSystemPower(): Boolean {
-    return requiredPermissions.all { hasPermission(it) }
+  override fun canWriteSystemSettings(): Boolean {
+    return SYSTEM_POWER_PERMISSIONS.all { hasPermission(it) }
   }
 
   companion object {
-    private val ALWAYS_PERMISSIONS =
+    private val SYSTEM_POWER_PERMISSIONS =
         listOf(
             // To control Settings.Global
             android.Manifest.permission.WRITE_SECURE_SETTINGS,

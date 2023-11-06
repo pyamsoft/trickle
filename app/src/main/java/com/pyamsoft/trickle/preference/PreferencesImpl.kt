@@ -133,6 +133,18 @@ internal constructor(
       preferenceBooleanFlow(KEY_POWER_SAVING_ENABLED, DEFAULT_POWER_SAVING_ENABLED) { preferences }
           .flowOn(context = Dispatchers.Default)
 
+  override fun setForceDozeEnabled(enable: Boolean) {
+    scope.launch {
+      enforcer.assertOffMainThread()
+
+      preferences.edit { putBoolean(KEY_FORCE_DOZE_ENABLED, enable) }
+    }
+  }
+
+  override fun observeForceDozeEnabled(): Flow<Boolean> =
+      preferenceBooleanFlow(KEY_FORCE_DOZE_ENABLED, DEFAULT_FORCE_DOZE_ENABLED) { preferences }
+          .flowOn(context = Dispatchers.Default)
+
   private fun SharedPreferences.updateInt(key: String, defaultValue: Int, update: (Int) -> Int) {
     val self = this
 
@@ -171,6 +183,9 @@ internal constructor(
 
     private const val KEY_POWER_SAVING_ENABLED = "key_power_saving_enabled_v1"
     private const val DEFAULT_POWER_SAVING_ENABLED = true
+
+    private const val KEY_FORCE_DOZE_ENABLED = "key_force_doze_enabled_v1"
+    private const val DEFAULT_FORCE_DOZE_ENABLED = false
 
     private const val IN_APP_APP_OPENED = "key_in_app_app_opened_1"
 

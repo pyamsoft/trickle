@@ -4,6 +4,7 @@ import android.content.Context
 import android.provider.Settings
 import androidx.annotation.CheckResult
 import androidx.annotation.RequiresPermission
+import com.pyamsoft.trickle.battery.AbstractPowerSaver
 import com.pyamsoft.trickle.battery.PowerPreferences
 import com.pyamsoft.trickle.battery.PowerSaver
 import com.pyamsoft.trickle.battery.charging.BatteryCharge
@@ -12,11 +13,8 @@ import com.pyamsoft.trickle.battery.permission.PermissionGuard
 import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withContext
 
 @Singleton
 internal class PowerSaverImpl
@@ -25,9 +23,12 @@ internal constructor(
     private val context: Context,
     private val preferences: PowerPreferences,
     private val permissions: PermissionGuard,
-    private val charger: BatteryCharge,
     private val optimizer: BatteryOptimizer,
-) : PowerSaver {
+    charger: BatteryCharge,
+) :
+    AbstractPowerSaver(
+        charger = charger,
+    ) {
 
   private val shouldTogglePowerSaving = MutableStateFlow(false)
   private val resolver by lazy { context.contentResolver }
@@ -47,46 +48,47 @@ internal constructor(
         powerSavingError("POWER_SAVING: Failed to write Settings.Global.low_power")
       }
     } catch (e: Throwable) {
-      Timber.e(e) { "Error writing settings global low_power $value" }
+      Timber.e(e) { "POWER_SAVING: Error writing settings global low_power $value" }
       PowerSaver.State.Failure(e)
     }
   }
 
-  @CheckResult
-  private suspend fun isManageSystemPowerEnabled(): Boolean {
+  override fun hasPermission(): Boolean {
+    return permissions.canWriteSystemSettings()
+  }
+
+  override suspend fun isEnabled(): Boolean {
     return preferences.observePowerSavingEnabled().first()
   }
 
-  @CheckResult
-  private fun attemptTurnOnPowerSaving(
-      isCharging: Boolean,
-      isBeingOptimized: Boolean,
-  ): PowerSaver.State {
+  override suspend fun attemptTurnOnSaver(isCharging: Boolean): PowerSaver.State {
+    val isBeingOptimized = optimizer.isInPowerSavingMode()
     // Always set the "owner" flag back to false
     // We don't care about what any previous states were, we are only about the "last" screen
     // off before the first screen on.
     shouldTogglePowerSaving.value = false
 
     if (isCharging) {
-      Timber.w { "ENABLE: Cannot turn power saving ON when device is CHARGING" }
-      return powerSavingError("ENABLE: Device is Charging, do not turn ON.")
+      Timber.w { "POWER_SAVING ENABLE: Cannot turn power saving ON when device is CHARGING" }
+      return powerSavingError("POWER_SAVING ENABLE: Device is Charging, do not turn ON.")
     }
 
     if (isBeingOptimized) {
-      Timber.w { "ENABLE: Cannot turn power saving ON when device is already POWER_SAVING" }
-      return powerSavingError("ENABLE: Device is power_saving, do not turn ON")
+      Timber.w {
+        "POWER_SAVING ENABLE: Cannot turn power saving ON when device is already POWER_SAVING"
+      }
+      return powerSavingError("POWER_SAVING ENABLE: Device is power_saving, do not turn ON")
     }
 
     // If we pass all criteria, then we own the POWER_SAVING system status
     return if (shouldTogglePowerSaving.compareAndSet(expect = false, update = true)) {
       togglePowerSaving(enable = true)
     } else {
-      powerSavingError("ENABLE: We have already set the toggle flag!")
+      powerSavingError("POWER_SAVING ENABLE: We have already set the toggle flag!")
     }
   }
 
-  @CheckResult
-  private fun attemptTurnOffPowerSaving(
+  override suspend fun attemptTurnOffSaver(
       force: Boolean,
       isCharging: Boolean,
   ): PowerSaver.State {
@@ -96,11 +98,11 @@ internal constructor(
     // If we were not flagged, but other special conditions exist
     if (!act) {
       if (force) {
-        Timber.w { "DISABLE: Force Power Saving OFF" }
+        Timber.w { "POWER_SAVING DISABLE: Force Power Saving OFF" }
         act = true
       } else {
         if (isCharging) {
-          Timber.d { "DISABLE: Always turn OFF power saving when device is charging" }
+          Timber.d { "POWER_SAVING DISABLE: Always turn OFF power saving when device is charging" }
           act = true
         }
       }
@@ -109,83 +111,7 @@ internal constructor(
     return if (act) {
       togglePowerSaving(enable = false)
     } else {
-      powerSavingError("DISABLE: We are not managing power, cannot act")
-    }
-  }
-
-  private suspend fun changeSystemPowerSaving(
-      force: Boolean,
-      enable: Boolean,
-  ): PowerSaver.State {
-    if (!permissions.canManageSystemPower()) {
-      Timber.w { "Cannot change power_saving without WRITE_SECURE_SETTINGS permission" }
-      return powerSavingError("CHANGE: Missing WRITE_SECURE_SETTINGS permission")
-    }
-
-    if (!isManageSystemPowerEnabled()) {
-      Timber.w { "Cannot change power_saving when preference disabled" }
-      return powerSavingError("CHANGE: Preference is disabled.")
-    }
-
-    // Check charging status first, we may not do anything
-    val chargeStatus = charger.isCharging()
-    if (chargeStatus == BatteryCharge.State.UNKNOWN) {
-      Timber.w { "Battery Charge state is UNKNOWN, do not act" }
-      return powerSavingError("CHANGE: Battery Charge Status is UNKNOWN.")
-    }
-    val isCharging = chargeStatus == BatteryCharge.State.CHARGING
-
-    return if (enable) {
-      val isBeingOptimized = optimizer.isInPowerSavingMode()
-      Timber.d { "Attempt to turn power_saving ON" }
-      attemptTurnOnPowerSaving(
-          isCharging = isCharging,
-          isBeingOptimized = isBeingOptimized,
-      )
-    } else {
-      Timber.d { "Attempt to turn power_saving OFF" }
-      attemptTurnOffPowerSaving(
-          force = force,
-          isCharging = isCharging,
-      )
-    }
-  }
-
-  override suspend fun setSystemPowerSaving(enable: Boolean): PowerSaver.State =
-      withContext(context = Dispatchers.Default) {
-        // Since this is dealing with a Android OS system state, we ensure this operation can
-        // never be cancelled until it is completed
-        val state =
-            withContext(context = NonCancellable) {
-              changeSystemPowerSaving(
-                  force = false,
-                  enable = enable,
-              )
-            }
-
-        return@withContext state
-      }
-
-  override suspend fun resetSystemPowerSavingState(): Boolean =
-      withContext(context = Dispatchers.Default) {
-        // Since this is dealing with a Android OS system state, we ensure this operation can
-        // never be cancelled until it is completed
-        val state =
-            withContext(context = NonCancellable) {
-              changeSystemPowerSaving(
-                  force = true,
-                  enable = false,
-              )
-            }
-        return@withContext state == PowerSaver.State.Disabled
-      }
-
-  companion object {
-
-    @JvmStatic
-    @CheckResult
-    private fun powerSavingError(message: String): PowerSaver.State {
-      return PowerSaver.State.Failure(RuntimeException(message))
+      powerSavingError("POWER_SAVING DISABLE: We are not managing power, cannot act")
     }
   }
 }

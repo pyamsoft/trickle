@@ -80,7 +80,7 @@ internal constructor(
   fun handleSync(scope: CoroutineScope) {
     scope.launch(context = Dispatchers.Default) {
       // Check if we have permission
-      val hasPermission = permissionGuard.canManageSystemPower()
+      val hasPermission = permissionGuard.canWriteSystemSettings()
       state.permission.value =
           if (hasPermission) MainViewState.PermissionState.GRANTED
           else MainViewState.PermissionState.NOT_GRANTED
