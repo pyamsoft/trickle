@@ -20,12 +20,12 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyamsoft.pydroid.theme.keylines
 import com.pyamsoft.pydroid.theme.warning
 import com.pyamsoft.pydroid.ui.haptics.LocalHapticManager
@@ -70,7 +70,8 @@ internal fun LazyListScope.renderPowerSavingSettings(
   ) {
     val hapticManager = LocalHapticManager.current
     val isPowerSaving by state.isPowerSaving.collectAsStateWithLifecycle()
-    val isBatteryOptimizationsIgnored by state.isBatteryOptimizationsIgnored.collectAsStateWithLifecycle()
+    val isBatteryOptimizationsIgnored by
+        state.isBatteryOptimizationsIgnored.collectAsStateWithLifecycle()
 
     val enabled =
         remember(

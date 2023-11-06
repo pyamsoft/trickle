@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.content.ContextCompat
 import com.pyamsoft.pydroid.core.ThreadEnforcer
-import com.pyamsoft.trickle.battery.PowerSaver
 import com.pyamsoft.trickle.battery.PowerSaverManager
 import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
