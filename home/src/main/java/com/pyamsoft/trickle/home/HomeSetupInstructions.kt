@@ -56,8 +56,8 @@ private enum class InstructionContentTypes {
   RESTART_APP,
 }
 
-private val THIS_DEVICE_COLOR = Color(0xFF4CAF50)
-private val OTHER_DEVICE_COLOR = Color(0xFF2196F3)
+private val thisDeviceColor = Color(0xFF4CAF50)
+private val otherDeviceColor = Color(0xFF2196F3)
 
 @Composable
 private fun ThisDevice(
@@ -72,7 +72,7 @@ private fun ThisDevice(
               .padding(end = if (small) 2.dp else ZeroSize),
       imageVector = Icons.Filled.PhoneAndroid,
       contentDescription = "This Device",
-      tint = THIS_DEVICE_COLOR,
+      tint = thisDeviceColor,
   )
 }
 
@@ -89,7 +89,7 @@ private fun OtherDevice(
               .padding(end = if (small) 2.dp else ZeroSize),
       imageVector = Icons.Filled.Devices,
       contentDescription = "Laptop or Desktop",
-      tint = OTHER_DEVICE_COLOR,
+      tint = otherDeviceColor,
   )
 }
 
@@ -296,20 +296,21 @@ private fun EnableDeveloperSettings(
 }
 
 @CheckResult
-private fun createAdbCommand(context: Context): String {
-  return "adb shell pm grant ${context.packageName} android.permission.WRITE_SECURE_SETTINGS"
+private fun createAdbCommand(context: Context, permission: String): String {
+  return "adb shell pm grant ${context.packageName} $permission"
 }
 
 @Composable
 @CheckResult
-private fun rememberAdbCommand(): String {
+private fun rememberAdbCommand(permission: String): String {
   val context = LocalContext.current
-  return remember(context) { createAdbCommand(context) }
+  return remember(context, permission) { createAdbCommand(context, permission) }
 }
 
-internal fun LazyListScope.renderHomeSetupInstructions(
+internal fun LazyListScope.renderSetupInstructions(
     itemModifier: Modifier = Modifier,
     appName: String,
+    adbPermission: String,
     onCopy: (String) -> Unit,
     onRestartApp: () -> Unit,
 ) {
@@ -428,7 +429,7 @@ internal fun LazyListScope.renderHomeSetupInstructions(
       contentType = InstructionContentTypes.ADB_COPY_COMMAND,
   ) {
     val hapticManager = LocalHapticManager.current
-    val command = rememberAdbCommand()
+    val command = rememberAdbCommand(adbPermission)
 
     Column(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
@@ -516,10 +517,11 @@ internal fun LazyListScope.renderHomeSetupInstructions(
 @Composable
 private fun PreviewHomeSetupInstructions() {
   LazyColumn {
-    renderHomeSetupInstructions(
+    renderSetupInstructions(
         appName = "TEST",
         onCopy = {},
         onRestartApp = {},
+        adbPermission = android.Manifest.permission.WRITE_SECURE_SETTINGS,
     )
   }
 }
