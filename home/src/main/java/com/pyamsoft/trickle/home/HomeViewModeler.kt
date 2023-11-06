@@ -4,7 +4,7 @@ import androidx.compose.runtime.saveable.SaveableStateRegistry
 import com.pyamsoft.pydroid.arch.AbstractViewModeler
 import com.pyamsoft.pydroid.notify.NotifyGuard
 import com.pyamsoft.trickle.battery.PowerPreferences
-import com.pyamsoft.trickle.battery.PowerSaverManager
+import com.pyamsoft.trickle.battery.saver.PowerSaverManager
 import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.ServiceLauncher

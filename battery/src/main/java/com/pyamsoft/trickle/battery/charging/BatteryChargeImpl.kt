@@ -6,8 +6,6 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import androidx.annotation.CheckResult
 import androidx.core.content.ContextCompat
-import androidx.core.content.getSystemService
-import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,21 +17,14 @@ internal constructor(
     private val context: Context,
 ) : BatteryCharge {
 
-  private val batteryManager by lazy { context.getSystemService<BatteryManager>().requireNotNull() }
-
-  override suspend fun isCharging(): BatteryCharge.State {
-    val managerState = isBatteryChargingBattery()
-
-    // Sometimes the manager is inaccurate - fall back to the intent
-    return if (managerState != BatteryCharge.State.CHARGING) {
-      isBatteryChargingIntent()
-    } else {
-      managerState
-    }
-  }
-
+  /**
+   * We use the Intent instead of asking the BatteryManager since battery manager only reports
+   * CHARGING when the device is actually going up
+   *
+   * A plugged in device is what we care about, even if it's full or charging
+   */
   @CheckResult
-  private fun isBatteryChargingIntent(): BatteryCharge.State {
+  override suspend fun isCharging(): BatteryCharge.State {
     val statusIntent =
         ContextCompat.registerReceiver(
             context,
@@ -49,22 +40,15 @@ internal constructor(
 
     val batteryStatus =
         statusIntent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
-    return if (batteryStatus == BatteryManager.BATTERY_STATUS_UNKNOWN) {
+    if (batteryStatus == BatteryManager.BATTERY_STATUS_UNKNOWN) {
       // We have no idea
-      BatteryCharge.State.UNKNOWN
-    } else {
-      val isCharging =
-          batteryStatus == BatteryManager.BATTERY_STATUS_CHARGING ||
-              batteryStatus == BatteryManager.BATTERY_STATUS_FULL
-      // We do know
-      if (isCharging) BatteryCharge.State.CHARGING else BatteryCharge.State.NOT_CHARGING
+      return BatteryCharge.State.UNKNOWN
     }
-  }
 
-  @CheckResult
-  private fun isBatteryChargingBattery(): BatteryCharge.State {
-    return if (batteryManager.isCharging) BatteryCharge.State.CHARGING
-    else BatteryCharge.State.NOT_CHARGING
+    val isPluggedIn =
+        batteryStatus == BatteryManager.BATTERY_STATUS_CHARGING ||
+            batteryStatus == BatteryManager.BATTERY_STATUS_FULL
+    return if (isPluggedIn) BatteryCharge.State.CHARGING else BatteryCharge.State.NOT_CHARGING
   }
 
   companion object {

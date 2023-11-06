@@ -4,9 +4,7 @@ import android.content.Context
 import android.provider.Settings
 import androidx.annotation.CheckResult
 import androidx.annotation.RequiresPermission
-import com.pyamsoft.trickle.battery.AbstractPowerSaver
 import com.pyamsoft.trickle.battery.PowerPreferences
-import com.pyamsoft.trickle.battery.PowerSaver
 import com.pyamsoft.trickle.battery.charging.BatteryCharge
 import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.battery.permission.PermissionGuard

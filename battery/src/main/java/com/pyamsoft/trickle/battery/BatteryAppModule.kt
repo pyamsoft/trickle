@@ -7,6 +7,9 @@ import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.battery.optimize.BatteryOptimizerImpl
 import com.pyamsoft.trickle.battery.permission.PermissionGuard
 import com.pyamsoft.trickle.battery.permission.PermissionGuardImpl
+import com.pyamsoft.trickle.battery.saver.DefaultPowerSaverManager
+import com.pyamsoft.trickle.battery.saver.PowerSaver
+import com.pyamsoft.trickle.battery.saver.PowerSaverManager
 import com.pyamsoft.trickle.battery.saver.SystemLowPowerSaver
 import dagger.Binds
 import dagger.Module

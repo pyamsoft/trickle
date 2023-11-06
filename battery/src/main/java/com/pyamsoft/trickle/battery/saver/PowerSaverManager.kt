@@ -1,4 +1,4 @@
-package com.pyamsoft.trickle.battery
+package com.pyamsoft.trickle.battery.saver
 
 import androidx.annotation.CheckResult
 

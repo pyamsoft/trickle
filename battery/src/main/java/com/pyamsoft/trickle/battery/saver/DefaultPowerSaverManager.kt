@@ -1,4 +1,4 @@
-package com.pyamsoft.trickle.battery
+package com.pyamsoft.trickle.battery.saver
 
 import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject

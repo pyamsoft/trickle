@@ -6,7 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.content.ContextCompat
 import com.pyamsoft.pydroid.core.ThreadEnforcer
-import com.pyamsoft.trickle.battery.PowerSaverManager
+import com.pyamsoft.trickle.battery.saver.PowerSaverManager
 import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,9 +28,9 @@ import kotlinx.coroutines.withContext
 internal class ScreenStateReceiver
 @Inject
 internal constructor(
-    private val context: Context,
-    private val enforcer: ThreadEnforcer,
-    private val saverManager: PowerSaverManager,
+  private val context: Context,
+  private val enforcer: ThreadEnforcer,
+  private val saverManager: PowerSaverManager,
 ) : BroadcastReceiver(), ScreenReceiver {
 
   private val receiverScope by lazy {
