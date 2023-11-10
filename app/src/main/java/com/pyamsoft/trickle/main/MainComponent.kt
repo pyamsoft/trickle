@@ -21,8 +21,8 @@ import com.pyamsoft.trickle.core.ActivityScope
 import com.pyamsoft.trickle.home.HomeComponent
 import dagger.Subcomponent
 
-@ActivityScope
 @Subcomponent
+@ActivityScope
 internal interface MainComponent {
 
   @CheckResult fun plusHome(): HomeComponent.Factory
