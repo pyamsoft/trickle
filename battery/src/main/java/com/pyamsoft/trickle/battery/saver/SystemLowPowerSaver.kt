@@ -51,6 +51,21 @@ internal constructor(
     }
   }
 
+  @CheckResult
+  private fun decideToAct(force: Boolean, isCharging: Boolean): Boolean {
+    if (force) {
+      Timber.w { "$name DISABLE: Force Power Saving OFF" }
+      return true
+    }
+
+    if (isCharging) {
+      Timber.d { "$name DISABLE: Always turn OFF power saving when device is charging" }
+      return true
+    }
+
+    return false
+  }
+
   override fun hasPermission(): Boolean {
     return permissions.canWriteSystemSettings()
   }
@@ -93,14 +108,11 @@ internal constructor(
 
     // If we were not flagged, but other special conditions exist
     if (!act) {
-      if (force) {
-        Timber.w { "$name DISABLE: Force Power Saving OFF" }
+      if (decideToAct(
+          force = force,
+          isCharging = isCharging,
+      )) {
         act = true
-      } else {
-        if (isCharging) {
-          Timber.d { "$name DISABLE: Always turn OFF power saving when device is charging" }
-          act = true
-        }
       }
     }
 
