@@ -15,6 +15,8 @@ interface PowerSaver {
 
     data object Disabled : State
 
+    data class NoOp(val reason: String) : State
+
     data class Failure(val throwable: Throwable) : State
   }
 }

@@ -83,12 +83,12 @@ internal constructor(
 
     if (isCharging) {
       Timber.w { "$name ENABLE: Cannot turn power saving ON when device is CHARGING" }
-      return powerSavingError("$name ENABLE: Device is Charging, do not turn ON.")
+      return powerSavingNoOp("$name ENABLE: Device is Charging, do not turn ON.")
     }
 
     if (isBeingOptimized) {
       Timber.w { "$name ENABLE: Cannot turn power saving ON when device is already POWER_SAVING" }
-      return powerSavingError("$name ENABLE: Device is power_saving, do not turn ON")
+      return powerSavingNoOp("$name ENABLE: Device is power_saving, do not turn ON")
     }
 
     // If we pass all criteria, then we own the POWER_SAVING system status
@@ -119,7 +119,7 @@ internal constructor(
     return if (act) {
       togglePowerSaving(enable = false)
     } else {
-      powerSavingError("$name DISABLE: We are not managing power, cannot act")
+      powerSavingNoOp("$name DISABLE: We are not managing power, cannot act")
     }
   }
 

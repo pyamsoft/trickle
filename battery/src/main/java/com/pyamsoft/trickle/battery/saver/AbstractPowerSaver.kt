@@ -24,7 +24,7 @@ protected constructor(
 
     if (!isEnabled()) {
       Timber.w { "$name Cannot change when preference disabled" }
-      return powerSavingError("$name CHANGE: Preference is disabled.")
+      return powerSavingNoOp("$name CHANGE: Preference is disabled.")
     }
 
     // Check charging status first, we may not do anything
@@ -50,6 +50,11 @@ protected constructor(
   @CheckResult
   protected fun powerSavingError(message: String): PowerSaver.State {
     return PowerSaver.State.Failure(RuntimeException(message))
+  }
+
+  @CheckResult
+  protected fun powerSavingNoOp(message: String): PowerSaver.State {
+    return PowerSaver.State.NoOp(message)
   }
 
   final override suspend fun savePower(enable: Boolean): PowerSaver.State =

@@ -13,8 +13,15 @@ internal constructor(
 
   override suspend fun savePower(enable: Boolean) {
     savers.forEach { saver ->
-      val result = saver.savePower(enable = enable)
-      Timber.d { "${saver.name} RESULT: $result" }
+      val resultString =
+          when (val result = saver.savePower(enable = enable)) {
+            is PowerSaver.State.Disabled -> "DISABLED"
+            is PowerSaver.State.Enabled -> "ENABLED"
+            is PowerSaver.State.Failure -> "ERROR: ${result.throwable}"
+            is PowerSaver.State.NoOp -> "NO-OP ${result.reason}"
+          }
+
+      Timber.d { "${saver.name} RESULT: $resultString" }
     }
   }
 
