@@ -1,36 +1,42 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest
-  xmlns:android="http://schemas.android.com/apk/res/android">
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <uses-permission
-    android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-  <application android:name="com.pyamsoft.trickle.Trickle"
-    android:allowBackup="true" android:icon="@mipmap/ic_launcher"
+  <application
+    android:name="com.pyamsoft.trickle.Trickle"
+    android:allowBackup="true"
+    android:icon="@mipmap/ic_launcher"
     android:label="@string/app_name"
     android:roundIcon="@mipmap/ic_launcher_round"
-    android:supportsRtl="false" android:theme="@style/Theme.Trickle">
+    android:supportsRtl="false"
+    android:theme="@style/Theme.Trickle"
+  >
 
     <!-- Support super wide screen -->
-    <meta-data android:name="android.max_aspect"
-      android:value="2.1" />
+    <meta-data android:name="android.max_aspect" android:value="2.1" />
 
     <!-- Disable Analytics Collection from Firebase -->
     <meta-data
       android:name="firebase_analytics_collection_deactivated"
-      android:value="true" />
+      android:value="true"
+    />
 
     <!-- Disable advertising id collection from Firebase -->
     <meta-data
       android:name="google_analytics_adid_collection_enabled"
-      android:value="false" />
+      android:value="false"
+    />
 
     <activity
       android:name="com.pyamsoft.trickle.main.MainActivity"
       android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-      android:excludeFromRecents="false" android:exported="true"
-      android:launchMode="singleTask" android:noHistory="false"
-      android:windowSoftInputMode="adjustResize">
+      android:excludeFromRecents="false"
+      android:exported="true"
+      android:launchMode="singleTask"
+      android:noHistory="false"
+      android:windowSoftInputMode="adjustResize"
+    >
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
@@ -39,11 +45,14 @@
 
     <service
       android:name="com.pyamsoft.trickle.service.MonitorService"
-      android:exported="false" />
+      android:exported="false"
+    />
 
     <receiver
       android:name="com.pyamsoft.trickle.receiver.OnBootReceiver"
-      android:enabled="true" android:exported="true">
+      android:enabled="true"
+      android:exported="true"
+    >
       <intent-filter>
         <action android:name="android.intent.action.BOOT_COMPLETED" />
       </intent-filter>
