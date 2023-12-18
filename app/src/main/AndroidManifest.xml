@@ -35,7 +35,7 @@
       android:exported="true"
       android:launchMode="singleTask"
       android:noHistory="false"
-      android:windowSoftInputMode="adjustResize"
+      android:windowSoftInputMode="adjustPan"
     >
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
