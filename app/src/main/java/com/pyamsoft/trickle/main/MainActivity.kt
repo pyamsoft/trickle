@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.pyamsoft.pydroid.arch.SaveStateDisposableEffect
 import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.core.requireNotNull
 import com.pyamsoft.pydroid.ui.app.PYDroidActivityDelegate
@@ -121,6 +122,8 @@ class MainActivity : AppCompatActivity() {
 
     setContent {
       val theme by vm.theme.collectAsStateWithLifecycle()
+
+      SaveStateDisposableEffect(vm)
 
       TrickleTheme(
           theme = theme,
