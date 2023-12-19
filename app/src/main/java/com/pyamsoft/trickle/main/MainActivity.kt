@@ -54,8 +54,8 @@ class MainActivity : AppCompatActivity() {
                   override val applicationIcon = R.mipmap.ic_launcher
 
                   override val changelog = buildChangeLog {
-                    bugfix(
-                        "Fix cases where hyperlinks were not correctly routing to external applications.")
+                    bugfix("Fix visual errors in dialogs")
+                    bugfix("Fix theme getting overwritten on orientation change")
                   }
                 },
         )
