@@ -28,9 +28,9 @@ import kotlinx.coroutines.withContext
 internal class ScreenStateReceiver
 @Inject
 internal constructor(
-  private val context: Context,
-  private val enforcer: ThreadEnforcer,
-  private val saverManager: PowerSaverManager,
+    private val context: Context,
+    private val enforcer: ThreadEnforcer,
+    private val saverManager: PowerSaverManager,
 ) : BroadcastReceiver(), ScreenReceiver {
 
   private val receiverScope by lazy {

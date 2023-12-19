@@ -15,7 +15,7 @@ import com.pyamsoft.pydroid.arch.SaveStateDisposableEffect
 import com.pyamsoft.pydroid.ui.inject.ComposableInjector
 import com.pyamsoft.pydroid.ui.inject.rememberComposableInjector
 import com.pyamsoft.pydroid.ui.util.LifecycleEventEffect
-import com.pyamsoft.pydroid.ui.util.fillUpToPortraitHeight
+import com.pyamsoft.pydroid.ui.util.fillUpToPortraitSize
 import com.pyamsoft.pydroid.ui.util.rememberNotNull
 import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.settings.SettingsDialog
@@ -95,7 +95,7 @@ fun MainEntry(
   if (isSettingsOpen) {
     SettingsDialog(
         modifier =
-            Modifier.fillUpToPortraitHeight()
+            Modifier.fillUpToPortraitSize()
                 .widthIn(
                     max = LANDSCAPE_MAX_WIDTH,
                 ),
