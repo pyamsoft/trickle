@@ -98,7 +98,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
           description =
               """This will allow the $appName Service to continue running even if the app is closed.
                   |
-                  |For best performance, enable this option and then use the "Force $appName Background" option.
+                  |For best performance, enable this option and then use the "Force $appName Background" tweak.
                  |(recommended)"""
                   .trimMargin(),
           onChange = {
@@ -285,7 +285,7 @@ private fun LazyListScope.renderTroubleshooting(
     Text(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
         text =
-            "Click the button below a couple of times and see if that fixes things. You may also want to try the \"Force $appName Background\" option.",
+            "Click the button below a couple of times and see if that fixes things. You may also want to try the \"Force $appName Background\" tweak.",
         style =
             MaterialTheme.typography.caption.copy(
                 color =
