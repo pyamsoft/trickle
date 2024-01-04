@@ -50,6 +50,9 @@ fun HomeScreen(
     onForceBackground: () -> Unit,
 ) {
   val showNotificationSettings = remember { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU }
+  val mayNeedForceBackground = remember {
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+  }
 
   val loadingState by state.loadingState.collectAsStateWithLifecycle()
   val isTroubleshooting by state.isTroubleshooting.collectAsStateWithLifecycle()
@@ -89,6 +92,7 @@ fun HomeScreen(
               appName = appName,
               state = state,
               showNotificationSettings = showNotificationSettings,
+              mayNeedForceBackground = mayNeedForceBackground,
               isTroubleshooting = isTroubleshooting,
               onOpenBatterySettings = onOpenBatterySettings,
               onRestartPowerService = onRestartPowerService,

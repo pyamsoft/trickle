@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyamsoft.pydroid.theme.keylines
@@ -44,6 +45,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
     appName: String,
     state: HomeViewState,
     showNotificationSettings: Boolean,
+    mayNeedForceBackground: Boolean,
     isTroubleshooting: Boolean,
     onStartTroubleshooting: () -> Unit,
     onOpenBatterySettings: () -> Unit,
@@ -125,6 +127,15 @@ internal fun LazyListScope.renderPowerSavingSettings(
     }
   }
 
+  if (mayNeedForceBackground || isTroubleshooting) {
+    renderForceBackground(
+        itemModifier = itemModifier,
+        appName = appName,
+        state = state,
+        onForceBackground = onForceBackground,
+    )
+  }
+
   if (isTroubleshooting) {
     renderTroubleshooting(
         itemModifier = itemModifier,
@@ -132,7 +143,6 @@ internal fun LazyListScope.renderPowerSavingSettings(
         state = state,
         onRestartPowerService = onRestartPowerService,
         onOpenSettings = onOpenBatterySettings,
-        onForceBackground = onForceBackground,
     )
   } else {
     item(
@@ -166,11 +176,76 @@ internal fun LazyListScope.renderPowerSavingSettings(
   }
 }
 
+private enum class ForceBackgroundTypes {
+  TITLE,
+  PROMPT,
+  ACTION,
+}
+
+private fun LazyListScope.renderForceBackground(
+    itemModifier: Modifier = Modifier,
+    appName: String,
+    state: HomeViewState,
+    onForceBackground: () -> Unit,
+) {
+  item(
+      contentType = ForceBackgroundTypes.TITLE,
+  ) {
+    Text(
+        modifier = itemModifier.fillMaxWidth().padding(vertical = MaterialTheme.keylines.content),
+        textAlign = TextAlign.Start,
+        text = "Service Tweaks",
+        style =
+            MaterialTheme.typography.h6.copy(
+                color =
+                    MaterialTheme.colors.onBackground.copy(
+                        alpha = ContentAlpha.high,
+                    ),
+            ),
+    )
+  }
+
+  item(
+      contentType = ForceBackgroundTypes.PROMPT,
+  ) {
+    Text(
+        modifier = itemModifier,
+        text =
+            "On newer Android versions, the service is sometimes inconsistent. It may sometimes be fixed by forcing the application into the background. The \"Always Alive\" option must be enabled",
+        style =
+            MaterialTheme.typography.caption.copy(
+                color =
+                    MaterialTheme.colors.onBackground.copy(
+                        alpha = ContentAlpha.medium,
+                    ),
+            ),
+    )
+  }
+
+  item(
+      contentType = ForceBackgroundTypes.ACTION,
+  ) {
+    val isEnabled by state.isBatteryOptimizationsIgnored.collectAsStateWithLifecycle()
+
+    Box(
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
+        contentAlignment = Alignment.Center,
+    ) {
+      Button(
+          enabled = isEnabled,
+          onClick = onForceBackground,
+      ) {
+        Text(
+            text = "Force $appName Background",
+        )
+      }
+    }
+  }
+}
+
 private enum class TroubleshootingTypes {
   LABEL,
   EXPLAIN,
-  FORCE_BACKGROUND_PROMPT,
-  FORCE_BACKGROUND,
   RESTART_SERVICE_PROMPT,
   RESTART_SERVICE,
   RESTART_SHORTCUT,
@@ -182,7 +257,6 @@ private fun LazyListScope.renderTroubleshooting(
     state: HomeViewState,
     onRestartPowerService: () -> Unit,
     onOpenSettings: () -> Unit,
-    onForceBackground: () -> Unit,
 ) {
 
   item(
@@ -206,48 +280,12 @@ private fun LazyListScope.renderTroubleshooting(
   }
 
   item(
-      contentType = TroubleshootingTypes.FORCE_BACKGROUND_PROMPT,
-  ) {
-    Text(
-        modifier = itemModifier.padding(top = MaterialTheme.keylines.typography),
-        text =
-            "Sometimes the service can be fixed by forcing the application into the background. The \"Always Alive\" option must be enabled",
-        style =
-            MaterialTheme.typography.caption.copy(
-                color =
-                    MaterialTheme.colors.onBackground.copy(
-                        alpha = ContentAlpha.medium,
-                    ),
-            ),
-    )
-  }
-
-  item(
-      contentType = TroubleshootingTypes.FORCE_BACKGROUND,
-  ) {
-    val isEnabled by state.isBatteryOptimizationsIgnored.collectAsStateWithLifecycle()
-
-    Box(
-        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
-        contentAlignment = Alignment.Center,
-    ) {
-      Button(
-          enabled = isEnabled,
-          onClick = onForceBackground,
-      ) {
-        Text(
-            text = "Force $appName Background",
-        )
-      }
-    }
-  }
-
-  item(
       contentType = TroubleshootingTypes.RESTART_SERVICE_PROMPT,
   ) {
     Text(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
-        text = "Otherwise click the button below a couple of times and see if that fixes things",
+        text =
+            "Click the button below a couple of times and see if that fixes things. You may also want to try the \"Force $appName Background\" option.",
         style =
             MaterialTheme.typography.caption.copy(
                 color =
@@ -335,6 +373,7 @@ private fun PreviewPowerSavingSettings(
         appName = "TEST",
         state = state,
         isTroubleshooting = isTroubleshooting,
+        mayNeedForceBackground = true,
         showNotificationSettings = false,
         onTogglePowerSaving = {},
         onOpenBatterySettings = {},
