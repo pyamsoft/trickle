@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.core.content.ContextCompat
 import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.trickle.core.Timber
@@ -54,9 +55,16 @@ internal constructor(
           coroutineScope {
             withContext(context = Dispatchers.Main) {
               Timber.d { "Register Screen Receiver" }
-              // Don't use flag because we are listening for system broadcasts
+              // Don't use flag because we are listening for system broadcasts?
               // https://developer.android.com/about/versions/14/behavior-changes-14#system-broadcasts
-              context.registerReceiver(self, INTENT_FILTER)
+
+              ContextCompat.registerReceiver(
+                  context,
+                  self,
+                  INTENT_FILTER,
+                  // Export for System Broadcast
+                  ContextCompat.RECEIVER_EXPORTED,
+              )
             }
 
             // And suspend until we are done
