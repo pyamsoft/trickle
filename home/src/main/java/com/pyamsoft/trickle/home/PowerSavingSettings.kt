@@ -98,7 +98,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
           description =
               """This will allow the $appName Service to continue running even if the app is closed.
                   |
-                  |For best performance, enable this option and then close the app completely by swiping it away. It should restart itself completely in the background and perform consistently after that.
+                  |For best performance, enable this option and then use the "Force $appName Background" option.
                  |(recommended)"""
                   .trimMargin(),
           onChange = {
