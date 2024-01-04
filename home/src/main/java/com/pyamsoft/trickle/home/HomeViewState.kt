@@ -19,6 +19,8 @@ interface HomeViewState : UiViewState {
   val isPowerSettingsShortcutVisible: StateFlow<Boolean>
   val isTroubleshooting: StateFlow<Boolean>
 
+  val isAlwaysForceBackground: StateFlow<Boolean>
+
   @Stable
   @Immutable
   enum class LoadingState {
@@ -39,4 +41,6 @@ class MutableHomeViewState @Inject internal constructor() : HomeViewState {
 
   override val isPowerSettingsShortcutVisible = MutableStateFlow(false)
   override val isTroubleshooting = MutableStateFlow(false)
+
+  override val isAlwaysForceBackground = MutableStateFlow(false)
 }

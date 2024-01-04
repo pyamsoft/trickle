@@ -40,6 +40,7 @@ import com.pyamsoft.trickle.service.DefaultA14WorkAround
 import com.pyamsoft.trickle.service.MonitorService
 import com.pyamsoft.trickle.service.ServiceAppModule
 import com.pyamsoft.trickle.service.ServiceComponent
+import com.pyamsoft.trickle.service.ServicePreferences
 import com.pyamsoft.trickle.service.notification.PermissionRequests
 import com.pyamsoft.trickle.service.notification.PermissionResponses
 import dagger.Binds
@@ -89,6 +90,10 @@ internal interface TrickleComponent {
     @Binds
     @CheckResult
     internal abstract fun bindInAppRatingPreferences(impl: PreferencesImpl): InAppRatingPreferences
+
+    @Binds
+    @CheckResult
+    internal abstract fun bindServicePreferences(impl: PreferencesImpl): ServicePreferences
 
     @Binds
     @CheckResult

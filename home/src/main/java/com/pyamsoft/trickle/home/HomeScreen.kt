@@ -40,6 +40,7 @@ fun HomeScreen(
     appName: String,
     hasPermission: Boolean,
     onTogglePowerSaving: (Boolean) -> Unit,
+    onToggleForceBackground: (Boolean) -> Unit,
     onCopy: (String) -> Unit,
     onOpenBatterySettings: () -> Unit,
     onDisableBatteryOptimization: () -> Unit,
@@ -97,6 +98,7 @@ fun HomeScreen(
               onOpenBatterySettings = onOpenBatterySettings,
               onRestartPowerService = onRestartPowerService,
               onTogglePowerSaving = onTogglePowerSaving,
+              onToggleForceBackground = onToggleForceBackground,
               onStartTroubleshooting = onOpenTroubleshooting,
               onDisableBatteryOptimization = onDisableBatteryOptimization,
               onRequestNotificationPermission = onRequestNotificationPermission,
@@ -159,6 +161,7 @@ private fun PreviewHomeScreen(state: HomeViewState, hasPermission: Boolean) {
       onDisableBatteryOptimization = {},
       onRequestNotificationPermission = {},
       onForceBackground = {},
+      onToggleForceBackground = {},
   )
 }
 

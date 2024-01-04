@@ -50,6 +50,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
     onStartTroubleshooting: () -> Unit,
     onOpenBatterySettings: () -> Unit,
     onTogglePowerSaving: (Boolean) -> Unit,
+    onToggleForceBackground: (Boolean) -> Unit,
     onDisableBatteryOptimization: () -> Unit,
     onRestartPowerService: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
@@ -75,6 +76,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
     val isPowerSaving by state.isPowerSaving.collectAsStateWithLifecycle()
     val isBatteryOptimizationsIgnored by
         state.isBatteryOptimizationsIgnored.collectAsStateWithLifecycle()
+    val isForceBackgroundEnabled by state.isAlwaysForceBackground.collectAsStateWithLifecycle()
 
     val enabled =
         remember(
@@ -106,6 +108,27 @@ internal fun LazyListScope.renderPowerSavingSettings(
               hapticManager?.confirmButtonPress()
               onDisableBatteryOptimization()
             }
+          },
+      )
+
+      val canForceBackground =
+          remember(
+              isPowerSaving,
+              isBatteryOptimizationsIgnored,
+          ) {
+            isPowerSaving && isBatteryOptimizationsIgnored
+          }
+
+      HomeOption(
+          enabled = canForceBackground,
+          checked = isForceBackgroundEnabled,
+          name = "Always Force Background",
+          description =
+              """Every time you close the UI (home button, back button), $appName will force itself into the background."""
+                  .trimMargin(),
+          onChange = {
+            hapticManager?.confirmButtonPress()
+            onToggleForceBackground(it)
           },
       )
     }
@@ -382,6 +405,7 @@ private fun PreviewPowerSavingSettings(
         onDisableBatteryOptimization = {},
         onRequestNotificationPermission = {},
         onForceBackground = {},
+        onToggleForceBackground = {},
     )
   }
 }

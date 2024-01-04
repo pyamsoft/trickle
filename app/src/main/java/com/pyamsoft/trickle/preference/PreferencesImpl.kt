@@ -12,6 +12,7 @@ import com.pyamsoft.trickle.BuildConfig
 import com.pyamsoft.trickle.battery.PowerPreferences
 import com.pyamsoft.trickle.core.InAppRatingPreferences
 import com.pyamsoft.trickle.core.Timber
+import com.pyamsoft.trickle.service.ServicePreferences
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineName
@@ -29,7 +30,7 @@ internal class PreferencesImpl
 internal constructor(
     private val enforcer: ThreadEnforcer,
     context: Context,
-) : PowerPreferences, InAppRatingPreferences {
+) : PowerPreferences, InAppRatingPreferences, ServicePreferences {
 
   private val preferences by lazy {
     enforcer.assertOffMainThread()
@@ -40,8 +41,16 @@ internal constructor(
 
   private val scope by lazy {
     CoroutineScope(
-        context = SupervisorJob() + Dispatchers.Default + CoroutineName(this::class.java.name),
+        context = SupervisorJob() + Dispatchers.IO + CoroutineName(this::class.java.name),
     )
+  }
+
+  private inline fun setPreferences(crossinline block: SharedPreferences.Editor.() -> Unit) {
+    scope.launch(context = Dispatchers.IO) {
+      enforcer.assertOffMainThread()
+
+      preferences.edit { block() }
+    }
   }
 
   private fun cleanOldPreferences(preferences: SharedPreferences) {
@@ -100,7 +109,7 @@ internal constructor(
             }
           }
           // Need this or we run on the main thread
-          .flowOn(context = Dispatchers.Default)
+          .flowOn(context = Dispatchers.IO)
 
   override fun markAppOpened() {
     scope.launch {
@@ -121,29 +130,29 @@ internal constructor(
     }
   }
 
-  override fun setPowerSavingEnabled(enable: Boolean) {
-    scope.launch {
-      enforcer.assertOffMainThread()
-
-      preferences.edit { putBoolean(KEY_POWER_SAVING_ENABLED, enable) }
-    }
+  override fun setPowerSavingEnabled(enable: Boolean) = setPreferences {
+    putBoolean(KEY_POWER_SAVING_ENABLED, enable)
   }
 
   override fun observePowerSavingEnabled(): Flow<Boolean> =
       preferenceBooleanFlow(KEY_POWER_SAVING_ENABLED, DEFAULT_POWER_SAVING_ENABLED) { preferences }
-          .flowOn(context = Dispatchers.Default)
+          .flowOn(context = Dispatchers.IO)
 
-  override fun setForceDozeEnabled(enable: Boolean) {
-    scope.launch {
-      enforcer.assertOffMainThread()
+  override fun setForceDozeEnabled(enable: Boolean) = setPreferences {
+    putBoolean(KEY_FORCE_DOZE_ENABLED, enable)
+  }
 
-      preferences.edit { putBoolean(KEY_FORCE_DOZE_ENABLED, enable) }
-    }
+  override fun listenAlwaysBackground(): Flow<Boolean> =
+      preferenceBooleanFlow(KEY_FORCE_BACKGROUND, DEFAULT_FORCE_BACKGROUND) { preferences }
+          .flowOn(context = Dispatchers.IO)
+
+  override fun setAlwaysBackground(bg: Boolean) = setPreferences {
+    putBoolean(KEY_FORCE_BACKGROUND, bg)
   }
 
   override fun observeForceDozeEnabled(): Flow<Boolean> =
       preferenceBooleanFlow(KEY_FORCE_DOZE_ENABLED, DEFAULT_FORCE_DOZE_ENABLED) { preferences }
-          .flowOn(context = Dispatchers.Default)
+          .flowOn(context = Dispatchers.IO)
 
   private fun SharedPreferences.updateInt(key: String, defaultValue: Int, update: (Int) -> Int) {
     val self = this
@@ -190,5 +199,8 @@ internal constructor(
     private const val IN_APP_APP_OPENED = "key_in_app_app_opened_1"
 
     private const val IN_APP_RATING_SHOWN_VERSION = "key_in_app_rating_shown_version"
+
+    private const val KEY_FORCE_BACKGROUND = "key_force_background_1"
+    private const val DEFAULT_FORCE_BACKGROUND = false
   }
 }

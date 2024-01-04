@@ -8,18 +8,21 @@ import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.battery.saver.PowerSaverManager
 import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.ServiceLauncher
+import com.pyamsoft.trickle.service.ServicePreferences
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 
 class HomeViewModeler
 @Inject
 internal constructor(
     override val state: MutableHomeViewState,
-    private val preferences: PowerPreferences,
+    private val powerPreferences: PowerPreferences,
+    private val servicePreferences: ServicePreferences,
     private val batteryOptimizer: BatteryOptimizer,
     private val notifyGuard: NotifyGuard,
     private val launcher: ServiceLauncher,
@@ -30,10 +33,11 @@ internal constructor(
 
   private data class LoadConfig(
       var isEnabled: Boolean = false,
+      var isAlwaysForceBackground: Boolean = false,
   )
 
   private fun markLoadCompleted(config: LoadConfig) {
-    if (config.isEnabled) {
+    if (config.isEnabled && config.isAlwaysForceBackground) {
       state.loadingState.value = HomeViewState.LoadingState.DONE
 
       // Launch now that we are loaded
@@ -89,12 +93,28 @@ internal constructor(
     val config = LoadConfig()
 
     s.loadingState.value = HomeViewState.LoadingState.LOADING
-    scope.launch(context = Dispatchers.Main) {
-      preferences.observePowerSavingEnabled().collect { ps ->
-        onPowerEnabledChanged(ps)
-        if (s.loadingState.value == HomeViewState.LoadingState.LOADING) {
-          config.isEnabled = true
-          markLoadCompleted(config)
+
+    powerPreferences.observePowerSavingEnabled().also { f ->
+      scope.launch(context = Dispatchers.Main) {
+        f.collect { ps ->
+          onPowerEnabledChanged(ps)
+          if (s.loadingState.value == HomeViewState.LoadingState.LOADING) {
+            config.isEnabled = true
+            markLoadCompleted(config)
+          }
+        }
+      }
+    }
+
+    servicePreferences.listenAlwaysBackground().also { f ->
+      scope.launch(context = Dispatchers.Default) {
+        f.collect { isBackground ->
+          state.isAlwaysForceBackground.value = isBackground
+
+          if (s.loadingState.value == HomeViewState.LoadingState.LOADING) {
+            config.isAlwaysForceBackground = true
+            markLoadCompleted(config)
+          }
         }
       }
     }
@@ -126,8 +146,13 @@ internal constructor(
   }
 
   fun handleSetPowerSavingEnabled(enabled: Boolean) {
-    state.isPowerSaving.value = enabled
-    preferences.setPowerSavingEnabled(enabled)
+    val newState = state.isPowerSaving.updateAndGet { enabled }
+    powerPreferences.setPowerSavingEnabled(newState)
+  }
+
+  fun handleSetForceBackgroundEnabled(enabled: Boolean) {
+    val newState = state.isAlwaysForceBackground.updateAndGet { enabled }
+    servicePreferences.setAlwaysBackground(newState)
   }
 
   fun handleRestartClicked(scope: CoroutineScope) {

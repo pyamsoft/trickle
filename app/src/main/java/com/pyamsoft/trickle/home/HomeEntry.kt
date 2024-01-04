@@ -148,6 +148,7 @@ fun HomeEntry(
         exitProcess(0)
       },
       onTogglePowerSaving = { viewModel.handleSetPowerSavingEnabled(it) },
+      onToggleForceBackground = { viewModel.handleSetForceBackgroundEnabled(it) },
       onDisableBatteryOptimization = { handleDisableBatteryOptimization() },
       onRequestNotificationPermission = {
         // Request permissions

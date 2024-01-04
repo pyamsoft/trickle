@@ -30,6 +30,7 @@ import com.pyamsoft.trickle.TrickleTheme
 import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.A14WorkAround
+import com.pyamsoft.trickle.service.ServicePreferences
 import com.pyamsoft.trickle.service.notification.PermissionRequests
 import com.pyamsoft.trickle.service.notification.PermissionResponses
 import com.pyamsoft.trickle.service.registerToLifecycle
@@ -37,6 +38,7 @@ import com.pyamsoft.trickle.ui.InstallPYDroidExtras
 import com.pyamsoft.trickle.ui.LANDSCAPE_MAX_WIDTH
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -51,6 +53,7 @@ class MainActivity : AppCompatActivity() {
 
   @JvmField @Inject internal var a14WorkAround: A14WorkAround? = null
   @JvmField @Inject internal var batteryOptimizer: BatteryOptimizer? = null
+  @JvmField @Inject internal var servicePreferences: ServicePreferences? = null
 
   private var notificationRequester: PermissionRequester.Requester? = null
   private var pydroid: PYDroidActivityDelegate? = null
@@ -137,21 +140,38 @@ class MainActivity : AppCompatActivity() {
   private fun android14BackgroundActivityWorkaround() {
     a14WorkAround.requireNotNull().registerToLifecycle(owner = this)
 
+    val forceBackgroundOnStop = MutableStateFlow(false)
+
     val bo = batteryOptimizer.requireNotNull()
     lifecycle.addObserver(
         object : DefaultLifecycleObserver {
+
+          private fun attemptForceBackground() {
+            Timber.d { "Attempt force into background" }
+            lifecycleScope.launch(context = Dispatchers.Default) {
+              if (bo.isOptimizationsIgnored()) {
+                withContext(context = Dispatchers.Main) {
+                  android14BackgroundServiceQuirkWorkaround()
+                }
+              } else {
+                Timber.w { "Not forcing background without ignoring battery settings" }
+              }
+            }
+          }
+
           override fun onPause(owner: LifecycleOwner) {
             super.onPause(owner)
 
             if (isFinishing) {
-              Timber.d { "Attempt force into background" }
-              lifecycleScope.launch(context = Dispatchers.Default) {
-                if (bo.isOptimizationsIgnored()) {
-                  withContext(context = Dispatchers.Main) {
-                    android14BackgroundServiceQuirkWorkaround()
-                  }
-                }
-              }
+              attemptForceBackground()
+            }
+          }
+
+          override fun onStop(owner: LifecycleOwner) {
+            super.onStop(owner)
+            if (forceBackgroundOnStop.value) {
+              Timber.d { "Force Background on stop enabled!" }
+              attemptForceBackground()
             }
           }
 
@@ -161,6 +181,12 @@ class MainActivity : AppCompatActivity() {
           }
         },
     )
+
+    servicePreferences.requireNotNull().listenAlwaysBackground().also { f ->
+      lifecycleScope.launch(context = Dispatchers.Default) {
+        f.collect { forceBackgroundOnStop.value = it }
+      }
+    }
   }
 
   /**
@@ -234,6 +260,7 @@ class MainActivity : AppCompatActivity() {
     notificationRequester = null
     a14WorkAround = null
     batteryOptimizer = null
+    servicePreferences = null
     viewModel = null
   }
 }
