@@ -64,8 +64,12 @@ class MainActivity : AppCompatActivity() {
                   override val applicationIcon = R.mipmap.ic_launcher
 
                   override val changelog = buildChangeLog {
-                    bugfix("Fix visual errors in dialogs")
-                    bugfix("Fix theme getting overwritten on orientation change")
+                    bugfix(
+                        "Android 14: You should use the new \"Force Background\" tweak to ensure the Service runs consistently.")
+                    bugfix(
+                        "Ignore repeated screen on or off events while the screen is already on or off")
+                    change(
+                        "Restructure implementation on screen event receiver to more consistently listen for on and off.")
                   }
                 },
         )
