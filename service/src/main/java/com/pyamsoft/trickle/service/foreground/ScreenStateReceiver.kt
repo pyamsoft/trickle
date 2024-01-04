@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.core.ThreadEnforcer
-import com.pyamsoft.trickle.battery.saver.PowerSaverManager
 import com.pyamsoft.trickle.core.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,11 +16,8 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 @Singleton
@@ -30,8 +26,7 @@ internal class ScreenStateReceiver
 internal constructor(
     private val context: Context,
     private val enforcer: ThreadEnforcer,
-    private val saverManager: PowerSaverManager,
-    private val workaroundBus: EventBus<A14WorkaroundScreenState>,
+    private val screenStateBus: EventBus<ScreenState>,
 ) : BroadcastReceiver(), ScreenReceiver {
 
   private val receiverScope by lazy {
@@ -40,8 +35,6 @@ internal constructor(
     )
   }
 
-  private val mutex = Mutex()
-  private val mostRecentAction = MutableStateFlow(false)
   private val registered = MutableStateFlow(false)
 
   private fun unregister() {
@@ -49,21 +42,6 @@ internal constructor(
 
     Timber.d { "Unregister Screen Receiver" }
     context.unregisterReceiver(this)
-  }
-
-  private fun CoroutineScope.watchForWorkaroundEvents() {
-    val scope = this
-    workaroundBus.also { f ->
-      scope.launch(context = Dispatchers.Default) {
-        f.collect { event ->
-          Timber.d { "A14 workaround!" }
-          when (event) {
-            A14WorkaroundScreenState.SCREEN_ON -> handleScreenOn()
-            A14WorkaroundScreenState.SCREEN_OFF -> handleScreenOff()
-          }
-        }
-      }
-    }
   }
 
   override suspend fun register() {
@@ -81,9 +59,6 @@ internal constructor(
               context.registerReceiver(self, INTENT_FILTER)
             }
 
-            // Listen for A14 workarounds
-            watchForWorkaroundEvents()
-
             // And suspend until we are done
             awaitCancellation()
           }
@@ -98,48 +73,6 @@ internal constructor(
     }
   }
 
-  private suspend fun handleScreenOff() =
-      withContext(context = Dispatchers.Default) {
-        // NonCancellable so we cannot have this operation stop partially done
-        withContext(context = NonCancellable) {
-          mutex.withLock {
-            if (mostRecentAction.compareAndSet(expect = false, update = true)) {
-              // Hold a mutex to make sure we don't have parallel operations
-              // when dealing with system Power settings
-              Timber.d { "SCREEN_OFF: Enable power_saving" }
-
-              // Delay a bit so the system can catch up
-              delay(300L)
-
-              saverManager.savePower(enable = true)
-            } else {
-              Timber.w { "Most recent action was ENABLE power_saving, ignore repeat action" }
-            }
-          }
-        }
-      }
-
-  private suspend fun handleScreenOn() =
-      withContext(context = Dispatchers.Default) {
-        // NonCancellable so we cannot have this operation stop partially done
-        withContext(context = NonCancellable) {
-          mutex.withLock {
-            if (mostRecentAction.compareAndSet(expect = true, update = false)) {
-              // Hold a mutex to make sure we don't have parallel operations
-              // when dealing with system Power settings
-              Timber.d { "SCREEN_ON: Disable power_saving" }
-
-              // Delay a bit so the system can catch up
-              delay(300L)
-
-              saverManager.savePower(enable = false)
-            } else {
-              Timber.w { "Most recent action was DISABLE power_saving, ignore repeat action" }
-            }
-          }
-        }
-      }
-
   override fun onReceive(context: Context, intent: Intent) {
     // Go async in case scope work takes a long time
     val pending = goAsync()
@@ -147,8 +80,14 @@ internal constructor(
     receiverScope.launch(context = Dispatchers.Default) {
       try {
         when (val action = intent.action) {
-          Intent.ACTION_SCREEN_OFF -> handleScreenOff()
-          Intent.ACTION_SCREEN_ON -> handleScreenOn()
+          Intent.ACTION_SCREEN_OFF -> {
+            Timber.d { "Broadcast: SCREEN_OFF" }
+            screenStateBus.emit(ScreenState.SCREEN_OFF)
+          }
+          Intent.ACTION_SCREEN_ON -> {
+            Timber.d { "Broadcast: SCREEN_ON" }
+            screenStateBus.emit(ScreenState.SCREEN_ON)
+          }
           else -> {
             Timber.w { "Unhandled intent action: $action" }
           }

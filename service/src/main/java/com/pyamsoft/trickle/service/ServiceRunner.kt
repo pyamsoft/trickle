@@ -20,6 +20,7 @@ import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.foreground.ScreenReceiver
 import com.pyamsoft.trickle.service.notification.NotificationLauncher
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +35,8 @@ class ServiceRunner
 @Inject
 internal constructor(
     private val notificationLauncher: NotificationLauncher,
-    private val screenReceiver: ScreenReceiver,
+    @Named("screen_receiver") private val screenReceiver: ScreenReceiver,
+    @Named("screen_responder") private val screenResponder: ScreenReceiver,
 ) {
   private val runningState = MutableStateFlow(false)
 
@@ -46,6 +48,9 @@ internal constructor(
 
     // Register for Screen events
     scope.launch(context = Dispatchers.Default) { screenReceiver.register() }
+
+    // Register for Screen responses
+    scope.launch(context = Dispatchers.Default) { screenResponder.register() }
   }
 
   /** Start the proxy */

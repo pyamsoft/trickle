@@ -35,6 +35,8 @@ import com.pyamsoft.trickle.main.MainActivity
 import com.pyamsoft.trickle.main.MainComponent
 import com.pyamsoft.trickle.preference.PreferencesImpl
 import com.pyamsoft.trickle.receiver.OnBootReceiver
+import com.pyamsoft.trickle.service.A14WorkAround
+import com.pyamsoft.trickle.service.DefaultA14WorkAround
 import com.pyamsoft.trickle.service.MonitorService
 import com.pyamsoft.trickle.service.ServiceAppModule
 import com.pyamsoft.trickle.service.ServiceComponent
@@ -87,6 +89,10 @@ internal interface TrickleComponent {
     @Binds
     @CheckResult
     internal abstract fun bindInAppRatingPreferences(impl: PreferencesImpl): InAppRatingPreferences
+
+    @Binds
+    @CheckResult
+    internal abstract fun bindA14WorkAround(impl: DefaultA14WorkAround): A14WorkAround
 
     @Module
     companion object {

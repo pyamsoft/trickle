@@ -6,9 +6,10 @@ import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.bus.internal.DefaultEventBus
 import com.pyamsoft.pydroid.notify.Notifier
 import com.pyamsoft.pydroid.notify.NotifyDispatcher
-import com.pyamsoft.trickle.service.foreground.A14WorkaroundScreenState
+import com.pyamsoft.trickle.service.foreground.ScreenState
 import com.pyamsoft.trickle.service.foreground.ScreenReceiver
 import com.pyamsoft.trickle.service.foreground.ScreenStateReceiver
+import com.pyamsoft.trickle.service.foreground.ScreenStateResponder
 import com.pyamsoft.trickle.service.notification.NotificationLauncher
 import com.pyamsoft.trickle.service.notification.NotificationLauncherImpl
 import com.pyamsoft.trickle.service.notification.ServiceDispatcher
@@ -16,6 +17,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoSet
+import javax.inject.Named
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -32,7 +34,13 @@ abstract class ServiceAppModule {
   @Binds
   internal abstract fun bindNotification(impl: NotificationLauncherImpl): NotificationLauncher
 
-  @Binds internal abstract fun bindScreenReceiver(impl: ScreenStateReceiver): ScreenReceiver
+  @Binds
+  @Named("screen_receiver")
+  internal abstract fun bindScreenReceiver(impl: ScreenStateReceiver): ScreenReceiver
+
+  @Binds
+  @Named("screen_responder")
+  internal abstract fun bindScreenResponder(impl: ScreenStateResponder): ScreenReceiver
 
   @Module
   companion object {
@@ -54,7 +62,7 @@ abstract class ServiceAppModule {
     @Singleton
     @JvmStatic
     @CheckResult
-    internal fun provideForceScreenBus(): EventBus<A14WorkaroundScreenState> {
+    internal fun provideForceScreenBus(): EventBus<ScreenState> {
       return DefaultEventBus()
     }
   }

@@ -18,7 +18,9 @@ import kotlinx.coroutines.launch
 class MonitorService : Service() {
 
   @Inject @JvmField internal var runner: ServiceRunner? = null
+  @Inject @JvmField internal var a14WorkAround: A14WorkAround? = null
 
+  private var a14Unregister: A14WorkAround.Unregister? = null
   private var scope: CoroutineScope? = null
 
   @CheckResult
@@ -37,8 +39,25 @@ class MonitorService : Service() {
     ensureScope().launch(context = Dispatchers.Default) { runner.requireNotNull().start() }
   }
 
+  /**
+   * On Android 14, we sometimes get into a state where we are still alive and service is running
+   * but we can't actually receive Screen state intents probably due to system changes in A14. We
+   * can, for some reason though, still receive Activity callbacks.
+   *
+   * Register on the DisplayManager and watch for the display state to change.
+   */
+  private fun android14BackgroundActivityWorkaround() {
+    a14Unregister?.unregister()
+    a14Unregister = a14WorkAround.requireNotNull().register(scope = ensureScope())
+  }
+
+  /**
+   * On Android 14, after Swipe Away we sometimes Create but dont call onStartCommand
+   *
+   * Work around this by "starting ourselves"
+   */
   private fun startSelf() {
-    startService(Intent(applicationContext, MonitorService::class.java))
+    startService(Intent(applicationContext, this::class.java))
   }
 
   override fun onBind(intent: Intent?): IBinder? {
@@ -50,7 +69,9 @@ class MonitorService : Service() {
     ObjectGraph.ApplicationScope.retrieve(this).plusServiceComponent().create().inject(this)
     Timber.d { "Creating service" }
 
-    // A14 quirks when restarting a stick service
+    android14BackgroundActivityWorkaround()
+
+    // A14 quirks when restarting a sticky service
     startSelf()
   }
 
@@ -72,8 +93,11 @@ class MonitorService : Service() {
     Timber.d { "Destroying service" }
 
     scope?.cancel()
+    a14Unregister?.unregister()
 
     scope = null
     runner = null
+    a14WorkAround = null
+    a14Unregister = null
   }
 }
