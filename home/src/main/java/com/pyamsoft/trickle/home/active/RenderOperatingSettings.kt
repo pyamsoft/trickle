@@ -90,7 +90,10 @@ fun LazyListScope.renderOperatingSettings(
         checked = isForceBackgroundEnabled,
         name = "Always Force Background",
         description =
-            """Every time you close the UI (home button, back button), $appName will force itself into the background."""
+            """Every time you close the UI (home button, back button), $appName will force itself into the background.
+                |
+                |This can mess with the expected UI a little bit (the Android Lifecycle), but can generally provide more reliable service performance.
+            """
                 .trimMargin(),
         onChange = {
           hapticManager?.confirmButtonPress()
