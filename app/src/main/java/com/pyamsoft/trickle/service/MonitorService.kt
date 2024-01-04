@@ -50,7 +50,12 @@ class MonitorService : Service() {
    */
   private fun android14BackgroundActivityWorkaround() {
     a14Unregister?.unregister()
-    a14Unregister = a14WorkAround.requireNotNull().register(scope = ensureScope())
+    a14Unregister =
+        a14WorkAround
+            .requireNotNull()
+            .register(
+                scope = ensureScope(),
+            )
   }
 
   /**
