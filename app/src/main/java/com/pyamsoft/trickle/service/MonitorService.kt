@@ -86,6 +86,8 @@ class MonitorService : Service() {
    * If the app is in the background, this will not run unless the app sets Battery Optimization off
    */
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    super.onStartCommand(intent, flags, startId)
+
     Timber.d { "Starting Service" }
     // Each time the service starts/restarts we use the fact that it is tied to the Android OS
     // lifecycle to restart the launcher which does all the Proxy lifting.
