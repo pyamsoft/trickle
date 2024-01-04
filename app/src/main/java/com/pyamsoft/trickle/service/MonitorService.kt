@@ -20,6 +20,8 @@ class MonitorService : Service() {
   @Inject @JvmField internal var runner: ServiceRunner? = null
   @Inject @JvmField internal var a14WorkAround: A14WorkAround? = null
 
+  private val selfService by lazy { Intent(applicationContext, this::class.java) }
+
   private var a14Unregister: A14WorkAround.Unregister? = null
   private var scope: CoroutineScope? = null
 
@@ -57,7 +59,7 @@ class MonitorService : Service() {
    * Work around this by "starting ourselves"
    */
   private fun startSelf() {
-    startService(Intent(applicationContext, this::class.java))
+    startService(selfService)
   }
 
   override fun onBind(intent: Intent?): IBinder? {
