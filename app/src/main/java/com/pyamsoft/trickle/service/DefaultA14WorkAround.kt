@@ -21,8 +21,8 @@ import kotlinx.coroutines.launch
 internal class DefaultA14WorkAround
 @Inject
 internal constructor(
-  context: Context,
-  private val screenStateBus: EventBus<ScreenState>,
+    context: Context,
+    private val screenStateBus: EventBus<ScreenState>,
 ) : A14WorkAround {
 
   private val displayManager by lazy { context.getSystemService<DisplayManager>().requireNotNull() }

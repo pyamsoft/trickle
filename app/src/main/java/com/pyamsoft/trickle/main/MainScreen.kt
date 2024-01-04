@@ -36,6 +36,7 @@ internal fun MainScreen(
     appName: String,
     state: MainViewState,
     onOpenSettings: () -> Unit,
+    onForceBackground: () -> Unit,
 ) {
   val permission by state.permission.collectAsStateWithLifecycle()
 
@@ -65,6 +66,7 @@ internal fun MainScreen(
               modifier = Modifier.weight(1F).fillMaxWidth(),
               appName = appName,
               hasPermission = hasPermission,
+              onForceBackground = onForceBackground,
           )
         }
       }
@@ -140,5 +142,6 @@ private fun PreviewMainScreen() {
       appName = "TEST",
       state = MutableMainViewState(),
       onOpenSettings = {},
+      onForceBackground = {},
   )
 }

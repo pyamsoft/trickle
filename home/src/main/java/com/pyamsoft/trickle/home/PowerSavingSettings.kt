@@ -51,6 +51,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
     onDisableBatteryOptimization: () -> Unit,
     onRestartPowerService: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
+    onForceBackground: () -> Unit,
 ) {
 
   item(
@@ -131,6 +132,7 @@ internal fun LazyListScope.renderPowerSavingSettings(
         state = state,
         onRestartPowerService = onRestartPowerService,
         onOpenSettings = onOpenBatterySettings,
+        onForceBackground = onForceBackground,
     )
   } else {
     item(
@@ -167,9 +169,11 @@ internal fun LazyListScope.renderPowerSavingSettings(
 private enum class TroubleshootingTypes {
   LABEL,
   EXPLAIN,
-  BUTTON_PROMPT,
-  BUTTON,
-  SHORTCUT,
+  FORCE_BACKGROUND_PROMPT,
+  FORCE_BACKGROUND,
+  RESTART_SERVICE_PROMPT,
+  RESTART_SERVICE,
+  RESTART_SHORTCUT,
 }
 
 private fun LazyListScope.renderTroubleshooting(
@@ -178,6 +182,7 @@ private fun LazyListScope.renderTroubleshooting(
     state: HomeViewState,
     onRestartPowerService: () -> Unit,
     onOpenSettings: () -> Unit,
+    onForceBackground: () -> Unit,
 ) {
 
   item(
@@ -201,11 +206,12 @@ private fun LazyListScope.renderTroubleshooting(
   }
 
   item(
-      contentType = TroubleshootingTypes.BUTTON_PROMPT,
+      contentType = TroubleshootingTypes.FORCE_BACKGROUND_PROMPT,
   ) {
     Text(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.typography),
-        text = "Click the button below a couple of times and see if that fixes things",
+        text =
+            "Sometimes the service can be fixed by forcing the application into the background. The \"Always Alive\" option must be enabled",
         style =
             MaterialTheme.typography.caption.copy(
                 color =
@@ -217,7 +223,43 @@ private fun LazyListScope.renderTroubleshooting(
   }
 
   item(
-      contentType = TroubleshootingTypes.BUTTON,
+      contentType = TroubleshootingTypes.FORCE_BACKGROUND,
+  ) {
+    val isEnabled by state.isBatteryOptimizationsIgnored.collectAsStateWithLifecycle()
+
+    Box(
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
+        contentAlignment = Alignment.Center,
+    ) {
+      Button(
+          enabled = isEnabled,
+          onClick = onForceBackground,
+      ) {
+        Text(
+            text = "Force $appName Background",
+        )
+      }
+    }
+  }
+
+  item(
+      contentType = TroubleshootingTypes.RESTART_SERVICE_PROMPT,
+  ) {
+    Text(
+        modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
+        text = "Otherwise click the button below a couple of times and see if that fixes things",
+        style =
+            MaterialTheme.typography.caption.copy(
+                color =
+                    MaterialTheme.colors.onBackground.copy(
+                        alpha = ContentAlpha.medium,
+                    ),
+            ),
+    )
+  }
+
+  item(
+      contentType = TroubleshootingTypes.RESTART_SERVICE,
   ) {
     Box(
         modifier = itemModifier.padding(top = MaterialTheme.keylines.content),
@@ -234,7 +276,7 @@ private fun LazyListScope.renderTroubleshooting(
   }
 
   item(
-      contentType = TroubleshootingTypes.SHORTCUT,
+      contentType = TroubleshootingTypes.RESTART_SHORTCUT,
   ) {
     val isVisible by state.isPowerSettingsShortcutVisible.collectAsStateWithLifecycle()
 
@@ -300,6 +342,7 @@ private fun PreviewPowerSavingSettings(
         onStartTroubleshooting = {},
         onDisableBatteryOptimization = {},
         onRequestNotificationPermission = {},
+        onForceBackground = {},
     )
   }
 }

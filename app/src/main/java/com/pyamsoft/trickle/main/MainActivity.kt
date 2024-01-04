@@ -3,12 +3,15 @@ package com.pyamsoft.trickle.main
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Process
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.pyamsoft.pydroid.arch.SaveStateDisposableEffect
@@ -24,6 +27,7 @@ import com.pyamsoft.pydroid.util.stableLayoutHideNavigation
 import com.pyamsoft.trickle.ObjectGraph
 import com.pyamsoft.trickle.R
 import com.pyamsoft.trickle.TrickleTheme
+import com.pyamsoft.trickle.battery.optimize.BatteryOptimizer
 import com.pyamsoft.trickle.core.Timber
 import com.pyamsoft.trickle.service.A14WorkAround
 import com.pyamsoft.trickle.service.notification.PermissionRequests
@@ -34,6 +38,7 @@ import com.pyamsoft.trickle.ui.LANDSCAPE_MAX_WIDTH
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -43,7 +48,9 @@ class MainActivity : AppCompatActivity() {
   @JvmField @Inject internal var permissionResponseBus: EventBus<PermissionResponses>? = null
 
   @JvmField @Inject internal var notificationPermissionRequester: PermissionRequester? = null
+
   @JvmField @Inject internal var a14WorkAround: A14WorkAround? = null
+  @JvmField @Inject internal var batteryOptimizer: BatteryOptimizer? = null
 
   private var notificationRequester: PermissionRequester.Requester? = null
   private var pydroid: PYDroidActivityDelegate? = null
@@ -125,6 +132,42 @@ class MainActivity : AppCompatActivity() {
    */
   private fun android14BackgroundActivityWorkaround() {
     a14WorkAround.requireNotNull().registerToLifecycle(owner = this)
+
+    val bo = batteryOptimizer.requireNotNull()
+    lifecycle.addObserver(
+        object : DefaultLifecycleObserver {
+          override fun onPause(owner: LifecycleOwner) {
+            super.onPause(owner)
+
+            if (isFinishing) {
+              Timber.d { "Attempt force into background" }
+              lifecycleScope.launch(context = Dispatchers.Default) {
+                if (bo.isOptimizationsIgnored()) {
+                  withContext(context = Dispatchers.Main) {
+                    android14BackgroundServiceQuirkWorkaround()
+                  }
+                }
+              }
+            }
+          }
+
+          override fun onDestroy(owner: LifecycleOwner) {
+            super.onDestroy(owner)
+            owner.lifecycle.removeObserver(this)
+          }
+        },
+    )
+  }
+
+  /**
+   * For some reason on A14, going into the background will produce inconsistent service callbacks
+   *
+   * But if we kill our process with Always Alive On, it will restart and receive consistent events.
+   * Do that.
+   */
+  private fun android14BackgroundServiceQuirkWorkaround() {
+    Timber.d { "A14 Kill self for background service workaround" }
+    Process.killProcess(Process.myPid())
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -151,6 +194,7 @@ class MainActivity : AppCompatActivity() {
             modifier = Modifier.fillMaxSize(),
             appName = appName,
             onShowInAppRating = { handleShowInAppRating() },
+            onForceBackground = { android14BackgroundServiceQuirkWorkaround() },
         )
       }
     }
@@ -176,6 +220,7 @@ class MainActivity : AppCompatActivity() {
 
   override fun onDestroy() {
     super.onDestroy()
+    Timber.d { "Destroy!" }
 
     notificationRequester?.unregister()
 
@@ -184,6 +229,7 @@ class MainActivity : AppCompatActivity() {
     notificationPermissionRequester = null
     notificationRequester = null
     a14WorkAround = null
+    batteryOptimizer = null
     viewModel = null
   }
 }

@@ -96,6 +96,7 @@ fun HomeEntry(
     modifier: Modifier = Modifier,
     appName: String,
     hasPermission: Boolean,
+    onForceBackground: () -> Unit,
 ) {
   val activity = LocalActivity.current
   val component = rememberComposableInjector { HomeInjector() }
@@ -138,6 +139,7 @@ fun HomeEntry(
       appName = appName,
       state = viewModel,
       hasPermission = hasPermission,
+      onForceBackground = onForceBackground,
       onOpenTroubleshooting = { viewModel.handleOpenTroubleshooting() },
       onOpenBatterySettings = { handleOpenBatterySettings() },
       onRestartPowerService = { viewModel.handleRestartClicked(scope = scope) },

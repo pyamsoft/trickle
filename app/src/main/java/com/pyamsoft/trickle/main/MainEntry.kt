@@ -73,6 +73,7 @@ fun MainEntry(
     modifier: Modifier = Modifier,
     appName: String,
     onShowInAppRating: () -> Unit,
+    onForceBackground: () -> Unit,
 ) {
   val component = rememberComposableInjector { MainInjector() }
   val viewModel = rememberNotNull(component.viewModel)
@@ -88,6 +89,7 @@ fun MainEntry(
       modifier = modifier.fillMaxSize(),
       appName = appName,
       state = viewModel,
+      onForceBackground = onForceBackground,
       onOpenSettings = { viewModel.handleOpenSettings() },
   )
 

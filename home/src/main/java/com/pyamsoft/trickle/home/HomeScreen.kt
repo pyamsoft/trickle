@@ -47,6 +47,7 @@ fun HomeScreen(
     onRestartApp: () -> Unit,
     onRequestNotificationPermission: () -> Unit,
     onOpenTroubleshooting: () -> Unit,
+    onForceBackground: () -> Unit,
 ) {
   val showNotificationSettings = remember { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU }
 
@@ -95,6 +96,7 @@ fun HomeScreen(
               onStartTroubleshooting = onOpenTroubleshooting,
               onDisableBatteryOptimization = onDisableBatteryOptimization,
               onRequestNotificationPermission = onRequestNotificationPermission,
+              onForceBackground = onForceBackground,
           )
         } else {
           renderSetupInstructions(
@@ -152,6 +154,7 @@ private fun PreviewHomeScreen(state: HomeViewState, hasPermission: Boolean) {
       onRestartApp = {},
       onDisableBatteryOptimization = {},
       onRequestNotificationPermission = {},
+      onForceBackground = {},
   )
 }
 

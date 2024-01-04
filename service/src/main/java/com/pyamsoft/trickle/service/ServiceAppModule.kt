@@ -6,8 +6,8 @@ import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.bus.internal.DefaultEventBus
 import com.pyamsoft.pydroid.notify.Notifier
 import com.pyamsoft.pydroid.notify.NotifyDispatcher
-import com.pyamsoft.trickle.service.foreground.ScreenState
 import com.pyamsoft.trickle.service.foreground.ScreenReceiver
+import com.pyamsoft.trickle.service.foreground.ScreenState
 import com.pyamsoft.trickle.service.foreground.ScreenStateReceiver
 import com.pyamsoft.trickle.service.foreground.ScreenStateResponder
 import com.pyamsoft.trickle.service.notification.NotificationLauncher
