@@ -4,7 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import androidx.core.content.ContextCompat
+import com.pyamsoft.pydroid.bus.EventBus
 import com.pyamsoft.pydroid.core.ThreadEnforcer
 import com.pyamsoft.trickle.battery.saver.PowerSaverManager
 import com.pyamsoft.trickle.core.Timber
@@ -31,6 +31,7 @@ internal constructor(
     private val context: Context,
     private val enforcer: ThreadEnforcer,
     private val saverManager: PowerSaverManager,
+    private val workaroundBus: EventBus<A14WorkaroundScreenState>,
 ) : BroadcastReceiver(), ScreenReceiver {
 
   private val receiverScope by lazy {
@@ -38,7 +39,9 @@ internal constructor(
         context = SupervisorJob() + Dispatchers.Default + CoroutineName(this::class.java.name),
     )
   }
+
   private val mutex = Mutex()
+  private val mostRecentAction = MutableStateFlow(false)
   private val registered = MutableStateFlow(false)
 
   private fun unregister() {
@@ -46,6 +49,21 @@ internal constructor(
 
     Timber.d { "Unregister Screen Receiver" }
     context.unregisterReceiver(this)
+  }
+
+  private fun CoroutineScope.watchForWorkaroundEvents() {
+    val scope = this
+    workaroundBus.also { f ->
+      scope.launch(context = Dispatchers.Default) {
+        f.collect { event ->
+          Timber.d { "A14 workaround!" }
+          when (event) {
+            A14WorkaroundScreenState.SCREEN_ON -> handleScreenOn()
+            A14WorkaroundScreenState.SCREEN_OFF -> handleScreenOff()
+          }
+        }
+      }
+    }
   }
 
   override suspend fun register() {
@@ -58,13 +76,13 @@ internal constructor(
           coroutineScope {
             withContext(context = Dispatchers.Main) {
               Timber.d { "Register Screen Receiver" }
-              ContextCompat.registerReceiver(
-                  context,
-                  self,
-                  INTENT_FILTER,
-                  ContextCompat.RECEIVER_NOT_EXPORTED,
-              )
+              // Don't use flag because we are listening for system broadcasts
+              // https://developer.android.com/about/versions/14/behavior-changes-14#system-broadcasts
+              context.registerReceiver(self, INTENT_FILTER)
             }
+
+            // Listen for A14 workarounds
+            watchForWorkaroundEvents()
 
             // And suspend until we are done
             awaitCancellation()
@@ -85,14 +103,18 @@ internal constructor(
         // NonCancellable so we cannot have this operation stop partially done
         withContext(context = NonCancellable) {
           mutex.withLock {
-            // Hold a mutex to make sure we don't have parallel operations
-            // when dealing with system Power settings
-            Timber.d { "SCREEN_OFF: Enable power_saving" }
+            if (mostRecentAction.compareAndSet(expect = false, update = true)) {
+              // Hold a mutex to make sure we don't have parallel operations
+              // when dealing with system Power settings
+              Timber.d { "SCREEN_OFF: Enable power_saving" }
 
-            // Delay a bit so the system can catch up
-            delay(300L)
+              // Delay a bit so the system can catch up
+              delay(300L)
 
-            saverManager.savePower(enable = true)
+              saverManager.savePower(enable = true)
+            } else {
+              Timber.w { "Most recent action was ENABLE power_saving, ignore repeat action" }
+            }
           }
         }
       }
@@ -102,14 +124,18 @@ internal constructor(
         // NonCancellable so we cannot have this operation stop partially done
         withContext(context = NonCancellable) {
           mutex.withLock {
-            // Hold a mutex to make sure we don't have parallel operations
-            // when dealing with system Power settings
-            Timber.d { "SCREEN_ON: Disable power_saving" }
+            if (mostRecentAction.compareAndSet(expect = true, update = false)) {
+              // Hold a mutex to make sure we don't have parallel operations
+              // when dealing with system Power settings
+              Timber.d { "SCREEN_ON: Disable power_saving" }
 
-            // Delay a bit so the system can catch up
-            delay(300L)
+              // Delay a bit so the system can catch up
+              delay(300L)
 
-            saverManager.savePower(enable = false)
+              saverManager.savePower(enable = false)
+            } else {
+              Timber.w { "Most recent action was DISABLE power_saving, ignore repeat action" }
+            }
           }
         }
       }

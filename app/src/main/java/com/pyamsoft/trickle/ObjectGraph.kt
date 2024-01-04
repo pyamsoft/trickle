@@ -46,6 +46,17 @@ internal object ObjectGraph {
         "Could not find ApplicationScoped internals for Application: $application"
       }
     }
+
+    @CheckResult
+    inline fun ensure(application: Application, block: () -> TrickleComponent): TrickleComponent {
+      var held = trackingMap[application]
+      if (held == null) {
+        held = block()
+        trackingMap[application] = held
+      }
+
+      return held
+    }
   }
 
   internal object ActivityScope {

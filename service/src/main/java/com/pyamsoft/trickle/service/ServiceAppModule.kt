@@ -2,8 +2,11 @@ package com.pyamsoft.trickle.service
 
 import android.content.Context
 import androidx.annotation.CheckResult
+import com.pyamsoft.pydroid.bus.EventBus
+import com.pyamsoft.pydroid.bus.internal.DefaultEventBus
 import com.pyamsoft.pydroid.notify.Notifier
 import com.pyamsoft.pydroid.notify.NotifyDispatcher
+import com.pyamsoft.trickle.service.foreground.A14WorkaroundScreenState
 import com.pyamsoft.trickle.service.foreground.ScreenReceiver
 import com.pyamsoft.trickle.service.foreground.ScreenStateReceiver
 import com.pyamsoft.trickle.service.notification.NotificationLauncher
@@ -45,6 +48,14 @@ abstract class ServiceAppModule {
         context: Context
     ): Notifier {
       return Notifier.createDefault(context, dispatchers)
+    }
+
+    @Provides
+    @Singleton
+    @JvmStatic
+    @CheckResult
+    internal fun provideForceScreenBus(): EventBus<A14WorkaroundScreenState> {
+      return DefaultEventBus()
     }
   }
 }

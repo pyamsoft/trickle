@@ -37,6 +37,10 @@ class MonitorService : Service() {
     ensureScope().launch(context = Dispatchers.Default) { runner.requireNotNull().start() }
   }
 
+  private fun startSelf() {
+    startService(Intent(applicationContext, MonitorService::class.java))
+  }
+
   override fun onBind(intent: Intent?): IBinder? {
     return null
   }
@@ -45,12 +49,16 @@ class MonitorService : Service() {
     super.onCreate()
     ObjectGraph.ApplicationScope.retrieve(this).plusServiceComponent().create().inject(this)
     Timber.d { "Creating service" }
+
+    // A14 quirks when restarting a stick service
+    startSelf()
   }
 
   /**
    * If the app is in the background, this will not run unless the app sets Battery Optimization off
    */
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    Timber.d { "Starting Service" }
     // Each time the service starts/restarts we use the fact that it is tied to the Android OS
     // lifecycle to restart the launcher which does all the Proxy lifting.
     startRunner()
