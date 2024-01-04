@@ -5,8 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface ServicePreferences {
 
-    @CheckResult
-    fun listenAlwaysBackground(): Flow<Boolean>
+  @CheckResult fun listenAlwaysBackground(): Flow<Boolean>
 
-    fun setAlwaysBackground(bg: Boolean)
+  fun setAlwaysBackground(bg: Boolean)
 }
