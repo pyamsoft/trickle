@@ -21,8 +21,8 @@ import kotlinx.coroutines.withContext
 internal class ScreenStateResponder
 @Inject
 internal constructor(
-  private val saverManager: PowerSaverManager,
-  private val screenBus: EventBus<ScreenState>,
+    private val saverManager: PowerSaverManager,
+    private val screenBus: EventBus<ScreenState>,
 ) : ScreenReceiver {
 
   private val mutex = Mutex()
