@@ -17,7 +17,7 @@ internal constructor(
     private val permission: PermissionGuard,
 ) {
 
-  private val service by lazy(LazyThreadSafetyMode.NONE) { Intent(context, serviceClass) }
+  private val service by lazy { Intent(context, serviceClass) }
 
   private fun startService() {
     Timber.d { "Starting MonitoringService" }

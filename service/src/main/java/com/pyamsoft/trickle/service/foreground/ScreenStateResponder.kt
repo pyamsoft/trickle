@@ -21,8 +21,8 @@ import kotlinx.coroutines.withContext
 internal class ScreenStateResponder
 @Inject
 internal constructor(
-    private val saverManager: PowerSaverManager,
-    private val workaroundBus: EventBus<ScreenState>,
+  private val saverManager: PowerSaverManager,
+  private val screenBus: EventBus<ScreenState>,
 ) : ScreenReceiver {
 
   private val mutex = Mutex()
@@ -35,7 +35,7 @@ internal constructor(
 
   private fun CoroutineScope.watchForScreenEvents() {
     val scope = this
-    workaroundBus.also { f ->
+    screenBus.also { f ->
       scope.launch(context = Dispatchers.Default) {
         f.collect { event ->
           when (event) {
