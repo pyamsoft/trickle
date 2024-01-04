@@ -1,4 +1,4 @@
-package com.pyamsoft.trickle.home
+package com.pyamsoft.trickle.home.active
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.trickle.home.HomeViewState
 import com.pyamsoft.trickle.ui.icons.Label
 
 private enum class NotificationTypes {

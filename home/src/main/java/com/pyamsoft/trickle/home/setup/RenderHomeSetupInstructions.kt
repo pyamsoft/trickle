@@ -1,4 +1,4 @@
-package com.pyamsoft.trickle.home
+package com.pyamsoft.trickle.home.setup
 
 import android.content.Context
 import androidx.annotation.CheckResult

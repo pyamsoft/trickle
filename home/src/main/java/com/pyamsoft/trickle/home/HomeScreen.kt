@@ -22,6 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pyamsoft.pydroid.theme.keylines
+import com.pyamsoft.trickle.home.active.renderPowerSavingSettings
+import com.pyamsoft.trickle.home.setup.renderSetupInstructions
 import com.pyamsoft.trickle.ui.LANDSCAPE_MAX_WIDTH
 import com.pyamsoft.trickle.ui.renderPYDroidExtras
 

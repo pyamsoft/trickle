@@ -1,4 +1,4 @@
-package com.pyamsoft.trickle.home
+package com.pyamsoft.trickle.home.active
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
