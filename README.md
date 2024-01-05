@@ -3,6 +3,19 @@ Trickle
 
 Automatic Android Low-Power Mode
 
+## DEPRECATED
+
+Trickle can no longer be supported on new (14+) versions of Android. Recent changes to how the OS handles "background service" style applications is the cause of this deprecation.
+First of all, Google is making it very hard for apps to receive permission to use a
+[Foreground Service](https://support.google.com/googleplay/android-developer/answer/13392821?hl=en_EN). It is my firm belief that Trickle will never actually be granted FGS permission,
+or even if it does it will be dropped in a future A15 update or eventually be kicked off the store by Google. This would jeopardize my entire developer account, and thus, is not
+worth the risk of attempting. Trickle used to be able to run as a "Battery Optimization Exempted" service, but recent A14 changes with how they handle
+[cached processes](https://developer.android.com/about/versions/14/behavior-changes-all) make even an exempted background service suspend functionality after
+~10 minutes or so. This is unacceptable for a background style app like Trickle. Trickle would need to claim FGS permission to resolve this "suspended functionality" change,
+but as stated above, this is both a policy death sentence, and would actually cause Trickle to use more battery than it would save overall.
+
+tl;dr: Policy changes and Operating System changes have effectively killed Trickle - sorry. So long, again, and thanks for all the fish!
+
 
 ### Get Trickle
 
